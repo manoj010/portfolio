@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-surface: #F8F9FA;
+  --color-surface-container-low: #F1F4F6;
+  --color-surface-container-high: #E3E9EC;
+  --color-surface-container-highest: #DBE4E7;
+  --color-surface-container-lowest: #FFFFFF;
+  
+  --color-primary: #5B5F63;
+  --color-primary-dim: #4F5357;
+  --color-on-primary: #F5F8FD;
+  
+  --color-secondary: #596067;
+  --color-on-surface: #2B3437;
+  --color-on-surface-variant: #586064;
+  --color-inverse-surface: #0C0F10;
+  --color-outline-variant: #ABB3B7;
+  
+  /* Typography */
+  --font-headline: 'Manrope', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  
+  /* Radii */
+  --radius-md: 1.5rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3.5rem;
+  
+  /* Shadows */
+  --shadow-ambient: 0 40px 60px rgba(43, 52, 55, 0.06);
+}
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headline);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .content-container {
+    @apply max-w-7xl mx-auto w-full px-12 md:px-24;
+  }
+}
