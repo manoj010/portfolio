@@ -10,7 +10,7 @@ export const Hero = () => {
   const rotate = useTransform(scrollY, [0, 500], [0, 45]);
 
   return (
-    <section className="relative min-h-screen flex items-center pt-40 pb-32 px-12 md:px-24 overflow-hidden bg-surface">
+    <section className="relative min-h-screen flex items-center pt-32 md:pt-40 pb-20 md:pb-32 px-6 md:px-12 lg:px-24 overflow-hidden bg-surface">
       {/* Decorative Background Elements */}
       <motion.div
         style={{ y: y1 }}
@@ -21,23 +21,33 @@ export const Hero = () => {
         className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-secondary/5 blur-[150px]"
       />
 
-      <div className="content-container grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+      <div className="content-container grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10 w-full">
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 1, ease: [0.2, 0, 0, 1], delay: 0.2 }}
-          className="flex flex-col gap-8"
+          className="flex flex-col gap-6 md:gap-8 items-center text-center lg:items-start lg:text-left"
         >
+          {/* Mobile Profile Image */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, delay: 0.3 }}
+            className="lg:hidden w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl mb-4"
+          >
+            <img src={ppImage} alt="Manoj" className="w-full h-full object-cover" />
+          </motion.div>
+
           <div className="flex flex-col gap-4">
             <motion.span
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-xs uppercase tracking-[0.3em] text-on-surface-variant font-bold"
+              className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-on-surface-variant font-bold"
             >
               Software Developer
             </motion.span>
-            <h1 className="text-7xl md:text-8xl font-extrabold tracking-tighter text-on-surface leading-[0.95]">
+            <h1 className="text-6xl md:text-8xl font-extrabold tracking-tighter text-on-surface leading-[0.95]">
               Manoj<span className="text-primary italic">.</span>
             </h1>
           </div>
@@ -46,9 +56,9 @@ export const Hero = () => {
             Building practical web applications and business-critical tools with precision and a <span className="text-on-surface font-medium italic">quiet authority</span> in technical execution.
           </p>
 
-          <div className="flex flex-wrap items-center gap-4 pt-4">
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4">
             <Button 
-              className="group gap-2"
+              className="group gap-2 min-h-[48px] px-8"
               onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })}
             >
               View Projects
@@ -102,10 +112,10 @@ export const Hero = () => {
       <motion.div
         animate={{ y: [0, 10, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-2 opacity-30"
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-30 sm:opacity-20"
       >
         <span className="text-[10px] uppercase tracking-widest font-bold">Scroll</span>
-        <div className="w-px h-12 bg-on-surface" />
+        <div className="w-px h-8 md:h-12 bg-on-surface" />
       </motion.div>
     </section>
   );

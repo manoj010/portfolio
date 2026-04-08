@@ -32,7 +32,7 @@ const projects = [
 
 export const Projects = () => {
   return (
-    <section id="projects" className="py-48 bg-surface">
+    <section id="projects" className="py-24 md:py-48 bg-surface px-6">
       <div className="content-container">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 gap-8">
           <div>
@@ -40,11 +40,11 @@ export const Projects = () => {
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="text-5xl font-extrabold tracking-tight mb-4"
+              className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4"
             >
               Featured Work
             </motion.h2>
-            <p className="text-on-surface-variant max-w-md text-lg font-light">
+            <p className="text-on-surface-variant max-w-md text-base md:text-lg font-light">
               A selection of projects where technical rigor meets user-centered design.
             </p>
           </div>
@@ -58,7 +58,7 @@ export const Projects = () => {
           </motion.a>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
           {projects.map((project, index) => (
             <motion.div 
               key={index}
@@ -66,7 +66,7 @@ export const Projects = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1, duration: 0.8 }}
-              className="group flex flex-col gap-8"
+              className="group flex flex-col gap-6 md:gap-8"
             >
               <div className="relative aspect-[4/3] rounded-[2rem] overflow-hidden bg-surface-container-low shadow-sm transition-all duration-700 group-hover:shadow-[0_40px_80px_rgba(43,52,55,0.12)] border border-white/50">
                 <img 
@@ -74,8 +74,8 @@ export const Projects = () => {
                   alt={project.title} 
                   className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-all duration-500 backdrop-blur-[2px] flex items-center justify-center">
-                  <Button variant="primary" className="shadow-2xl translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100">
+                <div className="absolute inset-0 bg-primary/20 opacity-0 lg:group-hover:opacity-100 transition-all duration-500 backdrop-blur-[2px] flex items-center justify-center">
+                  <Button variant="primary" className="shadow-2xl translate-y-4 lg:group-hover:translate-y-0 opacity-0 lg:group-hover:opacity-100 transition-all duration-500 delay-100">
                     Case Study
                   </Button>
                 </div>
@@ -87,7 +87,7 @@ export const Projects = () => {
                     <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">{project.category}</span>
                     <h3 className="text-2xl font-bold font-headline">{project.title}</h3>
                   </div>
-                  <ExternalLink className="w-5 h-5 text-on-surface-variant opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all" />
+                  <ExternalLink className="w-5 h-5 text-on-surface-variant opacity-60 lg:opacity-40 lg:group-hover:opacity-100 lg:group-hover:text-primary transition-all" />
                 </div>
                 
                 <p className="text-on-surface-variant text-sm leading-relaxed font-light line-clamp-2">

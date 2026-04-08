@@ -22,31 +22,31 @@ const experiences = [
 
 export const Experience = () => {
   return (
-    <section id="experience" className="py-48 bg-surface-container-low">
+    <section id="experience" className="py-24 md:py-48 bg-surface-container-low px-6">
       <div className="content-container">
-        <div className="mb-16">
+        <div className="mb-12 md:mb-16">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl font-bold tracking-tight"
+            className="text-3xl md:text-4xl font-bold tracking-tight"
           >
             Professional Journey
           </motion.h2>
-          <div className="h-1 w-20 bg-primary mt-6" />
+          <div className="h-1 w-16 md:w-20 bg-primary mt-4 md:mt-6" />
         </div>
 
         <div className="flex flex-col gap-12">
           {experiences.map((exp, index) => (
             <Card key={index} className="p-0 overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-700">
-              <div className="p-10 md:p-12">
-                <div className="flex flex-col md:flex-row justify-between md:items-center gap-6 mb-12">
+              <div className="p-8 md:p-12">
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 md:gap-6 mb-10 md:mb-12">
                   <div>
-                    <h3 className="text-3xl font-bold text-on-surface mb-2">{exp.company}</h3>
-                    <p className="text-primary font-bold tracking-tight text-lg">{exp.role}</p>
+                    <h3 className="text-2xl md:text-3xl font-bold text-on-surface mb-2">{exp.company}</h3>
+                    <p className="text-primary font-bold tracking-tight text-base md:text-lg">{exp.role}</p>
                   </div>
-                  <div className="flex flex-col items-end">
-                    <span className="px-5 py-2 bg-surface-container rounded-full text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                  <div className="flex flex-col items-start md:items-end">
+                    <span className="px-4 py-1.5 md:px-5 md:py-2 bg-surface-container rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                       {exp.period}
                     </span>
                   </div>
@@ -54,7 +54,7 @@ export const Experience = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                   <div className="lg:col-span-2 space-y-6">
-                    <p className="text-on-surface-variant text-lg leading-relaxed font-light">
+                    <p className="text-on-surface-variant text-base md:text-lg leading-relaxed font-light">
                       {exp.description}
                     </p>
                     <ul className="space-y-4">
