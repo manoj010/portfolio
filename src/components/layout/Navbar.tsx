@@ -99,8 +99,8 @@ export const Navbar = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 z-40 bg-white/70 backdrop-blur-3xl md:hidden overflow-hidden"
+            transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
+            className="fixed inset-0 z-40 bg-white/80 backdrop-blur-xl md:hidden overflow-hidden"
           >
             {/* Subtle Background Animations (Grayscale Blobs) */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
@@ -134,10 +134,7 @@ export const Navbar = () => {
               />
             </div>
 
-            {/* Noise Texture Overlay */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none contrast-150 brightness-100" 
-                 style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} 
-            />
+
 
             <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-10 md:px-16 pt-32">
               <div className="flex flex-col gap-12 items-center justify-center w-full grow">
@@ -145,12 +142,12 @@ export const Navbar = () => {
                   {navLinks.map((link, index) => (
                     <motion.div
                       key={link.name}
-                      initial={{ opacity: 0, y: 30 }}
+                      initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ 
-                        delay: 0.2 + index * 0.1,
+                        delay: 0.1 + index * 0.08,
                         duration: 0.8,
-                        ease: [0.22, 1, 0.36, 1]
+                        ease: [0.32, 0.72, 0, 1]
                       }}
                     >
                       <a
@@ -165,12 +162,12 @@ export const Navbar = () => {
                 </div>
                 
                 <motion.div
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ 
-                    delay: 0.2 + navLinks.length * 0.1,
+                    delay: 0.1 + navLinks.length * 0.08,
                     duration: 0.8,
-                    ease: [0.22, 1, 0.36, 1]
+                    ease: [0.32, 0.72, 0, 1]
                   }}
                   className="pt-8 w-full max-w-[240px]"
                 >
