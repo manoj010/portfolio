@@ -50,7 +50,9 @@ export const Projects = () => {
           </div>
           
           <motion.a 
-            href="#" 
+            href="https://github.com/manoj010"
+            target="_blank"
+            rel="noopener noreferrer"
             className="group flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-all"
           >
             View All on GitHub 

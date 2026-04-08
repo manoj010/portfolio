@@ -4,8 +4,8 @@ import { Card } from '../ui/Card';
 
 const skills = {
   backend: ['Laravel', 'PHP', 'PostgreSQL', 'MySQL'],
-  frontend: ['React', 'TypeScript', 'Tailwind CSS'],
-  tools: ['Git / GitHub', 'Postman', 'Docker Basics'],
+  frontend: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS'],
+  tools: ['Git / GitHub', 'Postman', 'Docker'],
 };
 
 export const Skills = () => {
@@ -13,7 +13,7 @@ export const Skills = () => {
     <section id="skills" className="py-24 md:py-48 bg-surface px-6">
       <div className="content-container flex flex-col gap-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -88,7 +88,7 @@ export const Skills = () => {
             <div className="relative z-10 flex flex-col justify-center h-full">
               <h3 className="text-xl md:text-2xl font-bold mb-3">Learning & Growth</h3>
               <p className="text-on-surface-variant max-w-md leading-relaxed text-sm md:text-base">
-                Currently deep-diving into SaaS architecture and advanced system performance 
+                Currently deep-diving into SaaS architecture and advanced system performance
                 using Full-stack React frameworks.
               </p>
               <div className="mt-6 flex flex-wrap gap-4 md:gap-6">
