@@ -3,7 +3,7 @@ import { Database, Terminal, Wrench, Rocket } from 'lucide-react';
 import { Card } from '../ui/Card';
 
 const skills = {
-  backend: ['Laravel', 'PHP', 'PostgreSQL', 'MySQL'],
+  backend: ['Laravel', 'PHP', 'Python', 'PostgreSQL'],
   frontend: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS'],
   tools: ['Git / GitHub', 'Postman', 'Docker'],
 };

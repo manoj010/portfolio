@@ -1,32 +1,34 @@
 import { motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import { GithubIcon } from '../ui/BrandIcons';
-import { Button } from '../ui/Button';
+import budgetBuddyImage from '../../assets/budgetbuddy-project.png';
+import minilinksImage from '../../assets/minilinks-project.png';
+import nepseNotifierImage from '../../assets/nepse-notifier-project.png';
 
 const projects = [
   {
     title: 'BudgetBuddy',
     category: 'Full-stack Application',
     description: 'A comprehensive personal finance tracker with automated categorization and insight reports. Built with Laravel and React.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDNe5NIgl7pZAHz5pxvaIGismvs3CxBw3Kn-40ftkbvlnATQexuGNaUP7UzgvKo4QMkytW9xKopPbIae22Ja3pYqnMCBdT1nPpg9OmyN3pPsocKC0F4c_QlI4ngGdh5aPUT2GpK-hVHz6BR3b5eiG-7GCtwSlWG7UAVrxsj8YaAv5tGG0ydm459a8B5gwJ5IVkBQeRXXwZ8vIfQsEa6abWKFj-bmzXRTTjmjxerwAFNmXpMO4p9xAsEr1FIHYvFX9gkyHYHaOfE_t62',
+    image: budgetBuddyImage,
     tags: ['Laravel', 'PostgreSQL', 'React'],
-    link: '#'
+    link: 'https://github.com/manoj010/Budget-Buddy.git'
   },
   {
-    title: 'Enterprise Portal',
-    category: 'Business Dashboard',
-    description: 'Scalable management interface for multi-tenant business systems, featuring robust RBAC and activity logging.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuClaPe1635HEID-1BRLRhpRzzwSprQmHmQyw0jPZt-hMTG3HrCB1eVbJtHmvIwTKTPEd1ubP2m9JJgzpEl69Tc4vWRz8YKA6yqBuBEhgyg-XCMbbhNGYWmtjfiXCnXaa4apvIZlVYMUu2tUSBS4EH2S76fLAJaKSZtuxSjoGNGH4D093OvQ93FRbkOsilvdAjl6t12RhiT_rm-0suc1Owy3CGHeb98kt5MSvCnw9F4WHzmkiC9bgjUw9F_K85BQygcoN34VfdHeJ5eo',
-    tags: ['TypeScript', 'API Design', 'Node.js'],
-    link: '#'
+    title: 'Minilinks',
+    category: 'Link Management Tool',
+    description: 'A compact URL shortener and link management dashboard for creating short links, tracking clicks, and sharing links quickly.',
+    image: minilinksImage,
+    tags: ['React', 'Python', 'Dashboard'],
+    link: 'https://github.com/manoj010/minilinks.git'
   },
   {
-    title: 'Insight Engine',
-    category: 'Reporting Tool',
-    description: 'High-performance data processing engine that exports complex datasets into boardroom-ready visual reports.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAW0dSpL684_0_7sOUsxhh6WtcDhl5EZrrNYSqwLxayWfIGf5iUfQZpjdOlVDCGzmLX-LN4agVeucNq9u0UDsWs7PJ8N_9ppSvJyY3i9VV6LzdqVZhqxYQXxChdZkirQ1R7ngN3PewfGBouov1HcQepIWRUpnBKSl69Cw6MZ_1TRk62eOek1y4jwMUaJHEI2oIwm2tb_Se9jG3hNIVuHpH7xYcIXBj5sH_CI4Gsa61rRhj4pMOBXaGxa5cYHHAqAGmhLj9lHdXRFGUG',
-    tags: ['PHP', 'AWS Lambda', 'Dashboard'],
-    link: '#'
+    title: 'NEPSE Index Notifier',
+    category: 'Python Automation',
+    description: 'A Python desktop notifier that monitors the NEPSE Index in near real time with Selenium-powered scraping and system alerts.',
+    image: nepseNotifierImage,
+    tags: ['Python', 'Selenium', 'BeautifulSoup'],
+    link: 'https://github.com/manoj010/Nepse-Notifier.git'
   }
 ];
 
@@ -70,18 +72,24 @@ export const Projects = () => {
               transition={{ delay: index * 0.1, duration: 0.8 }}
               className="group flex flex-col gap-6 md:gap-8"
             >
-              <div className="relative aspect-[4/3] rounded-[2rem] overflow-hidden bg-surface-container-low shadow-sm transition-all duration-700 group-hover:shadow-[0_40px_80px_rgba(43,52,55,0.12)] border border-white/50">
+              <a 
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`View ${project.title} on GitHub`}
+                className="relative aspect-[4/3] rounded-[2rem] overflow-hidden bg-surface-container-low shadow-sm transition-all duration-700 group-hover:shadow-[0_40px_80px_rgba(43,52,55,0.12)] border border-white/50 block"
+              >
                 <img 
                   src={project.image} 
                   alt={project.title} 
                   className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-primary/20 opacity-0 lg:group-hover:opacity-100 transition-all duration-500 backdrop-blur-[2px] flex items-center justify-center">
-                  <Button variant="primary" className="shadow-2xl translate-y-4 lg:group-hover:translate-y-0 opacity-0 lg:group-hover:opacity-100 transition-all duration-500 delay-100">
-                    Case Study
-                  </Button>
+                  <span className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 font-headline text-sm font-semibold text-on-primary shadow-2xl shadow-primary/10 translate-y-4 lg:group-hover:translate-y-0 opacity-0 lg:group-hover:opacity-100 transition-all duration-500 delay-100">
+                    View on GitHub
+                  </span>
                 </div>
-              </div>
+              </a>
               
               <div className="flex flex-col gap-4 px-2">
                 <div className="flex justify-between items-start">
@@ -89,7 +97,14 @@ export const Projects = () => {
                     <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">{project.category}</span>
                     <h3 className="text-2xl font-bold font-headline">{project.title}</h3>
                   </div>
-                  <ExternalLink className="w-5 h-5 text-on-surface-variant opacity-60 lg:opacity-40 lg:group-hover:opacity-100 lg:group-hover:text-primary transition-all" />
+                  <a 
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`View ${project.title} on GitHub`}
+                  >
+                    <ExternalLink className="w-5 h-5 text-on-surface-variant opacity-60 lg:opacity-40 lg:group-hover:opacity-100 lg:group-hover:text-primary transition-all" />
+                  </a>
                 </div>
                 
                 <p className="text-on-surface-variant text-sm leading-relaxed font-light line-clamp-2">

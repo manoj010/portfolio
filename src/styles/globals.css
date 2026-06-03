@@ -31,6 +31,32 @@
   --shadow-ambient: 0 40px 60px rgba(43, 52, 55, 0.06);
 }
 
+:root {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  --color-surface: #111416;
+  --color-surface-container-low: #181D20;
+  --color-surface-container-high: #222A2E;
+  --color-surface-container-highest: #2D363B;
+  --color-surface-container-lowest: #15191B;
+
+  --color-primary: #D4DEE4;
+  --color-primary-dim: #B7C5CD;
+  --color-on-primary: #111416;
+
+  --color-secondary: #AEBBC2;
+  --color-on-surface: #F2F6F8;
+  --color-on-surface-variant: #AAB5BB;
+  --color-inverse-surface: #F8F9FA;
+  --color-outline-variant: #465158;
+
+  --shadow-ambient: 0 40px 60px rgba(0, 0, 0, 0.26);
+}
+
 @layer base {
   * {
     margin: 0;
@@ -46,6 +72,7 @@
     -moz-osx-font-smoothing: grayscale;
     line-height: 1.8;
     overflow-x: hidden;
+    transition: background-color 300ms ease, color 300ms ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
