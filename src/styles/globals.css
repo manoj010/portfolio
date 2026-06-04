@@ -81,6 +81,10 @@
     line-height: 1.1;
     letter-spacing: -0.02em;
   }
+
+  section[id] {
+    scroll-margin-top: 7rem;
+  }
 }
 
 @layer utilities {

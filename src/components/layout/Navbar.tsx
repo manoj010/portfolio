@@ -8,15 +8,18 @@ const navLinks = [
   { name: 'Skills', href: '/#skills', sectionId: 'skills' },
   { name: 'Experience', href: '/#experience', sectionId: 'experience' },
   { name: 'Projects', href: '/#projects', sectionId: 'projects' },
-  { name: 'Blog', href: '/blog' },
+  { name: 'Blog', href: '/blog', sectionId: 'blog' },
   { name: 'Contact', href: '/#contact', sectionId: 'contact' },
 ];
 
-export const Navbar = () => {
+interface NavbarProps {
+  pathname: string;
+}
+
+export const Navbar = ({ pathname }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('about');
-  const [pathname, setPathname] = useState(window.location.pathname);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = window.localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -33,45 +36,45 @@ export const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    const handleLocationChange = () => setPathname(window.location.pathname);
-
-    window.addEventListener('popstate', handleLocationChange);
-    window.addEventListener('click', handleLocationChange);
-    return () => {
-      window.removeEventListener('popstate', handleLocationChange);
-      window.removeEventListener('click', handleLocationChange);
-    };
-  }, []);
-
-  useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
     window.localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
   useEffect(() => {
-    const sections = navLinks
-      .map((link) => link.sectionId ? document.querySelector(`#${link.sectionId}`) : null)
-      .filter((section): section is Element => Boolean(section));
+    if (pathname !== '/') {
+      return;
+    }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleSection = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    const updateActiveSection = () => {
+      const activationY = Math.min(window.innerHeight * 0.35, 240);
+      const activeLink = navLinks
+        .filter((link) => link.sectionId)
+        .find((link) => {
+          const section = document.getElementById(link.sectionId!);
 
-        if (visibleSection?.target.id) {
-          setActiveSection(visibleSection.target.id);
-        }
-      },
-      {
-        rootMargin: '-30% 0px -45% 0px',
-        threshold: [0.1, 0.25, 0.5, 0.75],
+          if (!section) {
+            return false;
+          }
+
+          const rect = section.getBoundingClientRect();
+          return rect.top <= activationY && rect.bottom > activationY;
+        });
+
+      if (activeLink?.sectionId) {
+        setActiveSection(activeLink.sectionId);
       }
-    );
+    };
 
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
-  }, []);
+    const frame = window.requestAnimationFrame(updateActiveSection);
+
+    window.addEventListener('scroll', updateActiveSection, { passive: true });
+    window.addEventListener('resize', updateActiveSection);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', updateActiveSection);
+      window.removeEventListener('resize', updateActiveSection);
+    };
+  }, [pathname]);
 
   // Prevent scrolling when mobile menu is open
   useEffect(() => {
@@ -114,9 +117,9 @@ export const Navbar = () => {
 
           <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => {
-              const isActive = link.sectionId
-                ? pathname === '/' && activeSection === link.sectionId
-                : pathname.startsWith(link.href);
+              const isActive = pathname === '/'
+                ? activeSection === link.sectionId
+                : link.href === '/blog' && pathname.startsWith('/blog');
 
               return (
                 <a
@@ -234,7 +237,7 @@ export const Navbar = () => {
                           setIsMobileMenuOpen(false);
                         }}
                         className={`block rounded-full px-8 py-2 text-2xl font-medium tracking-[0.05em] transition-all duration-300 font-headline active:scale-95 ${
-                          (link.sectionId ? pathname === '/' && activeSection === link.sectionId : pathname.startsWith(link.href))
+                          (pathname === '/' ? activeSection === link.sectionId : link.href === '/blog' && pathname.startsWith('/blog'))
                             ? 'bg-primary text-on-primary'
                             : 'text-on-surface hover:text-primary'
                         }`}

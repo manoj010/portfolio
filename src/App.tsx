@@ -18,6 +18,7 @@ type Route =
 
 function App() {
   const [pathname, setPathname] = useState(window.location.pathname);
+  const [hash, setHash] = useState(window.location.hash);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -39,7 +40,10 @@ function App() {
   }, [pathname]);
 
   useEffect(() => {
-    const handlePopState = () => setPathname(window.location.pathname);
+    const handlePopState = () => {
+      setPathname(window.location.pathname);
+      setHash(window.location.hash);
+    };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -55,15 +59,17 @@ function App() {
 
       const url = new URL(anchor.href);
 
-      if (url.pathname === window.location.pathname && url.hash) {
-        return;
-      }
-
       if (url.pathname === '/' || url.pathname.startsWith('/blog')) {
         event.preventDefault();
         window.history.pushState({}, '', `${url.pathname}${url.hash}`);
         setPathname(url.pathname);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setHash(url.hash);
+
+        if (url.hash) {
+          document.querySelector(url.hash)?.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       }
     };
 
@@ -72,11 +78,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (route.name === 'home' && window.location.hash) {
-      const target = document.querySelector(window.location.hash);
+    if (route.name === 'home' && hash) {
+      const target = document.querySelector(hash);
       target?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [route.name]);
+  }, [hash, route.name]);
 
   return (
     <div className="relative">
@@ -86,7 +92,7 @@ function App() {
         style={{ scaleX }}
       />
 
-      <Navbar />
+      <Navbar pathname={pathname} />
       
       {route.name === 'blog-list' ? (
         <BlogListPage />
