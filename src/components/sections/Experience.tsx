@@ -1,23 +1,56 @@
 import { motion } from 'framer-motion';
-import { CheckCircle, Zap, ShieldCheck } from 'lucide-react';
+import { Blocks, CheckCircle, Code2, Database, ShieldCheck, Store, Zap } from 'lucide-react';
 import { Card } from '../ui/Card';
 
 const experiences = [
   {
-    company: 'MIDAS Technologies',
-    role: 'Software Developer (Backend Specialist)',
+    company: 'Intopros',
+    role: 'Software Developer',
     period: 'Present',
-    description: 'Leading the development of mission-critical reporting systems and backend architectures. Focused on transforming complex business logic into efficient, maintainable software.',
+    description:
+      'Working on custom business systems, Odoo development, CRM workflows, website customization, and ERP-based solutions. Focused on building practical modules that support business operations and automation.',
     achievements: [
-      'Optimized database queries in PostgreSQL, reducing report generation time by 40%.',
-      'Built a custom Laravel dashboard for internal financial auditing.',
-      'Mentored junior devs on clean coding standards and REST API design.',
+      'Developing and customizing Odoo modules for CRM, booking flows, websites, and business workflows.',
+      'Working with Python, JavaScript, PostgreSQL, XML views, QWeb, OWL components, and Odoo backend models.',
+      'Building custom website sections, forms, dashboards, and business process flows based on client requirements.',
     ],
     impact: [
-      { label: 'System Scaling', icon: Zap },
+      { label: 'ERP Customization', icon: Blocks },
+      { label: 'Business Automation', icon: Zap },
+    ],
+  },
+  {
+    company: "De Artisan's Café",
+    role: 'Co-Founder',
+    period: 'Dec 2024 - Present',
+    description:
+      'Started and operated a café business, gaining hands-on experience in business operations, customer handling, branding, digital presence, and daily management.',
+    achievements: [
+      'Managed café operations, customer service, branding, and daily business activities.',
+      'Built digital assets including website pages, QR links, and online customer engagement tools.',
+      'Gained practical business experience that strengthened understanding of real-world operational systems.',
+    ],
+    impact: [
+      { label: 'Business Operations', icon: Store },
+      { label: 'Digital Presence', icon: Database },
+    ],
+  },
+  {
+    company: 'MIDAS Technologies',
+    role: 'Software Developer',
+    period: 'May 2024 - Oct 2024',
+    description:
+      'Worked on healthcare, pharmacy, inventory, accounting, and reporting systems using Laravel and PostgreSQL. Focused mainly on backend development, API design, database operations, and business logic implementation.',
+    achievements: [
+      'Worked on pharmacy and inventory modules with purchase, sales, and reporting features.',
+      'Developed accounting-related features including ledgers, vouchers, financial reports, and Excel exports.',
+      'Built and maintained Laravel APIs with PostgreSQL, validation, service classes, and structured backend logic.',
+    ],
+    impact: [
+      { label: 'Backend Systems', icon: Code2 },
       { label: 'Data Integrity', icon: ShieldCheck },
-    ]
-  }
+    ],
+  },
 ];
 
 export const Experience = () => {
@@ -79,7 +112,7 @@ export const Experience = () => {
                     <div className="flex flex-col gap-6">
                       {exp.impact.map((item, i) => (
                         <div key={i} className="flex items-center gap-4 group">
-                          <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm group-hover:scale-110 group-hover:bg-primary group-hover:text-on-primary transition-all duration-500">
+                          <div className="w-12 h-12 rounded-2xl bg-surface-container-lowest text-primary border border-outline-variant/20 flex items-center justify-center shadow-sm group-hover:scale-110 group-hover:bg-primary group-hover:text-on-primary transition-all duration-500">
                             <item.icon className="w-5 h-5" />
                           </div>
                           <span className="text-sm font-bold tracking-tight">{item.label}</span>

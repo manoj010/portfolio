@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+type MotionButtonProps = Omit<React.ComponentProps<typeof motion.button>, 'ref'>;
+
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -28,14 +30,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       lg: 'px-8 py-3.5 text-base',
     };
 
-    const {
-      onAnimationStart,
-      onDragStart,
-      onDragEnd,
-      onDrag,
-      onMeasureDragRect,
-      ...filteredProps
-    } = props as any;
+    const filteredProps = {
+      ...props,
+    } as React.ButtonHTMLAttributes<HTMLButtonElement> & {
+      onMeasureDragRect?: unknown;
+    };
+
+    delete filteredProps.onAnimationStart;
+    delete filteredProps.onDragStart;
+    delete filteredProps.onDragEnd;
+    delete filteredProps.onDrag;
+    delete filteredProps.onMeasureDragRect;
 
     return (
       <motion.button
@@ -48,7 +53,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           sizes[size],
           className
         )}
-        {...filteredProps}
+        {...(filteredProps as unknown as MotionButtonProps)}
       />
     );
   }

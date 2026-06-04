@@ -4,17 +4,19 @@ import { Button } from '../ui/Button';
 import { Menu, Moon, Sun, X } from 'lucide-react';
 
 const navLinks = [
-  { name: 'About', href: '#about' },
-  { name: 'Skills', href: '#skills' },
-  { name: 'Experience', href: '#experience' },
-  { name: 'Projects', href: '#projects' },
-  { name: 'Contact', href: '#contact' },
+  { name: 'About', href: '/#about', sectionId: 'about' },
+  { name: 'Skills', href: '/#skills', sectionId: 'skills' },
+  { name: 'Experience', href: '/#experience', sectionId: 'experience' },
+  { name: 'Projects', href: '/#projects', sectionId: 'projects' },
+  { name: 'Blog', href: '/blog' },
+  { name: 'Contact', href: '/#contact', sectionId: 'contact' },
 ];
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('about');
+  const [pathname, setPathname] = useState(window.location.pathname);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = window.localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -31,13 +33,24 @@ export const Navbar = () => {
   }, []);
 
   useEffect(() => {
+    const handleLocationChange = () => setPathname(window.location.pathname);
+
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('click', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('click', handleLocationChange);
+    };
+  }, []);
+
+  useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
     window.localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
   useEffect(() => {
     const sections = navLinks
-      .map((link) => document.querySelector(link.href))
+      .map((link) => link.sectionId ? document.querySelector(`#${link.sectionId}`) : null)
       .filter((section): section is Element => Boolean(section));
 
     const observer = new IntersectionObserver(
@@ -93,7 +106,7 @@ export const Navbar = () => {
           `}
         >
           <a 
-            href="#" 
+            href="/" 
             className="text-lg font-bold tracking-tighter text-on-surface font-headline"
           >
             Manoj<span className="text-primary">.</span>
@@ -101,13 +114,19 @@ export const Navbar = () => {
 
           <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => {
-              const isActive = activeSection === link.href.slice(1);
+              const isActive = link.sectionId
+                ? pathname === '/' && activeSection === link.sectionId
+                : pathname.startsWith(link.href);
 
               return (
                 <a
                   key={link.name}
                   href={link.href}
-                  onClick={() => setActiveSection(link.href.slice(1))}
+                  onClick={() => {
+                    if (link.sectionId) {
+                      setActiveSection(link.sectionId);
+                    }
+                  }}
                   className={`rounded-full px-3 py-1.5 font-headline text-sm font-medium tracking-tight transition-all ${
                     isActive 
                       ? 'bg-primary text-on-primary shadow-sm' 
@@ -209,11 +228,13 @@ export const Navbar = () => {
                       <a
                         href={link.href}
                         onClick={() => {
-                          setActiveSection(link.href.slice(1));
+                          if (link.sectionId) {
+                            setActiveSection(link.sectionId);
+                          }
                           setIsMobileMenuOpen(false);
                         }}
                         className={`block rounded-full px-8 py-2 text-2xl font-medium tracking-[0.05em] transition-all duration-300 font-headline active:scale-95 ${
-                          activeSection === link.href.slice(1)
+                          (link.sectionId ? pathname === '/' && activeSection === link.sectionId : pathname.startsWith(link.href))
                             ? 'bg-primary text-on-primary'
                             : 'text-on-surface hover:text-primary'
                         }`}
