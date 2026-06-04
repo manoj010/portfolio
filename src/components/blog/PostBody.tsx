@@ -19,6 +19,19 @@ function flushParagraph(lines: string[], nodes: ReactNode[], key: number) {
   return key + 1;
 }
 
+function isTableSeparator(line: string) {
+  return /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(line.trim());
+}
+
+function parseTableRow(line: string) {
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((cell) => cell.trim());
+}
+
 export const PostBody = ({ content }: PostBodyProps) => {
   const lines = content.split(/\r?\n/);
   const nodes: ReactNode[] = [];
@@ -33,6 +46,47 @@ export const PostBody = ({ content }: PostBodyProps) => {
     if (!trimmed) {
       key = flushParagraph(paragraph, nodes, key);
       index += 1;
+      continue;
+    }
+
+    if (trimmed.includes('|') && isTableSeparator(lines[index + 1] ?? '')) {
+      key = flushParagraph(paragraph, nodes, key);
+      const headers = parseTableRow(trimmed);
+      const rows: string[][] = [];
+      index += 2;
+
+      while (index < lines.length && lines[index].trim().includes('|')) {
+        rows.push(parseTableRow(lines[index]));
+        index += 1;
+      }
+
+      nodes.push(
+        <div key={`table-${key}`} className="overflow-x-auto rounded-2xl border border-outline-variant/20 bg-surface-container-lowest">
+          <table className="w-full min-w-[520px] border-collapse text-left text-sm md:text-base">
+            <thead className="bg-surface-container-low text-on-surface">
+              <tr>
+                {headers.map((header) => (
+                  <th key={header} className="border-b border-outline-variant/20 px-5 py-4 font-headline text-sm font-bold">
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="text-on-surface-variant">
+              {rows.map((row, rowIndex) => (
+                <tr key={`${row.join('-')}-${rowIndex}`} className="border-b border-outline-variant/10 last:border-b-0">
+                  {headers.map((header, cellIndex) => (
+                    <td key={`${header}-${cellIndex}`} className="px-5 py-4">
+                      {row[cellIndex] ?? ''}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+      key += 1;
       continue;
     }
 
