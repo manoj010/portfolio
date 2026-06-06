@@ -97,4 +97,5 @@ await Promise.all(files.filter((file) => file.endsWith('.mdx')).map(async (file)
 
   await mkdir(outputDir, { recursive: true });
   await writeFile(path.join(outputDir, 'index.html'), output);
+  await writeFile(path.join(distDir, 'blog', `${slug}.html`), output);
 }));
