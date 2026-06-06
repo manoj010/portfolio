@@ -32,6 +32,10 @@ function parseTableRow(line: string) {
     .map((cell) => cell.trim());
 }
 
+function parseImage(line: string) {
+  return line.match(/^!\[(.*?)\]\((.*?)\)$/);
+}
+
 export const PostBody = ({ content }: PostBodyProps) => {
   const lines = content.split(/\r?\n/);
   const nodes: ReactNode[] = [];
@@ -45,6 +49,20 @@ export const PostBody = ({ content }: PostBodyProps) => {
 
     if (!trimmed) {
       key = flushParagraph(paragraph, nodes, key);
+      index += 1;
+      continue;
+    }
+
+    const image = parseImage(trimmed);
+
+    if (image) {
+      key = flushParagraph(paragraph, nodes, key);
+      nodes.push(
+        <figure key={`image-${key}`} className="overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface-container-lowest">
+          <img src={image[2]} alt={image[1]} className="w-full object-cover" loading="lazy" />
+        </figure>
+      );
+      key += 1;
       index += 1;
       continue;
     }
