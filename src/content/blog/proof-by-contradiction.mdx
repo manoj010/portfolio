@@ -1,0 +1,186 @@
+---
+title: Proof by Contradiction: A Simple Guide
+date: 2026-06-07
+summary: A beginner-friendly explanation of proof by contradiction, using the classic proof that the square root of 2 is irrational and other simple examples.
+tags: mathematics, logic, proof, contradiction, discrete-math
+---
+
+# Proof by Contradiction: A Simple Guide
+
+Proof by contradiction is a method of mathematical proof where you prove a statement by assuming the opposite is true, then showing that this assumption leads to an impossible conclusion.
+
+Once the opposite assumption collapses, the original statement must be true.
+
+This style of proof is useful because some mathematical ideas are hard to prove directly. Instead of building the statement from the ground up, contradiction lets us ask: what would go wrong if this statement were false?
+
+---
+
+## The General Structure
+
+Suppose we want to prove a statement P.
+
+The proof usually follows this pattern:
+
+* Assume P is false.
+* Use definitions, logic, and known facts to explore the consequences.
+* Derive a contradiction.
+* Conclude that the assumption must be false.
+* Therefore, P is true.
+
+A contradiction can look like:
+
+* A statement and its negation, such as x > 5 and x <= 5.
+* A violation of a known theorem or definition.
+* An impossible conclusion, such as 0 = 1.
+
+The important idea is that the contradiction does not prove the false assumption. It destroys the false assumption.
+
+---
+
+## Classic Example: The Square Root of 2 Is Irrational
+
+We want to prove that the square root of 2 is irrational.
+
+In other words, we want to prove that sqrt(2) cannot be written as a fraction of two integers.
+
+## Step 1: Assume the Opposite
+
+Assume sqrt(2) is rational.
+
+Then it can be written as a fraction in lowest terms:
+
+```text
+sqrt(2) = a / b
+```
+
+where a and b are integers, b is not 0, and a and b have no common factor other than 1.
+
+## Step 2: Square Both Sides
+
+Starting with:
+
+```text
+sqrt(2) = a / b
+```
+
+Square both sides:
+
+```text
+2 = a^2 / b^2
+```
+
+Multiply both sides by b^2:
+
+```text
+a^2 = 2b^2
+```
+
+This means a^2 is even.
+
+If a^2 is even, then a must also be even.
+
+So we can write:
+
+```text
+a = 2k
+```
+
+for some integer k.
+
+## Step 3: Substitute Back
+
+Substitute a = 2k into the equation a^2 = 2b^2:
+
+```text
+(2k)^2 = 2b^2
+4k^2 = 2b^2
+b^2 = 2k^2
+```
+
+This means b^2 is even.
+
+If b^2 is even, then b must also be even.
+
+## Step 4: Find the Contradiction
+
+We have shown that both a and b are even.
+
+That means both share a factor of 2.
+
+But we started by saying that a / b was in lowest terms.
+
+That is a contradiction.
+
+## Step 5: Conclude
+
+The assumption that sqrt(2) is rational must be false.
+
+Therefore:
+
+```text
+sqrt(2) is irrational.
+```
+
+---
+
+## A Simpler Example
+
+Let us prove that there is no largest positive integer.
+
+Assume the opposite: suppose there is a largest positive integer N.
+
+Now consider:
+
+```text
+N + 1
+```
+
+Since N + 1 is also a positive integer, and N + 1 is greater than N, we have found a positive integer larger than the supposed largest positive integer.
+
+That is impossible.
+
+Therefore, there is no largest positive integer.
+
+---
+
+## When to Use Proof by Contradiction
+
+Proof by contradiction is especially useful when you are trying to prove:
+
+* Something does not exist.
+* A number is irrational.
+* A set is infinite.
+* A mathematical object is unique.
+* A direct proof feels awkward or unclear.
+
+Famous examples include:
+
+* The square root of 2 is irrational.
+* There are infinitely many prime numbers.
+* No rational number squared equals 2.
+* Certain results in geometry, number theory, and set theory.
+
+---
+
+## Comparison With Other Proof Methods
+
+| Method | Main Idea |
+| --- | --- |
+| Direct proof | Start with the assumptions and derive the conclusion. |
+| Contrapositive | To prove "if P, then Q", prove "if not Q, then not P". |
+| Contradiction | Assume the statement is false and derive an impossibility. |
+
+Contradiction is powerful because it lets you transform a difficult claim into a logical stress test.
+
+Instead of asking, "How do I prove this directly?", you ask, "What breaks if this were false?"
+
+---
+
+## Final Thought
+
+Proof by contradiction is one of the most elegant tools in mathematics.
+
+It works because logic is unforgiving: if an assumption leads to an impossibility, the assumption cannot be true.
+
+That is the entire beauty of the method.
+
