@@ -55,9 +55,10 @@ function getSlug(fileName) {
   return fileName.replace(/\.mdx$/, '');
 }
 
-function metaTags({ title, summary, image, slug }) {
+function metaTags({ title, summary, image, imageWidth = '1792', imageHeight = '1024', slug }) {
   const url = `${siteUrl}/blog/${slug}`;
   const imageUrl = absoluteUrl(image);
+  const imageType = imageUrl.endsWith('.jpg') || imageUrl.endsWith('.jpeg') ? 'image/jpeg' : 'image/png';
   const safeTitle = escapeHtml(title);
   const safeSummary = escapeHtml(summary);
 
@@ -69,8 +70,10 @@ function metaTags({ title, summary, image, slug }) {
     `<meta property="og:description" content="${safeSummary}" />`,
     `<meta property="og:url" content="${url}" />`,
     imageUrl ? `<meta property="og:image" content="${imageUrl}" />` : '',
-    imageUrl ? `<meta property="og:image:width" content="1792" />` : '',
-    imageUrl ? `<meta property="og:image:height" content="1024" />` : '',
+    imageUrl ? `<meta property="og:image:secure_url" content="${imageUrl}" />` : '',
+    imageUrl ? `<meta property="og:image:type" content="${imageType}" />` : '',
+    imageUrl ? `<meta property="og:image:width" content="${escapeHtml(imageWidth)}" />` : '',
+    imageUrl ? `<meta property="og:image:height" content="${escapeHtml(imageHeight)}" />` : '',
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${safeTitle}" />`,
     `<meta name="twitter:description" content="${safeSummary}" />`,
