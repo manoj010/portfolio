@@ -4,6 +4,32 @@ interface PostBodyProps {
   content: string;
 }
 
+function renderInlineMarkdown(text: string) {
+  const nodes: ReactNode[] = [];
+  const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^)]+|\/[^)]+)\)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = linkPattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+
+    nodes.push(
+      <a key={`${match[2]}-${match.index}`} href={match[2]} className="font-semibold text-primary underline-offset-4 transition-colors hover:underline">
+        {match[1]}
+      </a>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+
+  return nodes.length > 0 ? nodes : text;
+}
+
 function flushParagraph(lines: string[], nodes: ReactNode[], key: number) {
   if (lines.length === 0) {
     return key;
@@ -11,7 +37,7 @@ function flushParagraph(lines: string[], nodes: ReactNode[], key: number) {
 
   nodes.push(
     <p key={`p-${key}`} className="text-lg leading-9 text-on-surface-variant">
-      {lines.join(' ')}
+      {renderInlineMarkdown(lines.join(' '))}
     </p>
   );
 
@@ -178,7 +204,7 @@ export const PostBody = ({ content }: PostBodyProps) => {
       nodes.push(
         <ul key={`ul-${key}`} className="flex list-disc flex-col gap-3 pl-6 text-lg leading-8 text-on-surface-variant marker:text-primary">
           {items.map((item) => (
-            <li key={item}>{item}</li>
+            <li key={item}>{renderInlineMarkdown(item)}</li>
           ))}
         </ul>
       );
