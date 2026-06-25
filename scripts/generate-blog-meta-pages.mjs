@@ -8,6 +8,17 @@ const siteUrl = 'https://www.manojale.com.np';
 const blogSourceDir = path.join(root, 'src', 'content', 'blog');
 const distDir = path.join(root, 'dist');
 const indexPath = path.join(distDir, 'index.html');
+const extraPosts = [
+  {
+    slug: 'ai-model-collapse',
+    title: 'AI Model Collapse: When AI Starts Learning From Its Own Echo',
+    summary:
+      'Model collapse is what can happen when AI systems are trained too heavily on synthetic content produced by earlier AI systems. The result is a strange feedback loop where rare ideas disappear, errors get amplified, and the model becomes less connected to reality.',
+    image: '/blog-assets/ai-model-collapse-social.png',
+    imageWidth: '1731',
+    imageHeight: '909',
+  },
+];
 
 function escapeHtml(value = '') {
   return value
@@ -84,6 +95,17 @@ function metaTags({ title, summary, image, imageWidth = '1792', imageHeight = '1
 const template = await readFile(indexPath, 'utf8');
 const files = await readdir(blogSourceDir);
 
+async function writePostMetaPage(metadata, slug) {
+  const output = template
+    .replace(/<title>.*?<\/title>/, '')
+    .replace('</head>', `    ${metaTags({ ...metadata, slug })}\n  </head>`);
+  const outputDir = path.join(distDir, 'blog', slug);
+
+  await mkdir(outputDir, { recursive: true });
+  await writeFile(path.join(outputDir, 'index.html'), output);
+  await writeFile(path.join(distDir, 'blog', `${slug}.html`), output);
+}
+
 await Promise.all(files.filter((file) => file.endsWith('.mdx')).map(async (file) => {
   const slug = getSlug(file);
   const source = await readFile(path.join(blogSourceDir, file), 'utf8');
@@ -93,12 +115,7 @@ await Promise.all(files.filter((file) => file.endsWith('.mdx')).map(async (file)
     return;
   }
 
-  const output = template
-    .replace(/<title>.*?<\/title>/, '')
-    .replace('</head>', `    ${metaTags({ ...metadata, slug })}\n  </head>`);
-  const outputDir = path.join(distDir, 'blog', slug);
-
-  await mkdir(outputDir, { recursive: true });
-  await writeFile(path.join(outputDir, 'index.html'), output);
-  await writeFile(path.join(distDir, 'blog', `${slug}.html`), output);
+  await writePostMetaPage(metadata, slug);
 }));
+
+await Promise.all(extraPosts.map(({ slug, ...metadata }) => writePostMetaPage(metadata, slug)));

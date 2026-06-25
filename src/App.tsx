@@ -4,10 +4,11 @@ import { About } from './components/sections/About';
 import { Skills } from './components/sections/Skills';
 import { Experience } from './components/sections/Experience';
 import { Projects } from './components/sections/Projects';
-import { BlogTeaser } from './components/sections/BlogTeaser';
 import { Contact, Footer } from './components/layout/Footer';
-import { BlogListPage } from './components/pages/BlogListPage';
 import { BlogPostPage } from './components/pages/BlogPostPage';
+import { ExtraBlogListPage } from './ExtraBlogListPage';
+import { ExtraBlogPostPage } from './ExtraBlogPostPage';
+import { ExtraBlogTeaser } from './ExtraBlogTeaser';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -95,9 +96,13 @@ function App() {
       <Navbar pathname={pathname} />
       
       {route.name === 'blog-list' ? (
-        <BlogListPage />
+        <ExtraBlogListPage />
       ) : route.name === 'blog-post' ? (
-        <BlogPostPage slug={route.slug} />
+        route.slug === 'ai-model-collapse' ? (
+          <ExtraBlogPostPage slug={route.slug} />
+        ) : (
+          <BlogPostPage slug={route.slug} />
+        )
       ) : (
         <main>
           <Hero />
@@ -105,7 +110,7 @@ function App() {
           <Skills />
           <Experience />
           <Projects />
-          <BlogTeaser />
+          <ExtraBlogTeaser />
           <Contact />
         </main>
       )}
