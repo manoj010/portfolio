@@ -1,0 +1,327 @@
+---
+title: AI Evals: Why Vibes Are Not Enough
+date: 2026-06-27
+summary: AI systems can sound confident while quietly failing. Good evals turn vague impressions into repeatable tests, helping teams measure quality, catch regressions, and decide whether an AI feature is actually ready.
+tags: ai, evals, llmops, ai-agents, software-engineering
+image: /blog/ai-evals-vibes-social.png
+imageWidth: 1731
+imageHeight: 909
+---
+
+# AI Evals: Why Vibes Are Not Enough
+
+The most dangerous thing about a bad AI answer is not always that it is wrong.
+
+Sometimes the dangerous part is that it **sounds right**.
+
+It has the tone.
+
+It has the structure.
+
+It has the clean explanation, the confident wording, and the little finishing sentence that makes your brain go, "Yeah, probably."
+
+That is exactly why AI systems need evaluations.
+
+Not just demos.
+
+Not just vibes.
+
+Actual evals.
+
+![An AI evaluation dashboard with model outputs, scorecards, test cases, and pass/fail signals](/blog/ai-evals-vibes-social.png)
+
+---
+
+## The Demo Trap
+
+A demo usually asks:
+
+```text
+Can this AI system work once?
+```
+
+An eval asks:
+
+```text
+Does this AI system work reliably across the cases that matter?
+```
+
+Those are very different questions.
+
+Almost any AI feature can look impressive in a hand-picked demo. You choose a clean input, the model gives a polished answer, and everyone in the room feels the future arriving.
+
+But production is not a demo.
+
+Production has vague users, incomplete context, messy data, old documents, weird edge cases, long conversations, broken assumptions, and inputs nobody remembered to test.
+
+That is where vibes start to fall apart.
+
+---
+
+## What an Eval Actually Does
+
+An eval is a repeatable way to measure whether an AI system is doing the thing you need it to do.
+
+At the simplest level, it has:
+
+* A set of inputs.
+* Expected behavior.
+* A scoring method.
+* A way to compare results over time.
+
+For example, if you are building a support chatbot, you might test:
+
+* Does it answer from the provided documentation?
+* Does it refuse when the answer is not in the docs?
+* Does it avoid inventing policies?
+* Does it escalate risky cases?
+* Does it preserve the user's intent?
+* Does it cite the right source?
+
+The point is not to make the model look good.
+
+The point is to find where it breaks.
+
+---
+
+## Why Manual Checking Is Not Enough
+
+Manual testing is useful, especially early.
+
+You should absolutely read model outputs with your own eyes. You should feel where the answer is awkward, shallow, overconfident, or weird.
+
+But manual checking does not scale.
+
+It is also easy to fool yourself.
+
+If you only test five examples and four look good, the system feels ready. But maybe those five examples are not representative. Maybe the failures happen only with longer context. Maybe the model gets worse after a prompt change. Maybe a new retrieval setting quietly removes the document it needed.
+
+Without evals, you may not notice.
+
+AI regressions can be subtle.
+
+The product still loads.
+
+The model still responds.
+
+The answer still sounds fluent.
+
+But the quality has shifted.
+
+---
+
+## Evals Turn Taste Into Memory
+
+One of the best ways to think about evals is:
+
+```text
+An eval is a system's memory of what good means.
+```
+
+When you build an AI feature, you develop taste. You learn what a good answer looks like. You learn what mistakes are unacceptable. You learn which examples are tricky.
+
+If that knowledge only lives in your head, it disappears when you get busy.
+
+Evals preserve it.
+
+Every bug you find can become a test case.
+
+Every scary output can become a regression check.
+
+Every important customer workflow can become part of the evaluation set.
+
+Over time, your eval suite becomes a map of the product's expectations.
+
+---
+
+## Types of AI Evals
+
+There is no single perfect eval.
+
+Different systems need different measurements.
+
+### Exact-Match Evals
+
+These work when there is one clear answer.
+
+For example:
+
+```text
+Input: What is the invoice total?
+Expected: $1,248.90
+```
+
+Exact-match tests are simple and useful, but many AI tasks are not this clean.
+
+### Rubric-Based Evals
+
+These score an output against criteria.
+
+For example:
+
+* Correctness: Does the answer solve the user's request?
+* Grounding: Is the answer supported by the given context?
+* Safety: Does it avoid risky or disallowed advice?
+* Clarity: Is it understandable?
+* Completeness: Did it miss anything important?
+
+Rubrics are useful when outputs can vary but still be judged.
+
+### LLM-as-Judge Evals
+
+Sometimes another model is used to grade the output.
+
+This can be helpful, but it should be treated carefully. A judge model can also be biased, inconsistent, or overly forgiving.
+
+LLM judges work best when the rubric is specific and the task is constrained.
+
+Bad:
+
+```text
+Is this answer good?
+```
+
+Better:
+
+```text
+Does the answer mention all three required refund conditions from the provided policy text?
+Return pass or fail and quote the missing condition if any.
+```
+
+### Human Evals
+
+For high-stakes or subjective tasks, humans still matter.
+
+Human evals are slower, but they capture nuance that automated scoring can miss.
+
+The best systems often combine automated evals for speed with human review for judgment.
+
+---
+
+## Evals for AI Agents
+
+Agents make evals even more important.
+
+A chatbot usually has one visible output.
+
+An agent has a path.
+
+It may retrieve documents, call tools, write files, query APIs, retry, summarize, and make decisions before producing the final answer.
+
+So agent evals should measure more than the final response.
+
+They should ask:
+
+* Did the agent choose the right tool?
+* Did it call the tool with valid arguments?
+* Did it use retrieved context correctly?
+* Did it stop when it should have stopped?
+* Did it avoid unnecessary actions?
+* Did it recover from tool errors?
+* Did it explain uncertainty honestly?
+
+For agents, the trace matters.
+
+A correct answer reached through a reckless process is not really a success.
+
+---
+
+## A Small Eval Example
+
+Here is a simple shape for an eval case:
+
+```json
+{
+  "id": "refund-policy-001",
+  "input": "Can I get a refund after 45 days?",
+  "context": "Refunds are available within 30 days of purchase if the product is unused.",
+  "expected_behavior": [
+    "Say the policy allows refunds only within 30 days",
+    "Do not invent exceptions",
+    "Do not promise a refund"
+  ],
+  "failure_modes": [
+    "Claims 45-day refunds are allowed",
+    "Adds unsupported exception",
+    "Gives vague answer without using policy"
+  ]
+}
+```
+
+This is not fancy.
+
+But it is powerful.
+
+It turns one expectation into something repeatable.
+
+Now when you change the prompt, model, retrieval settings, or tool schema, you can check whether this behavior still holds.
+
+---
+
+## The Real Goal
+
+The goal of evals is not to prove that an AI system is perfect.
+
+It will not be perfect.
+
+The goal is to understand its shape:
+
+* Where is it strong?
+* Where is it weak?
+* What changed after the last update?
+* Which failures are acceptable?
+* Which failures are dangerous?
+* Is it improving or just sounding better?
+
+That last question matters a lot.
+
+AI can become more polished without becoming more correct.
+
+Evals help separate the two.
+
+---
+
+## Evals Should Run Often
+
+An eval suite is most useful when it becomes part of the development loop.
+
+Run it when:
+
+* You change the prompt.
+* You change the model.
+* You update retrieval logic.
+* You add tools.
+* You change system instructions.
+* You ship a new feature.
+* You find a bad production output.
+
+Every meaningful AI change should answer:
+
+```text
+Did quality actually improve?
+```
+
+Without evals, the answer is usually just a feeling.
+
+And feelings are terrible CI.
+
+---
+
+## Final Thought
+
+AI evals are not glamorous.
+
+They do not look as exciting as a live demo.
+
+But they are what turn an AI experiment into engineering.
+
+A prompt can make a model behave well once.
+
+An eval helps you know whether it keeps behaving well after the system changes, the data changes, the users change, and reality gets annoying.
+
+That is the real line between a cool AI prototype and a useful AI product:
+
+```text
+Vibes show possibility.
+Evals show reliability.
+```
