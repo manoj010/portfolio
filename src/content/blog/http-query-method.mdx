@@ -1,0 +1,468 @@
+---
+title: HTTP QUERY: The Method Between GET and POST
+date: 2026-07-04
+summary: RFC 10008 standardizes HTTP QUERY, a safe and idempotent method for complex read-only requests with request content. It gives APIs a cleaner option when GET URLs become too large and POST feels semantically wrong for searches.
+tags: http, api-design, web, rest, backend
+image: /blog/http-query-method-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# HTTP QUERY: The Method Between GET and POST
+
+For a long time, API design had an awkward gap.
+
+When you wanted to retrieve data, the correct HTTP method was usually `GET`.
+
+But when the request became complex, `GET` started feeling painful.
+
+Search filters could get huge.
+
+Sorting rules could get nested.
+
+Arrays could make the URL unreadable.
+
+Advanced queries could turn into a wall of percent-encoded chaos.
+
+So developers often reached for `POST`.
+
+Not because the request was creating anything.
+
+Not because the server state was changing.
+
+But because `POST` allowed a clean request body.
+
+That workaround worked, but it was always a little semantically uncomfortable.
+
+Now HTTP has a standardized answer for that gap: `QUERY`.
+
+![A visual comparison of GET, POST, and QUERY showing QUERY as a safe method with request content for complex read-only API searches](/blog/http-query-method-social.png)
+
+---
+
+## What Is HTTP QUERY?
+
+`QUERY` is a new HTTP method standardized by the IETF in [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html).
+
+Its purpose is simple:
+
+```text
+Send a read-only query with request content.
+```
+
+In other words, `QUERY` is designed for cases where:
+
+* You are asking the server for information.
+* The request should not modify server state.
+* The query is too complex or awkward for a URL query string.
+* You want to send structured request content, such as JSON.
+* You still want safe and idempotent semantics.
+
+The RFC describes `QUERY` as a safe and idempotent request method that can carry content.
+
+That combination is the important part.
+
+---
+
+## The Old Problem: GET Is Correct, Until It Gets Ugly
+
+`GET` is the natural method for reading data.
+
+For example:
+
+```http
+GET /products?category=laptop&sort=price_asc
+```
+
+That is clean.
+
+Everyone understands it.
+
+Browsers, caches, proxies, CDNs, logs, and monitoring tools all know what `GET` means.
+
+But real searches often become more complicated:
+
+```json
+{
+  "filters": {
+    "category": ["laptop", "tablet"],
+    "price": {
+      "min": 500,
+      "max": 2000
+    },
+    "brands": ["Framework", "Lenovo", "Dell"],
+    "availability": {
+      "regions": ["US", "EU", "APAC"],
+      "inStockOnly": true
+    }
+  },
+  "sort": [
+    { "field": "rating", "direction": "desc" },
+    { "field": "price", "direction": "asc" }
+  ],
+  "include": ["reviews", "warranty", "shippingEstimate"]
+}
+```
+
+Trying to squeeze that into a URL is not fun.
+
+You end up with:
+
+* Very long URLs.
+* Hard-to-read query strings.
+* Awkward encoding.
+* Practical URL length limits in clients and infrastructure.
+* Duplicate custom conventions for nested filters.
+* Logs filled with huge request lines.
+
+`GET` is semantically right, but structurally painful for complex queries.
+
+---
+
+## The Workaround: POST for Searches
+
+Because `GET` does not normally carry request content in a widely interoperable way, many APIs use `POST` for search.
+
+For example:
+
+```http
+POST /products/search
+Content-Type: application/json
+```
+
+```json
+{
+  "filters": {
+    "category": ["laptop", "tablet"],
+    "price": {
+      "min": 500,
+      "max": 2000
+    }
+  },
+  "sort": [
+    { "field": "rating", "direction": "desc" }
+  ]
+}
+```
+
+This is cleaner than a giant URL.
+
+But it creates a semantic problem.
+
+`POST` does not inherently mean "safe read-only request."
+
+In HTTP, `POST` is commonly used for actions that may create resources, submit forms, trigger workflows, or change server state.
+
+So when an API uses `POST /search`, humans may understand that it is read-only, but the broader HTTP ecosystem cannot always assume that.
+
+That affects:
+
+* Caching behavior.
+* Automatic retries.
+* Intermediary handling.
+* API documentation clarity.
+* Monitoring and routing expectations.
+
+The API may be read-only, but the method does not communicate that strongly.
+
+---
+
+## Why Safety and Idempotency Matter
+
+Two HTTP ideas matter here: **safe** and **idempotent**.
+
+A safe method is intended only for retrieval.
+
+It should not change server state in a way the user is responsible for.
+
+`GET` is safe.
+
+`HEAD` is safe.
+
+`QUERY` is defined as safe.
+
+An idempotent method can be repeated with the same intended effect.
+
+If a network request drops and the client retries it, repeating the request should not create duplicate side effects.
+
+`GET` is idempotent.
+
+`PUT` and `DELETE` are idempotent in their intended semantics.
+
+`QUERY` is also idempotent.
+
+This is why the method matters.
+
+If a request is safe and idempotent, clients and infrastructure can treat it differently from a state-changing action.
+
+Retries become less scary.
+
+Caching becomes more meaningful.
+
+The method itself carries useful intent.
+
+---
+
+## What QUERY Changes
+
+`QUERY` gives API designers a method for this shape:
+
+```http
+QUERY /products
+Content-Type: application/json
+```
+
+```json
+{
+  "filters": {
+    "category": ["laptop", "tablet"],
+    "price": {
+      "min": 500,
+      "max": 2000
+    }
+  },
+  "sort": [
+    { "field": "rating", "direction": "desc" },
+    { "field": "price", "direction": "asc" }
+  ],
+  "include": ["reviews", "warranty"]
+}
+```
+
+That says:
+
+```text
+I am querying this resource.
+Here is the structured query body.
+This should be treated as safe and idempotent.
+```
+
+It bridges the old gap:
+
+| Method | Good At | Pain Point |
+| --- | --- | --- |
+| `GET` | Simple read requests, URLs, caching | Complex query data becomes ugly or too long |
+| `POST` | Request bodies, complex input | Does not clearly communicate safe read-only semantics |
+| `QUERY` | Complex read-only requests with content | New method, so adoption will take time |
+
+That last row is important.
+
+`QUERY` is not magic.
+
+It is a better semantic tool for a specific job.
+
+---
+
+## Why This Is Useful for APIs
+
+`QUERY` is especially useful for APIs with complex search or retrieval logic.
+
+Examples:
+
+* Product search with many filters.
+* Analytics dashboards with nested date ranges and groupings.
+* Log search.
+* Document search.
+* Graph-style queries.
+* Reporting endpoints.
+* Advanced admin filters.
+* Search APIs with arrays, ranges, and nested conditions.
+
+These are exactly the places where developers historically had to choose between:
+
+```text
+Ugly but semantically correct GET
+```
+
+and:
+
+```text
+Clean but semantically vague POST
+```
+
+`QUERY` gives them a third option.
+
+---
+
+## Caching Becomes Easier to Reason About
+
+Caching is one of the biggest reasons this matters.
+
+With `GET`, caching is familiar.
+
+The URL identifies the request, and caches know the method is safe.
+
+With `POST`, caching is possible in some HTTP situations, but it is not the default mental model for most developers or infrastructure.
+
+Many systems assume `POST` is an action, not a cacheable read.
+
+`QUERY` gives the network a clearer signal:
+
+```text
+This is a read-style request, even though it has content.
+```
+
+That does not mean every CDN, proxy, client, or framework will instantly support perfect `QUERY` caching.
+
+Standards and ecosystem support are different things.
+
+But the standard creates a clean foundation.
+
+Once tooling catches up, APIs can express complex read requests without pretending they are `POST` actions.
+
+---
+
+## Safer Retries
+
+Imagine a client sends a complex search request and the connection drops.
+
+If the request was `POST`, a generic client may hesitate to retry automatically because repeating a `POST` could create duplicate side effects.
+
+But if the request is `QUERY`, the method says the request is safe and idempotent.
+
+That makes retry behavior easier to reason about.
+
+For search and retrieval endpoints, that is a nice improvement.
+
+Again, this depends on client and infrastructure support.
+
+But semantically, `QUERY` gives the right signal.
+
+---
+
+## What QUERY Does Not Mean
+
+`QUERY` is not a replacement for every `GET`.
+
+If the request is simple, `GET` is still excellent:
+
+```http
+GET /users/42
+GET /posts?tag=http
+GET /products?category=laptop
+```
+
+Simple URLs are readable, bookmarkable, shareable, and cache-friendly.
+
+Use them.
+
+`QUERY` is for cases where the query itself has meaningful structure that does not fit cleanly in the URL.
+
+Also, `QUERY` is not a replacement for `POST`.
+
+If the request creates something, submits something, triggers a workflow, or changes server state, use `POST` or another appropriate method.
+
+Do not use `QUERY` just because you like request bodies.
+
+The point is not:
+
+```text
+Bodies are nicer.
+```
+
+The point is:
+
+```text
+Complex read-only queries deserve their own clear method.
+```
+
+---
+
+## Can You Use QUERY Today?
+
+The standard is real.
+
+RFC 10008 exists.
+
+But practical adoption will take time.
+
+That means you should be careful before exposing `QUERY` as the only way to call a public API.
+
+You may run into gaps in:
+
+* Web frameworks.
+* API gateways.
+* Browser tooling.
+* HTTP clients.
+* Corporate proxies.
+* Firewalls.
+* CDNs.
+* Logging and monitoring tools.
+* OpenAPI tooling.
+
+For internal services, where you control both client and server, experimenting with `QUERY` is more realistic.
+
+For public APIs, a safer transition might be:
+
+```text
+Support QUERY for clients that can use it.
+Keep POST /search as a fallback.
+Keep simple GET endpoints for simple reads.
+```
+
+This lets you adopt the better semantic model without breaking clients that are not ready.
+
+---
+
+## A Practical Design Rule
+
+Here is a simple way to choose:
+
+```text
+Use GET when the query is simple and fits naturally in the URL.
+Use QUERY when the request is read-only but needs structured request content.
+Use POST when the request changes state or represents an action.
+```
+
+That rule will not solve every API design question.
+
+But it covers the awkward middle that developers have been fighting for years.
+
+---
+
+## Why This Feels Small but Matters
+
+New HTTP methods do not arrive every day.
+
+And when they do, they can feel boring at first.
+
+But small protocol improvements can clean up years of awkward application-level workarounds.
+
+`QUERY` matters because it gives developers a shared word for something they were already doing:
+
+```text
+I want to search with a body,
+but I do not want to pretend this is a state-changing POST.
+```
+
+That clarity helps humans.
+
+It helps tools.
+
+It helps infrastructure.
+
+And it makes API design a little less weird.
+
+---
+
+## Final Thought
+
+`GET` was always the right idea for retrieval.
+
+`POST` was always convenient for complex input.
+
+But complex read-only APIs needed something in between.
+
+That is what `QUERY` gives us:
+
+```text
+GET-like meaning.
+POST-like structure.
+A cleaner contract for complex reads.
+```
+
+It will take time for the ecosystem to catch up.
+
+But as a standard, it finally names a pattern that backend developers have been improvising for a long time.
+
+That is a good sign for the web.
