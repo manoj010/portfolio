@@ -1,5 +1,7 @@
 # React + TypeScript + Vite
 
+Portfolio site with MDX blog posts in `src/content/blog`.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
