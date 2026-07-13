@@ -1,0 +1,446 @@
+---
+title: HalluSquatting: When AI Invents Dangerous Dependencies
+date: 2026-07-13
+summary: AI coding assistants can hallucinate package names, repository URLs, and install commands. HalluSquatting, also called slopsquatting, turns that mistake into a software supply-chain risk when attackers register the fake dependency first.
+tags: ai, cybersecurity, software-supply-chain, coding, llm
+image: /blog/hallusquatting-social.png
+imageWidth: 1774
+imageHeight: 887
+---
+
+# HalluSquatting: When AI Invents Dangerous Dependencies
+
+AI coding tools are getting better at writing code.
+
+They can scaffold projects.
+
+They can explain errors.
+
+They can suggest libraries.
+
+They can draft tests.
+
+They can fix bugs.
+
+They can help developers move faster.
+
+But there is a strange security problem hiding inside that convenience:
+
+```text
+Sometimes AI invents dependencies that do not exist.
+```
+
+That sounds harmless at first.
+
+If a package does not exist, the install fails, right?
+
+Usually, yes.
+
+But what if an attacker notices that AI tools often hallucinate the same package names and registers those names before developers try to install them?
+
+That is the idea behind **HalluSquatting**, also called **slopsquatting**.
+
+It is a software supply-chain attack shaped by AI hallucination.
+
+![An AI coding agent suggesting a fake package name that flows into a malicious dependency path while verified packages remain safe](/blog/hallusquatting-social.png)
+
+---
+
+## The Basic Idea
+
+HalluSquatting happens when an AI system recommends a package, repository, or dependency name that sounds real but is not actually legitimate.
+
+For example, an assistant might suggest:
+
+```bash
+pip install fastapi-auth-guard
+```
+
+or:
+
+```bash
+npm install react-secure-session-kit
+```
+
+The names sound plausible.
+
+They follow familiar naming patterns.
+
+They look like packages that could exist.
+
+But maybe they do not.
+
+If nobody owns that name yet, an attacker could publish a malicious package using the hallucinated name.
+
+Now the next developer who trusts the AI suggestion may install the attacker's package.
+
+The hallucination becomes a route into the supply chain.
+
+---
+
+## Why This Is Different From Normal Hallucination
+
+AI hallucination is usually discussed as an answer-quality problem.
+
+The model makes up a fact.
+
+The model invents a citation.
+
+The model confidently explains something incorrectly.
+
+That is annoying, but often manageable.
+
+HalluSquatting is more serious because it turns a false suggestion into an executable action.
+
+Code dependencies are not just text.
+
+They run.
+
+They install scripts.
+
+They pull transitive dependencies.
+
+They may execute during build steps.
+
+They may enter production artifacts.
+
+They may be trusted by CI systems, deployment pipelines, and developer machines.
+
+So when an AI assistant invents a dependency, the risk is not only that the answer is wrong.
+
+The risk is that someone follows the instruction.
+
+---
+
+## Why AI Suggests Fake Packages
+
+Large language models learn patterns.
+
+Package ecosystems are full of patterns.
+
+Names often look like:
+
+```text
+framework-plugin
+toolkit-utils
+auth-helper
+cloud-sdk
+react-something
+fastapi-something
+eslint-plugin-something
+```
+
+When a model sees enough examples, it can generate names that feel natural even when they are not real.
+
+This is especially likely when the user asks for something specific:
+
+```text
+What package should I use for role-based auth in this framework?
+```
+
+The model may know the shape of a good answer, but not the actual current registry state.
+
+It fills the gap with a plausible name.
+
+That is the dangerous part:
+
+```text
+Plausible is not the same as verified.
+```
+
+---
+
+## The Attack Path
+
+A HalluSquatting attack can look like this:
+
+```text
+1. AI model often suggests a package name that does not exist.
+2. Attacker discovers or predicts the hallucinated name.
+3. Attacker registers that package in a public registry.
+4. The package appears real enough.
+5. A developer asks AI for help.
+6. AI suggests the same package.
+7. Developer installs it.
+8. Malicious code runs or enters the project.
+```
+
+This is similar in spirit to typosquatting.
+
+In typosquatting, attackers register names close to popular packages:
+
+```text
+requests -> reqeusts
+lodash -> lodahs
+```
+
+In HalluSquatting, attackers register names that AI systems invent.
+
+The typo comes from the human in one case.
+
+The hallucination comes from the model in the other.
+
+---
+
+## Why Coding Agents Make This More Important
+
+This risk becomes more serious as coding assistants become agents.
+
+A chatbot might suggest a package, and the human decides whether to install it.
+
+An agent might go further:
+
+* Edit `package.json`.
+* Run `npm install`.
+* Add imports.
+* Update lock files.
+* Run tests.
+* Commit changes.
+* Open a pull request.
+
+That is useful when everything is correct.
+
+It is dangerous when the agent accepts an unverified dependency.
+
+This is why I keep coming back to the same theme in agentic AI:
+
+```text
+The more actions an AI can take,
+the more verification matters.
+```
+
+I wrote about this broader shift in [AI Agents Are Becoming Infrastructure](/blog/ai-agents-become-infrastructure).
+
+HalluSquatting is a concrete example of why that matters.
+
+Agents need guardrails around the software supply chain.
+
+---
+
+## This Is Not Just a Model Problem
+
+It is tempting to say:
+
+```text
+The model should stop hallucinating packages.
+```
+
+Yes, that would help.
+
+But it is not enough.
+
+Even good models can be wrong.
+
+Even current documentation can be stale.
+
+Even real packages can become compromised.
+
+Even trusted ecosystems can contain malicious uploads.
+
+So the better answer is not only:
+
+```text
+Make the model smarter.
+```
+
+The better answer is:
+
+```text
+Never treat dependency suggestions as trusted until verified.
+```
+
+That is an engineering control, not just a model-quality hope.
+
+---
+
+## How Developers Can Protect Themselves
+
+Here are practical habits that help.
+
+### Verify the Package Exists
+
+Before installing, check the registry directly.
+
+For npm:
+
+```bash
+npm view package-name
+```
+
+For Python:
+
+```bash
+pip index versions package-name
+```
+
+or check the package page on PyPI.
+
+Do not install a package only because an AI assistant suggested it.
+
+### Check the Maintainer and History
+
+Look for:
+
+* Package age.
+* Download patterns.
+* Repository link.
+* Maintainer identity.
+* Recent suspicious releases.
+* Very new packages with broad permissions.
+* Names that sound generic but have no ecosystem presence.
+
+New packages are not automatically bad.
+
+But new packages suggested by an AI should be treated carefully.
+
+### Prefer Official Documentation
+
+If a framework recommends a package, its official docs should mention it.
+
+If the package is real and widely used, there should usually be:
+
+* Documentation.
+* Examples.
+* Issues.
+* Release history.
+* Community references.
+
+If the only place you saw the dependency is an AI response, pause.
+
+### Use Lockfiles and Review Diffs
+
+Lockfiles make dependency changes visible.
+
+If an AI agent modifies:
+
+```text
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+poetry.lock
+requirements.txt
+```
+
+review that diff carefully.
+
+A dependency change is not a small detail.
+
+It is a supply-chain change.
+
+### Run Install Steps in Sandboxes
+
+Do not let an agent install unknown dependencies directly on sensitive machines.
+
+Use:
+
+* Containers.
+* Temporary environments.
+* CI sandboxes.
+* Restricted permissions.
+* Network controls where possible.
+
+Treat dependency installation as code execution.
+
+Because it often is.
+
+---
+
+## What Teams Should Add to Agent Workflows
+
+If your team uses coding agents, add dependency controls.
+
+For example:
+
+```text
+Agent may suggest dependencies.
+Agent may not install new dependencies without verification.
+Agent must show package metadata before adding it.
+Agent must cite official docs or registry links.
+Agent must explain why the dependency is needed.
+Human approval required for new package additions.
+CI must run dependency scanning.
+```
+
+This is not overkill.
+
+It is the normal security posture for a world where AI can edit projects.
+
+The agent should not be allowed to quietly expand the supply chain.
+
+---
+
+## The Bigger Lesson
+
+HalluSquatting is not only about fake package names.
+
+It is about a broader pattern:
+
+```text
+AI can generate plausible instructions faster than humans can verify them.
+```
+
+That applies to:
+
+* Packages.
+* API endpoints.
+* CLI flags.
+* Config options.
+* Security advice.
+* Cloud permissions.
+* Database migrations.
+* Deployment steps.
+
+In many cases, the AI output is helpful.
+
+But the helpfulness comes with a new responsibility:
+
+```text
+Verification must become part of the workflow.
+```
+
+This connects directly to [AI Evals: Why Vibes Are Not Enough](/blog/ai-evals-vibes-are-not-enough).
+
+If we are going to let AI participate in engineering, we need more than confidence.
+
+We need checks.
+
+---
+
+## A Simple Rule
+
+Here is the rule I would use:
+
+```text
+AI can suggest dependencies.
+Humans and tools must verify dependencies.
+```
+
+That one line prevents a lot of trouble.
+
+An AI assistant can still be useful.
+
+It can compare options.
+
+It can read documentation.
+
+It can explain tradeoffs.
+
+It can write the integration code.
+
+But the package itself should be treated as untrusted until proven otherwise.
+
+---
+
+## Final Thought
+
+AI coding tools are not bad because they hallucinate.
+
+They are useful despite hallucination because humans can verify, test, and correct them.
+
+But the more these tools move from suggestion to action, the more the verification layer matters.
+
+HalluSquatting is a reminder that software security is not only about code you write.
+
+It is also about code you invite in.
+
+And in the age of AI coding agents, sometimes the invitation starts with a package name that never existed until a model made it sound real.
