@@ -1,0 +1,470 @@
+---
+title: The Future AI Stack Is A Router
+date: 2026-07-25
+summary: The next AI stack will not be one model doing everything. It will be routers that choose between small models, reasoning models, coding models, vision models, local models, and fallbacks based on cost, latency, quality, privacy, and reliability.
+tags: ai, software-architecture, llm, infrastructure, developer-tools
+image: /blog/ai-stack-router-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# The Future AI Stack Is A Router
+
+For a while, AI product design had a simple shape:
+
+```text
+User prompt -> Big model -> Response
+```
+
+That was enough for early demos.
+
+It was enough for chatbots.
+
+It was enough when the main question was:
+
+```text
+Which model is smartest?
+```
+
+But the AI stack is getting more complicated.
+
+There are fast small models.
+
+There are expensive reasoning models.
+
+There are coding models.
+
+There are vision models.
+
+There are voice models.
+
+There are local models.
+
+There are open-weight models.
+
+There are private enterprise models.
+
+There are fallback models.
+
+That means the next important layer is not only the model.
+
+It is the router.
+
+```text
+One prompt.
+Many possible models.
+One decision about where it should go.
+```
+
+Current coverage from [Reuters](https://www.reuters.com/technology/artificial-intelligence/), [The Information](https://www.theinformation.com/), and [VentureBeat](https://venturebeat.com/ai/) keeps pointing at the same pressure: AI demand is growing, but cost, latency, reliability, and model choice are becoming product-level concerns.
+
+The practical answer is routing.
+
+![An intelligent AI router sending one user request across fast small models, reasoning models, coding models, vision models, local models, and fallback models while tracking cost, latency, quality, privacy, and reliability](/blog/ai-stack-router-social.png)
+
+---
+
+## Why One Model Is Not Enough
+
+Using one powerful model for everything feels simple.
+
+It is also wasteful.
+
+Not every task needs frontier reasoning.
+
+Some requests are tiny:
+
+* Classify this message.
+* Extract a date.
+* Rewrite this sentence.
+* Summarize this short note.
+* Detect intent.
+* Format JSON.
+* Route a support ticket.
+
+Sending every one of those to the largest model is like using a truck to carry a coffee mug.
+
+It works.
+
+But it is not elegant.
+
+Other requests really do need power:
+
+* Debug a complex system.
+* Reason through ambiguous requirements.
+* Analyze a long document.
+* Plan a multi-step workflow.
+* Compare tradeoffs.
+* Generate careful code.
+* Handle a high-risk user action.
+
+Those deserve a stronger model.
+
+The router's job is to tell the difference.
+
+---
+
+## Routing Is About Constraints
+
+Model choice is not only about quality.
+
+It is about constraints.
+
+A good router considers:
+
+* Cost.
+* Latency.
+* Privacy.
+* Context length.
+* Tool access.
+* Modality.
+* Reliability.
+* Region.
+* User plan.
+* Risk level.
+* Required accuracy.
+* Fallback behavior.
+
+For example:
+
+```text
+Simple classification -> small fast model
+Private local note -> local model
+Image question -> vision model
+Hard reasoning -> reasoning model
+Code refactor -> coding model
+Payment action -> high-safety path with human approval
+Model outage -> fallback model
+```
+
+This is less glamorous than a new benchmark.
+
+It is also what real products need.
+
+Most AI products do not fail because one model is not magical enough.
+
+They fail because the system around the model is too expensive, too slow, too unreliable, or too hard to trust.
+
+---
+
+## The Router Is A Product Decision
+
+Routing may sound like backend plumbing.
+
+It is not only backend plumbing.
+
+It changes the user experience.
+
+If the router chooses a small model, the answer may be faster and cheaper.
+
+If it chooses a stronger model, the answer may be slower but better.
+
+If it chooses a local model, privacy may improve.
+
+If it chooses a fallback model, reliability may improve.
+
+If it chooses poorly, the user feels it immediately.
+
+They may get:
+
+* A slow answer for a simple task.
+* A weak answer for a hard task.
+* A privacy risk for sensitive data.
+* A high bill for low-value work.
+* An outage when another model could have handled it.
+
+So routing is not only infrastructure.
+
+It is product behavior.
+
+The user may never see the router.
+
+But they feel its decisions.
+
+---
+
+## Cost Control Needs Architecture
+
+Yesterday I wrote about how [AI Has To Prove The Bill Now](/blog/ai-prove-the-bill).
+
+Model routing is one way products can actually do that.
+
+If an AI app grows, raw usage can become painful.
+
+Every prompt costs something.
+
+Every tool call costs something.
+
+Every long context window costs something.
+
+Every retry costs something.
+
+Every agent loop costs something.
+
+The answer is not simply:
+
+```text
+Use less AI.
+```
+
+The better answer is:
+
+```text
+Use the right amount of AI for the job.
+```
+
+That means:
+
+* Cache repeated answers.
+* Use small models for simple tasks.
+* Escalate only when needed.
+* Trim context.
+* Route sensitive work locally.
+* Stop agent loops early.
+* Use fallbacks instead of retry storms.
+* Measure quality per unit of compute.
+
+The router becomes the cost-control layer.
+
+Not by making the product worse.
+
+By making the product less careless.
+
+---
+
+## Routing Can Improve Reliability
+
+AI systems fail in strange ways.
+
+Sometimes a model is down.
+
+Sometimes it is slow.
+
+Sometimes rate limits hit.
+
+Sometimes a provider changes behavior.
+
+Sometimes a model gets worse at a niche task.
+
+Sometimes an output fails validation.
+
+A router can respond.
+
+It can:
+
+* Retry with another model.
+* Fall back to a simpler path.
+* Ask for human review.
+* Use a cached result.
+* Switch providers.
+* Disable a risky tool.
+* Return a graceful partial answer.
+
+This is ordinary reliability engineering.
+
+AI makes it feel new because model outputs are probabilistic.
+
+But the pattern is familiar:
+
+```text
+Detect failure.
+Contain failure.
+Recover gracefully.
+```
+
+That connects to [AI Kill Switches Are Control Systems](/blog/ai-kill-switch-control-systems).
+
+The router is not a kill switch.
+
+But it is part of the same control layer.
+
+It decides where requests go, when to degrade, and when to stop.
+
+---
+
+## Privacy Routing Will Matter
+
+Not every prompt should leave the device or company network.
+
+Some requests contain:
+
+* Customer data.
+* Source code.
+* Health records.
+* Financial details.
+* Legal documents.
+* Internal strategy.
+* Credentials by accident.
+* Personal notes.
+
+A router can treat sensitive requests differently.
+
+For example:
+
+```text
+Sensitive document -> local model or private deployment
+Generic writing task -> hosted model
+High-risk legal text -> restricted workflow
+Internal codebase question -> enterprise-approved model
+```
+
+That is not just compliance.
+
+It is user trust.
+
+People do not only care whether AI is smart.
+
+They care where their data goes.
+
+The future AI stack will need privacy-aware routing by default.
+
+---
+
+## Open Models Make Routing More Powerful
+
+Open-weight models make routing more interesting.
+
+I wrote about this in [Open-Weight AI Is Startup Infrastructure](/blog/open-weight-ai-startup-infrastructure).
+
+When builders can run capable models themselves, the router has more choices.
+
+It can choose:
+
+* A local model for privacy.
+* A cheap open model for routine work.
+* A frontier API for difficult reasoning.
+* A fine-tuned model for domain-specific tasks.
+* A fallback model for uptime.
+
+This makes the stack more flexible.
+
+It also makes it more complex.
+
+Someone has to evaluate the models.
+
+Someone has to decide routing rules.
+
+Someone has to monitor failures.
+
+Someone has to update the model list.
+
+Someone has to check whether the cheap model is still good enough.
+
+The more model options exist, the more routing matters.
+
+---
+
+## The Hard Part Is Evaluation
+
+Routing depends on knowing which model is good at what.
+
+That requires evaluation.
+
+Not vibes.
+
+Actual tests.
+
+For example:
+
+* Which model extracts invoices most accurately?
+* Which model handles Nepali-English mixed text best?
+* Which model writes safer SQL?
+* Which model hallucinates least on support docs?
+* Which model is cheapest at acceptable quality?
+* Which model fails gracefully?
+* Which model handles long context better?
+* Which model should never touch private data?
+
+This connects to [AI Evals: Vibes Are Not Enough](/blog/ai-evals-vibes-are-not-enough).
+
+A router without evals is guesswork.
+
+A router with evals becomes a living system.
+
+It can learn which model should handle which task.
+
+It can evolve as models change.
+
+It can improve without rewriting the whole product.
+
+---
+
+## What A Simple Router Might Do
+
+A basic routing flow could look like this:
+
+```text
+1. Detect task type.
+2. Detect sensitivity.
+3. Estimate difficulty.
+4. Choose model.
+5. Validate output.
+6. Escalate if needed.
+7. Log cost, latency, and quality signals.
+```
+
+For example:
+
+```text
+User asks for a short rewrite:
+-> small model
+
+User uploads a private contract:
+-> private/local model
+
+User asks for a complex architecture decision:
+-> reasoning model
+
+User asks to edit code:
+-> coding model
+
+Output fails validation:
+-> retry stronger model or ask human
+```
+
+This does not require magic.
+
+It requires discipline.
+
+The router is basically a traffic controller for intelligence.
+
+---
+
+## The Takeaway
+
+The future AI stack will not be:
+
+```text
+One app.
+One prompt.
+One giant model.
+```
+
+It will look more like:
+
+```text
+One app.
+Many models.
+Many constraints.
+One routing layer.
+```
+
+That routing layer will decide:
+
+* What is cheap enough?
+* What is fast enough?
+* What is accurate enough?
+* What is private enough?
+* What is reliable enough?
+* What needs escalation?
+
+The smartest AI product may not always use the smartest model.
+
+It will use the right model at the right moment.
+
+That is the shift.
+
+The model race still matters.
+
+But the orchestration race is starting too.
+
