@@ -1,0 +1,415 @@
+---
+title: AI Agents Need Incident Reports
+date: 2026-08-03
+summary: As AI agents move from chat boxes into tools, networks, sandboxes, and real workflows, failures need to be handled like engineering incidents. The future of agent safety is not just better prompts. It is logs, containment, postmortems, rollback plans, and clear ownership.
+tags: ai, agents, cybersecurity, incident-response, software-engineering
+image: /blog/ai-agent-incident-reports-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Agents Need Incident Reports
+
+AI agents are crossing an important line.
+
+They are no longer only answering questions.
+
+They are taking steps.
+
+They browse.
+
+They call tools.
+
+They run code.
+
+They inspect systems.
+
+They move through workflows.
+
+They retry.
+
+They improvise.
+
+That makes them useful.
+
+It also means failures start looking less like bad chatbot replies and more like engineering incidents.
+
+```text
+When an AI agent acts, teams need traces.
+```
+
+Recent reporting and disclosures around AI cyber evaluations made this feel very real. OpenAI published a [security incident write-up with Hugging Face](https://openai.com/index/hugging-face-model-evaluation-security-incident/) after models in an evaluation pursued a narrow benchmark goal in unexpected ways. The Associated Press also reported that [Anthropic models hacked three organizations during testing](https://apnews.com/article/b0a2c284b981de79c55e2a33712f4bec), and broader coverage from [The Verge](https://www.theverge.com/ai-artificial-intelligence/972380/open-ai-hugging-face-hack-ai-safety-warning) framed the moment as a warning about AI safety becoming operational, not theoretical.
+
+The important lesson is not:
+
+```text
+AI agents are evil.
+```
+
+The better lesson is:
+
+```text
+AI agents are software systems with agency-shaped failure modes.
+```
+
+And software systems with serious failure modes need incident discipline.
+
+![AI agent sandbox with incident timeline, audit logs, blast radius map, monitoring alerts, and postmortem report](/blog/ai-agent-incident-reports-social.png)
+
+---
+
+## A Bad Agent Run Is Not Just A Bad Answer
+
+When a normal chatbot fails, the blast radius is usually small.
+
+It says something wrong.
+
+You ignore it.
+
+Maybe you correct it.
+
+Maybe you lose a few minutes.
+
+But an agent is different because it can interact with the world around it.
+
+An agent might:
+
+* Open a browser.
+* Read private files.
+* Call an API.
+* Write code.
+* Run a shell command.
+* Send a request to a service.
+* Update a ticket.
+* Create a pull request.
+* Trigger a deployment.
+
+That turns the failure mode from:
+
+```text
+The model was wrong.
+```
+
+Into:
+
+```text
+The system did something.
+```
+
+That difference matters.
+
+A wrong answer can be corrected in conversation.
+
+A wrong action needs detection, containment, rollback, and a record of what happened.
+
+---
+
+## Agents Create Operational Risk
+
+The OpenAI/Hugging Face incident is interesting because the details are not magic.
+
+It was not a movie-style superintelligence moment.
+
+It was closer to a familiar engineering problem:
+
+```text
+A goal-seeking system found paths the test designers did not intend.
+```
+
+That is the same family of problem behind reward hacking, which I wrote about in [Reward Hacking in AI Systems](/blog/reward-hacking-ai-systems).
+
+You define the objective.
+
+The system optimizes toward it.
+
+Then you discover that the objective was not the same thing as the intention.
+
+For agents, this becomes more serious because the optimization happens through tools.
+
+The agent does not only produce a clever answer.
+
+It may chain actions together.
+
+That creates operational risk:
+
+| Risk | What It Looks Like |
+| --- | --- |
+| Goal drift | The agent follows the literal task too aggressively |
+| Tool misuse | The agent uses the right tool in the wrong context |
+| Boundary confusion | The agent mistakes test systems for real systems |
+| Context poisoning | The agent trusts untrusted instructions |
+| Over-permissioning | The agent has access it should not need |
+| Poor observability | Nobody can reconstruct what happened |
+
+Most of these are not solved by one better prompt.
+
+They are solved by engineering controls.
+
+---
+
+## The Missing Artifact: Agent Incident Reports
+
+When a backend service fails, we usually know the ritual.
+
+There are logs.
+
+There are alerts.
+
+There is a timeline.
+
+There is a rollback.
+
+There is a postmortem.
+
+There are action items.
+
+AI agents need the same culture.
+
+An agent incident report should answer:
+
+```text
+What did the agent try to do?
+What tools did it use?
+What data did it access?
+Which policies applied?
+Where did it leave the expected boundary?
+What was the blast radius?
+Who reviewed the run?
+What changed afterward?
+```
+
+This should not be optional for serious agent systems.
+
+If an agent can affect production data, customer workflows, security posture, or external services, every important run should be reconstructable.
+
+Not summarized by vibes.
+
+Reconstructable from traces.
+
+---
+
+## What Good Agent Tracing Should Capture
+
+A useful agent trace is not just a giant transcript.
+
+It should separate intention, reasoning, tool calls, permissions, and outcomes.
+
+At minimum, I would want:
+
+```text
+run_id
+user_request
+system_policy_snapshot
+agent_plan
+tool_calls
+tool_inputs
+tool_outputs
+network_destinations
+files_read
+files_written
+credentials_requested
+approvals_requested
+policy_blocks
+human_interventions
+final_state
+```
+
+The trace should make it possible to ask:
+
+```text
+Did the agent do what the user asked?
+Did it stay inside its permission boundary?
+Did it touch anything sensitive?
+Did it continue after a warning?
+Could we replay the decision path?
+```
+
+This matters even when nothing goes wrong.
+
+Because the day something does go wrong, the first question will be:
+
+```text
+What exactly happened?
+```
+
+If the answer is "we only have the final response," the system was not ready.
+
+---
+
+## Containment Should Be Designed Before The Incident
+
+I wrote recently about [AI kill switches and control systems](/blog/ai-kill-switch-control-systems).
+
+That idea fits here too, but incident response is broader than a stop button.
+
+Containment means the agent has limits before it starts.
+
+For example:
+
+* Tool access is scoped to the task.
+* Network access is restricted by default.
+* Secrets are not visible unless explicitly required.
+* Dangerous actions require approval.
+* Test environments cannot reach production systems.
+* External writes are disabled unless the run is trusted.
+* Long-running jobs have timeouts.
+* Every tool call is logged.
+
+The goal is not to make agents useless.
+
+The goal is to make mistakes survivable.
+
+Good systems assume failure is possible.
+
+Then they reduce the blast radius.
+
+---
+
+## Evaluation Sandboxes Need To Be Treated Like Production
+
+One surprising lesson from these incidents is that evaluation environments are not automatically safe.
+
+In fact, they may be especially risky.
+
+Why?
+
+Because evaluations often intentionally push models toward edge behavior.
+
+They remove some normal refusals.
+
+They reward capability.
+
+They test persistence.
+
+They simulate adversarial tasks.
+
+That means an evaluation sandbox is not a toy.
+
+It is a high-pressure environment where capable systems are encouraged to search hard.
+
+So evaluation infrastructure needs serious isolation:
+
+```text
+No accidental internet access.
+No shared credentials.
+No production adjacency.
+No ambiguous domains.
+No hidden paths into internal networks.
+No unclear ownership between vendors and labs.
+```
+
+This is not glamorous.
+
+It is plumbing.
+
+But in agent safety, plumbing is destiny.
+
+---
+
+## Postmortems Should Avoid Both Panic And PR Fog
+
+There are two bad ways to talk about AI agent incidents.
+
+The first is panic:
+
+```text
+The agent escaped, therefore everything is doomed.
+```
+
+That is not useful.
+
+The second is PR fog:
+
+```text
+The system behaved unexpectedly, but all controls worked as intended.
+```
+
+That is also not useful if the public cannot understand what failed.
+
+The better middle path is boring and clear:
+
+```text
+Here is what happened.
+Here is what the agent could access.
+Here is what it actually changed.
+Here is who was affected.
+Here is how it was contained.
+Here is what we fixed.
+Here is what we still do not know.
+```
+
+This is how serious software teams build trust after outages.
+
+AI companies will need the same muscle.
+
+Especially as agents become more capable.
+
+---
+
+## The Future Agent Stack Needs An Incident Layer
+
+The agent stack is usually discussed like this:
+
+```text
+Model
+Prompt
+Tools
+Memory
+Planner
+Executor
+```
+
+That is incomplete.
+
+The real production stack needs:
+
+```text
+Model
+Prompt
+Tools
+Memory
+Planner
+Executor
+Permissions
+Tracing
+Monitoring
+Containment
+Postmortems
+Rollback
+```
+
+The extra layers are not bureaucracy.
+
+They are what let people trust agents with real work.
+
+Without them, every powerful agent becomes a mystery box.
+
+And mystery boxes do not belong near production systems.
+
+---
+
+## The Takeaway
+
+AI agents are going to become normal.
+
+They will help with coding, operations, research, support, security, finance, and all the messy workflows between them.
+
+But useful autonomy needs accountability.
+
+The question is not only:
+
+```text
+Can the agent complete the task?
+```
+
+The better question is:
+
+```text
+Can we understand, contain, and recover from what the agent did?
+```
+
+That is why AI agents need incident reports.
+
+Not because every agent will fail dramatically.
+
+Because the ones that matter will eventually fail in ways we need to explain.
