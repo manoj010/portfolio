@@ -1,0 +1,416 @@
+---
+title: AI Agents Need Identity Cards
+date: 2026-08-10
+summary: As AI agents start calling APIs, reading documents, moving tickets, and touching internal systems, they become non-human workers. That means every agent needs an owner, scope, token policy, audit trail, expiry, and revoke button.
+tags: ai, agents, cybersecurity, identity, software-engineering
+image: /blog/ai-agents-identity-cards-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Agents Need Identity Cards
+
+AI agents are becoming workers.
+
+Not employees.
+
+Not humans.
+
+But workers in the operational sense.
+
+They read.
+
+They write.
+
+They call APIs.
+
+They open tickets.
+
+They summarize documents.
+
+They move data between systems.
+
+They trigger workflows.
+
+They sometimes act while no human is staring at the screen.
+
+That means the security question changes.
+
+It is no longer only:
+
+```text
+Is the model safe?
+```
+
+It is also:
+
+```text
+Who is this agent, what can it access, and who owns it?
+```
+
+Security teams have been warning about this direction for a while. Okta's guidance on [AI agents and non-human identity](https://www.okta.com/identity-101/ai-agents-identity-security/) frames agents as identities that need lifecycle management, permissions, and auditability. The Cloud Security Alliance has also written about [shadow AI and unmanaged AI usage](https://cloudsecurityalliance.org/blog/2025/10/20/the-shadow-ai-problem-why-unmanaged-ai-use-puts-your-business-at-risk), and broader security coverage keeps pointing at the same problem: if AI tools appear faster than governance, unknown access paths appear too.
+
+The simple version:
+
+```text
+Every non-human worker needs an identity card.
+```
+
+![AI agent identity dashboard with owner, scope, token, expiry, audit, revoke access, and shadow agent detection](/blog/ai-agents-identity-cards-social.png)
+
+---
+
+## Agents Are Not Just Features
+
+A chatbot embedded in a page is a feature.
+
+An agent connected to tools is more than that.
+
+It is a software actor.
+
+It might have:
+
+* API keys.
+* OAuth tokens.
+* Database access.
+* File permissions.
+* Browser sessions.
+* SaaS integrations.
+* Scheduler permissions.
+* Webhook access.
+* Memory.
+* Tool-calling ability.
+
+That starts to look less like a UI component and more like an account.
+
+But many teams still treat agents like features.
+
+They name the project.
+
+They add a prompt.
+
+They connect a few tools.
+
+They ship.
+
+Then later someone asks:
+
+```text
+Which systems can this thing access?
+```
+
+And the room gets quiet.
+
+That is the identity problem.
+
+---
+
+## Shadow AI Is The New Shadow IT
+
+Shadow IT was the old pattern.
+
+Teams adopted tools before IT approved them.
+
+Sometimes for good reasons.
+
+Sometimes because the official process was too slow.
+
+The same thing is happening with AI, except the tools are now more capable.
+
+Someone connects an AI assistant to a knowledge base.
+
+Someone builds a workflow agent with a personal API key.
+
+Someone gives a bot access to a shared mailbox.
+
+Someone tests an automation in a production SaaS account.
+
+Nobody is trying to be reckless.
+
+They are trying to move fast.
+
+But the result can be a quiet pile of unknown agents.
+
+```text
+Unknown owner.
+Unknown scope.
+Unknown token lifetime.
+Unknown data access.
+Unknown audit trail.
+```
+
+That is shadow AI.
+
+And once agents can take actions, shadow AI becomes a real security posture problem.
+
+---
+
+## Every Agent Needs An Owner
+
+The first identity rule is boring and essential:
+
+```text
+Every agent must have a named owner.
+```
+
+Not just a team alias.
+
+Not just "automation."
+
+Not just "AI assistant."
+
+A real accountable owner.
+
+Why?
+
+Because someone must answer:
+
+```text
+Why does this agent exist?
+What business process does it support?
+Which systems does it need?
+When should access expire?
+Who reviews its logs?
+Who approves changes?
+Who shuts it down?
+```
+
+If nobody owns the agent, nobody owns the risk.
+
+And risk without ownership does not disappear.
+
+It just waits.
+
+---
+
+## Scope Should Be Small And Visible
+
+Agents should not get broad access because "the model might need it."
+
+That is how small experiments become big attack surfaces.
+
+A support-summary agent probably does not need write access to billing.
+
+A content drafting agent probably does not need customer PII.
+
+A reporting agent probably does not need admin permissions.
+
+A code-review helper probably does not need production deployment access.
+
+This is normal least-privilege thinking.
+
+AI does not get an exemption because it feels magical.
+
+The agent identity card should make scope visible:
+
+```text
+Can read: support tickets
+Can write: draft replies only
+Cannot access: billing, secrets, production data
+Can call: summarize, classify, suggest
+Cannot call: send, delete, deploy
+```
+
+If the scope is too hard to explain, it is probably too broad.
+
+---
+
+## Tokens Should Expire
+
+Long-lived secrets are already painful in traditional software.
+
+With agents, they get even stranger.
+
+An agent may run in the background.
+
+It may call tools on a schedule.
+
+It may use third-party APIs.
+
+It may be copied from one environment to another.
+
+It may be forgotten after a demo.
+
+If its token never expires, that demo can become a permanent access path.
+
+Good agent identity needs:
+
+* Short-lived tokens.
+* Rotation.
+* Environment separation.
+* Secret storage.
+* Expiry alerts.
+* Automatic revocation.
+* Token usage logs.
+
+This connects to [AI Memory Needs Expiration Dates](/blog/ai-memory-expiration-dates). Memory should not live forever just because it was once useful. Access should not live forever either.
+
+---
+
+## The Revoke Button Is Not Optional
+
+Every agent should have a simple operational question attached:
+
+```text
+How do we turn this off?
+```
+
+Not after a meeting.
+
+Not after finding the original developer.
+
+Not after searching five dashboards.
+
+Immediately.
+
+If an agent behaves unexpectedly, leaks data, loops through an API, or touches the wrong workflow, teams need a revoke path.
+
+The revoke path should disable:
+
+* API credentials.
+* Tool access.
+* Scheduled runs.
+* Webhooks.
+* Browser sessions.
+* Memory writes.
+* External network calls.
+
+This overlaps with [AI Kill Switches and Control Systems](/blog/ai-kill-switch-control-systems), but identity gives the kill switch a target.
+
+You cannot revoke what you cannot identify.
+
+---
+
+## Audit Logs Are The Agent's Memory For Humans
+
+Agents need audit trails.
+
+Not vague summaries.
+
+Real logs.
+
+At minimum:
+
+```text
+agent_id
+owner
+request_id
+user_or_trigger
+tools_called
+systems_accessed
+data_read
+data_written
+tokens_used
+policy_blocks
+errors
+approvals
+final_action
+```
+
+When something goes wrong, the question will not be:
+
+```text
+Did the agent seem helpful?
+```
+
+It will be:
+
+```text
+What did it touch?
+```
+
+That is why I wrote [AI Agents Need Incident Reports](/blog/ai-agent-incident-reports). Incident reports need traces. Identity tells you which actor produced those traces.
+
+The two ideas belong together.
+
+---
+
+## Agent Identity Should Be Designed Into The Platform
+
+This cannot be solved by a spreadsheet forever.
+
+Early on, sure.
+
+A spreadsheet is better than nothing.
+
+But serious AI platforms need identity as a built-in concept.
+
+When someone creates an agent, the system should require:
+
+| Field | Why It Matters |
+| --- | --- |
+| Agent name | Humans need to recognize it |
+| Owner | Someone is accountable |
+| Purpose | Access should match the job |
+| Scope | Permissions must be explicit |
+| Data class | Sensitive data needs stronger rules |
+| Token lifetime | Access should expire |
+| Environment | Test and production must be separate |
+| Audit policy | Logs should exist before failure |
+| Revoke path | Shutdown must be immediate |
+
+This is not bureaucracy.
+
+This is how systems become operable.
+
+---
+
+## Developers Need Better Defaults
+
+The easiest path should be the safe path.
+
+If the default agent template asks for a broad API key and never expires it, developers will use that.
+
+If the default template creates a scoped identity, short-lived token, audit log, and revoke button, developers will use that too.
+
+Good platform design should make the right thing natural.
+
+For example:
+
+```text
+Create agent -> choose purpose -> choose data class -> select tools -> assign owner -> set expiry -> generate scoped token -> enable logs
+```
+
+That is much better than:
+
+```text
+Paste your admin API key here.
+```
+
+Tiny setup choices become long-term security posture.
+
+---
+
+## The Takeaway
+
+AI agents are becoming part of the workforce of software systems.
+
+They are not human workers.
+
+But they are actors.
+
+They need identity.
+
+They need ownership.
+
+They need least privilege.
+
+They need short-lived access.
+
+They need audit trails.
+
+They need revocation.
+
+The future enterprise question will not only be:
+
+```text
+How many AI agents do we have?
+```
+
+It will be:
+
+```text
+How many can we identify, explain, audit, and shut down?
+```
+
+If the answer is "we are not sure," the agents are already ahead of the governance.
