@@ -1,0 +1,423 @@
+---
+title: Who Sets AI's Values?
+date: 2026-08-11
+summary: The debate around personal superintelligence, open AI access, and AI pause proposals is really about defaults. As AI assistants become more personal and powerful, the hard product question is who chooses the values they follow: users, companies, governments, or the systems themselves.
+tags: ai, ethics, product-design, governance, software-engineering
+image: /blog/who-sets-ai-values-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# Who Sets AI's Values?
+
+AI is getting personal.
+
+Not just smarter.
+
+Not just faster.
+
+Personal.
+
+The promise is that everyone gets an assistant that understands their goals, helps them work, learns their preferences, protects their time, and maybe even helps them become more capable.
+
+That sounds good.
+
+It also opens a very uncomfortable question:
+
+```text
+Who gets to decide what the assistant should value?
+```
+
+The user?
+
+The company building it?
+
+The government regulating it?
+
+The social norms of the country where it runs?
+
+The safety policy written into the model?
+
+Or some hidden blend of all of these?
+
+Recent AI news keeps circling this exact tension. Mark Zuckerberg has argued for building "personal superintelligence" and keeping powerful AI broadly accessible, while [The Guardian](https://www.theguardian.com/technology/2026/aug/10/mark-zuckerberg-meta-ai-superintelligence) framed the debate around whether everyone should have access to increasingly capable systems. At the same time, Senator Bernie Sanders has called for a pause on AI development, with [The Guardian](https://www.theguardian.com/us-news/2026/aug/10/bernie-sanders-ai-development-pause) reporting his warning that uncontrolled AI could worsen social and economic harms. Axios has also covered renewed talk of an [AI singularity or intelligence explosion](https://www.axios.com/2026/08/06/ai-singularity-intelligence-explosion), which makes the question feel less theoretical.
+
+The surface debate is:
+
+```text
+Speed up or slow down?
+```
+
+The deeper product question is:
+
+```text
+Who sets the defaults?
+```
+
+![AI value dashboard with user choice, company defaults, public rules, safety, privacy, oversight, audit, and consent controls](/blog/who-sets-ai-values-social.png)
+
+---
+
+## Personal AI Sounds Empowering
+
+The best version of personal AI is genuinely exciting.
+
+Imagine an assistant that helps you learn faster.
+
+Helps you write better.
+
+Helps you code.
+
+Helps you manage boring admin.
+
+Helps you understand contracts.
+
+Helps you prepare for interviews.
+
+Helps you plan your health, career, finances, and projects.
+
+If that assistant is only available to a few companies or wealthy users, that creates a power gap.
+
+So the argument for broad access is not silly.
+
+There is a real democratic instinct behind it:
+
+```text
+If AI is powerful, ordinary people should not be locked out.
+```
+
+I agree with that instinct.
+
+But access is not the whole story.
+
+An AI assistant does not become neutral just because many people can use it.
+
+Every assistant has defaults.
+
+---
+
+## Defaults Are Values In Disguise
+
+Software defaults are never innocent.
+
+They shape behavior.
+
+They decide what is easy.
+
+They decide what is hidden.
+
+They decide what requires extra friction.
+
+For AI, defaults become even more important because the system speaks, recommends, ranks, refuses, summarizes, and acts.
+
+For example:
+
+```text
+Should the assistant be optimistic or cautious?
+Should it refuse risky requests early or explain boundaries in detail?
+Should it prioritize privacy or convenience?
+Should it remember more or forget faster?
+Should it encourage ambition or restraint?
+Should it follow user preference even when the preference is harmful?
+Should it adapt to local culture?
+Should it challenge the user?
+```
+
+These are not only engineering questions.
+
+They are value questions.
+
+And if the product does not make the defaults visible, the values still exist.
+
+They are just hidden.
+
+---
+
+## User Choice Is Necessary But Not Sufficient
+
+A common answer is:
+
+```text
+Let users choose.
+```
+
+That is important.
+
+Users should have control over memory, tone, personalization, privacy, data sharing, and what the assistant is allowed to do.
+
+I wrote about this in [AI Memory Needs Expiration Dates](/blog/ai-memory-expiration-dates). Personalization without review, deletion, and expiry can become creepy fast.
+
+But pure user choice is not enough.
+
+Why?
+
+Because some settings affect other people.
+
+If an assistant helps generate misinformation, spam, harassment, malware, fraud, or deepfake content, the harm does not stay inside the user's private preference panel.
+
+If an agent has access to company systems, the user is not the only stakeholder.
+
+If an AI gives medical, legal, financial, or political advice, bad defaults can scale into public consequences.
+
+So the real design problem is balance:
+
+```text
+Give users meaningful control.
+Do not turn public safety into a private toggle.
+```
+
+That is harder than it sounds.
+
+---
+
+## Company Defaults Matter A Lot
+
+The company building an AI assistant controls more than people realize.
+
+It chooses:
+
+* The model.
+* The training data.
+* The system prompts.
+* The refusal policy.
+* The memory design.
+* The recommendation style.
+* The tool permissions.
+* The ranking logic.
+* The moderation rules.
+* The business incentives.
+
+Even when a product says "personal AI," the company still defines the playing field.
+
+That does not mean companies are automatically bad.
+
+It means they are powerful.
+
+If the business model rewards engagement, the assistant may become too agreeable.
+
+If the product is optimized for productivity metrics, it may push people toward speed over reflection.
+
+If the safety layer is too opaque, users may not understand why some requests are blocked.
+
+If the assistant is too customizable, it may become easy to configure into a harmful tool.
+
+Company defaults are policy.
+
+They just ship as UX.
+
+---
+
+## Public Rules Are Clumsy But Necessary
+
+Regulation is usually slower than technology.
+
+It can be messy.
+
+It can overreach.
+
+It can misunderstand the engineering details.
+
+But the answer cannot be:
+
+```text
+Just trust the companies.
+```
+
+AI systems are becoming too embedded in work, education, media, security, and public life for that.
+
+Public rules are especially important when AI outputs affect people who never opted into the system.
+
+That includes:
+
+* Hiring decisions.
+* Credit decisions.
+* Healthcare triage.
+* Surveillance.
+* Policing.
+* Education.
+* Political content.
+* Synthetic media.
+* Workplace monitoring.
+
+I wrote about a smaller version of this in [AI Disclosure Becomes Product Design](/blog/ai-disclosure-product-design). Transparency rules are not just paperwork. They become interface requirements.
+
+The same is true for AI values.
+
+If AI systems shape public life, public accountability has to show up somewhere.
+
+---
+
+## The Sliders Should Be Visible
+
+I do not mean every user needs a giant philosophical dashboard.
+
+Most people do not want to tune "epistemic humility" before asking for a recipe.
+
+But serious AI products should make their important value choices inspectable.
+
+For example:
+
+```text
+Memory: on, off, per-project, expires after 90 days
+Tone: concise, detailed, challenging, supportive
+Privacy: use my data for personalization, do not train on my data
+Safety: explain refusals, allow safe alternatives
+Autonomy: suggest actions, draft actions, execute with approval
+Sources: prefer cited answers for factual claims
+Risk: ask before legal, medical, financial, or irreversible actions
+```
+
+This is not about overwhelming users.
+
+It is about giving people handles.
+
+If an AI assistant is going to become part of someone's thinking, work, and decisions, the user should be able to see the major settings shaping it.
+
+Hidden defaults create hidden power.
+
+Visible defaults create at least a chance of accountability.
+
+---
+
+## Personalization Needs A Boundary
+
+The dream of personal AI is:
+
+```text
+It understands me.
+```
+
+The nightmare version is:
+
+```text
+It quietly optimizes me.
+```
+
+There is a difference.
+
+An assistant that adapts to your workflow is useful.
+
+An assistant that learns how to keep you engaged, emotionally dependent, or commercially predictable is dangerous.
+
+The boundary should be clear:
+
+```text
+Personalization should serve the user's stated goals.
+It should not quietly replace those goals.
+```
+
+This matters because AI systems can become persuasive.
+
+They can mirror the user.
+
+They can sound caring.
+
+They can explain anything with confidence.
+
+They can generate endless options.
+
+The more personal the assistant becomes, the more important it is to ask:
+
+```text
+Is this helping the user choose?
+Or is it choosing the user?
+```
+
+That question belongs in product reviews.
+
+Not only philosophy papers.
+
+---
+
+## Engineers Need Value Tests Too
+
+We test latency.
+
+We test uptime.
+
+We test accuracy.
+
+We test security.
+
+AI products also need tests for value behavior.
+
+Not perfect tests.
+
+Useful tests.
+
+For example:
+
+```text
+Does the assistant disclose uncertainty?
+Does it respect privacy settings?
+Does it avoid manipulating user emotions?
+Does it refuse harmful requests consistently?
+Does it offer safe alternatives?
+Does it preserve user agency?
+Does it explain important tradeoffs?
+Does it behave differently across cultures in intended ways?
+Does personalization drift over time?
+```
+
+This connects to [AI Evals: Vibes Are Not Enough](/blog/ai-evals-vibes-are-not-enough). If a behavior matters, it needs some kind of evaluation.
+
+Values are no exception.
+
+You cannot simply claim a system is "aligned with users."
+
+You need to show how you know.
+
+---
+
+## The Takeaway
+
+The debate about personal superintelligence, open access, and AI pauses is not only about capability.
+
+It is about control.
+
+Who controls the assistant?
+
+Who sets the defaults?
+
+Who can inspect them?
+
+Who can change them?
+
+Who audits them?
+
+Who is protected when one person's settings can harm another person?
+
+I do not think the answer is one extreme.
+
+Not:
+
+```text
+Let companies decide everything.
+```
+
+Not:
+
+```text
+Let every user configure anything.
+```
+
+Not:
+
+```text
+Freeze the whole field forever.
+```
+
+The better answer is more layered:
+
+```text
+User control where it affects the user.
+Company responsibility where design shapes behavior.
+Public rules where harms spill into society.
+Transparent audits where trust is required.
+```
+
+Personal AI still needs public defaults.
+
+Because the assistant may be yours.
+
+But the world it acts in belongs to everyone.
