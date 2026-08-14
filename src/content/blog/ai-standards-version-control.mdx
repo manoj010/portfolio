@@ -1,0 +1,459 @@
+---
+title: AI Standards Need Version Control
+date: 2026-08-14
+summary: AI governance cannot work like a one-time certificate. Models, tools, datasets, and risks keep changing, so standards need versions, changelogs, expiry dates, reproducible evidence, and independent review that updates with the system.
+tags: ai, governance, evals, standards, software-engineering
+image: /blog/ai-standards-version-control-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Standards Need Version Control
+
+AI governance has a time problem.
+
+Models change.
+
+Tools change.
+
+Datasets change.
+
+Attack methods change.
+
+Deployment environments change.
+
+User behavior changes.
+
+And then someone says:
+
+```text
+This AI system has been certified.
+```
+
+Certified when?
+
+Against which model?
+
+With which tools enabled?
+
+Using which evaluation protocol?
+
+On which dataset?
+
+Before or after the latest update?
+
+That is the problem.
+
+AI standards cannot behave like stone tablets.
+
+They need to behave more like software.
+
+```text
+AI standards need version control.
+```
+
+Recent reporting keeps circling the same pressure. The Wall Street Journal reported that Google DeepMind CEO Demis Hassabis has argued for an international AI oversight body modeled loosely on nuclear-style governance. Broader coverage from [Axios](https://www.axios.com/2026/08/06/ai-singularity-intelligence-explosion), [The Guardian](https://www.theguardian.com/technology/2026/aug/10/mark-zuckerberg-meta-ai-superintelligence), and the EU's [AI Act transparency guidance](https://digital-strategy.ec.europa.eu/en/factpages/quick-facts-transparency-rules-ai-systems) shows the same direction: AI governance is moving from philosophy into operating procedure.
+
+That is good.
+
+But the operating procedure has to update as fast as the systems do.
+
+![AI standards version control dashboard showing model releases, evaluation protocol versions, audits, evidence, changelogs, expiry, and held-out tests](/blog/ai-standards-version-control-social.png)
+
+---
+
+## One-Time Certification Is Too Static
+
+Traditional certification works well when the thing being certified is relatively stable.
+
+A bridge design.
+
+A medical device version.
+
+A safety process.
+
+A compliance checklist.
+
+But AI systems are slippery.
+
+The deployed system may change because:
+
+* The model was updated.
+* The prompt changed.
+* A tool was added.
+* A safety filter was patched.
+* Retrieval data changed.
+* Memory behavior changed.
+* The user base changed.
+* The threat model changed.
+* A benchmark became public and overfit.
+
+So a certificate from six months ago may not describe the system users are touching today.
+
+This does not mean certification is useless.
+
+It means certification needs metadata.
+
+```text
+Certified what, exactly?
+Certified when?
+Certified under which assumptions?
+Certified until when?
+```
+
+Without those answers, the label becomes too soft.
+
+---
+
+## Standards Should Have Versions
+
+Software teams already understand this.
+
+We version APIs.
+
+We version packages.
+
+We version schemas.
+
+We version infrastructure.
+
+We version migration plans.
+
+AI governance should borrow that instinct.
+
+An AI evaluation protocol should have a version:
+
+```text
+Frontier Model Safety Eval v1.0
+Frontier Model Safety Eval v1.1
+Frontier Model Safety Eval v2.0
+```
+
+Each version should explain:
+
+* What changed.
+* Why it changed.
+* Which risks were added.
+* Which tests were retired.
+* Which thresholds moved.
+* Which models it applies to.
+* Which deployment assumptions it requires.
+
+This makes governance inspectable.
+
+If a company says:
+
+```text
+We passed the eval.
+```
+
+The next question should be:
+
+```text
+Which version?
+```
+
+---
+
+## Static Benchmarks Go Stale
+
+I have written before that [AI evals cannot be vibes](/blog/ai-evals-vibes-are-not-enough).
+
+But even good evals age.
+
+A benchmark can become stale when:
+
+* Models memorize public examples.
+* Developers optimize directly against it.
+* New capabilities appear outside its scope.
+* New risks emerge after deployment.
+* The real-world task changes.
+* The dataset no longer represents the user base.
+
+That does not make benchmarks bad.
+
+It makes them perishable.
+
+They need maintenance.
+
+They need held-out tests.
+
+They need adversarial refreshes.
+
+They need scenario updates.
+
+They need retirement when they stop measuring the thing they claim to measure.
+
+The useful question is not:
+
+```text
+Did the model pass the benchmark?
+```
+
+It is:
+
+```text
+Is the benchmark still alive?
+```
+
+---
+
+## Evidence Should Be Reproducible
+
+AI standards should not only produce a score.
+
+They should produce evidence.
+
+For example:
+
+```text
+model version
+system prompt version
+tool configuration
+dataset hash
+evaluation script hash
+runtime environment
+sampling settings
+grader version
+date of run
+failure examples
+human review notes
+```
+
+This sounds tedious.
+
+It is.
+
+It is also what makes the result useful.
+
+If nobody can reproduce the evaluation, the evaluation becomes a trust ritual.
+
+For serious systems, that is not enough.
+
+Reproducibility does not guarantee truth.
+
+But it gives reviewers something to inspect.
+
+It lets teams ask:
+
+```text
+Did the model improve?
+Did the eval change?
+Did the grader change?
+Did the deployment configuration change?
+```
+
+Without that, every score floats in the air.
+
+---
+
+## Expiry Dates Matter
+
+AI standards should expire.
+
+That may sound harsh.
+
+But it is honest.
+
+If a model passes a safety evaluation today, that result should not automatically live forever.
+
+The certificate should expire when:
+
+* A major model update ships.
+* New tools are enabled.
+* New high-risk capabilities are added.
+* The deployment domain changes.
+* A serious incident occurs.
+* A new protocol version supersedes the old one.
+* A fixed review period ends.
+
+This is similar to [AI Memory Needs Expiration Dates](/blog/ai-memory-expiration-dates), but at the governance layer.
+
+Old context can become dangerous.
+
+Old certification can too.
+
+An expired evaluation is not a scandal.
+
+It is a signal:
+
+```text
+Re-check the system under current conditions.
+```
+
+---
+
+## Independent Review Needs A Change Log
+
+Independent review is valuable.
+
+But independence alone is not enough.
+
+Reviewers need a change log.
+
+They need to know what changed since the last review.
+
+For example:
+
+```text
+Model weights updated.
+Tool access expanded.
+New memory feature enabled.
+Safety policy changed.
+Retrieval corpus refreshed.
+New deployment region added.
+Incident occurred.
+Benchmark v1.1 replaced by v2.0.
+```
+
+That lets review focus on what matters.
+
+Without a change log, every review starts from fog.
+
+With a change log, governance becomes less ceremonial and more operational.
+
+This is normal in software.
+
+It should be normal in AI oversight too.
+
+---
+
+## Standards Should Include Negative Space
+
+A good standard should say what it does not cover.
+
+That sounds small.
+
+It is huge.
+
+For example:
+
+```text
+This evaluation covers cybersecurity misuse in controlled tool environments.
+It does not cover autonomous replication, financial advice, medical triage, or long-term user persuasion.
+```
+
+That kind of statement prevents overclaiming.
+
+It stops a narrow pass from becoming broad marketing.
+
+It also helps users and regulators understand the boundary of the evidence.
+
+If a standard does not define its limits, people will stretch it.
+
+And AI marketing has a talent for stretching things.
+
+---
+
+## The Practical Governance Stack
+
+A serious AI governance stack should look less like a badge and more like a repository.
+
+Something like:
+
+```text
+/standards
+  /frontier-safety-eval
+    v1.0
+    v1.1
+    v2.0
+
+/runs
+  model-a-2026-08-14
+  model-a-2026-09-02
+
+/evidence
+  datasets
+  scripts
+  hashes
+  logs
+  failure-cases
+  reviewer-notes
+
+/decisions
+  approvals
+  exceptions
+  mitigations
+  expiry-dates
+```
+
+This does not need to be literally GitHub.
+
+But it should have the spirit of version control:
+
+* Trace history.
+* Review diffs.
+* Preserve evidence.
+* Explain changes.
+* Reproduce results.
+* Deprecate old versions.
+* Roll back bad assumptions.
+
+Governance should leave footprints.
+
+---
+
+## Why This Matters For Builders
+
+This is not only for regulators and labs.
+
+Product teams need the same habit.
+
+If you ship AI features, you should know:
+
+```text
+Which model version is powering this feature?
+Which prompt version?
+Which retrieval source?
+Which eval version?
+Which safety policy?
+Which release changed behavior?
+Which risks were accepted?
+When does this review expire?
+```
+
+That sounds like overhead until something breaks.
+
+Then it becomes the map.
+
+For agentic systems, this matters even more. I wrote about that in [AI Agents Need Incident Reports](/blog/ai-agent-incident-reports). If agents act in the world, the standards around them need to track what they were allowed to do at the time.
+
+Otherwise, postmortems become archaeology.
+
+---
+
+## The Takeaway
+
+AI standards are necessary.
+
+But static standards will not be enough.
+
+AI systems move too quickly.
+
+Their risks shift.
+
+Their tools expand.
+
+Their deployment environments mutate.
+
+Their benchmarks age.
+
+So the future of AI governance should not be:
+
+```text
+Pass once. Display badge forever.
+```
+
+It should be:
+
+```text
+Version the protocol.
+Record the evidence.
+Track the changes.
+Expire stale reviews.
+Update when the system changes.
+```
+
+That is less glamorous than a grand oversight headline.
+
+It is also much closer to how trustworthy systems are actually built.
