@@ -1,0 +1,262 @@
+---
+title: AI Bug Reports Need Triage
+date: 2026-08-15
+summary: AI can find more bugs, generate more reports, and even suggest patches, but open-source maintainers do not need infinite findings. They need reproducible reports, deduplication, prioritization, maintainer context, and verification so AI output turns into real fixes.
+tags: ai, open-source, software-engineering, cybersecurity, developer-tools
+image: /blog/ai-bug-reports-need-triage-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Bug Reports Need Triage
+
+AI is getting better at reading code, finding suspicious patterns, writing test cases, and producing patch suggestions.
+
+That sounds like a win.
+
+But in software maintenance, especially open-source maintenance, "more findings" is not automatically the same thing as "more fixes."
+
+A maintainer does not only need to know that something might be wrong. They need to know whether it is real, whether it is new, whether it matters, who owns it, how to reproduce it, how risky the fix is, and whether the proposed patch actually solves the problem without breaking something else.
+
+That middle layer is triage.
+
+And AI bug reporting is going to live or die by it.
+
+## The Fresh Signal
+
+The Linux kernel is one of the best places to watch this happen because it is large, old, critical, public, and maintained by humans who have seen every flavor of automation hype before.
+
+A recent [TechRadar report](https://www.techradar.com/pro/linus-torvalds-says-huge-linux-kernel-updates-are-now-the-status-quo-and-its-all-thanks-to-ai) described unusually large late-stage Linux release candidates and connected part of that volume to AI-assisted code review and bug discovery. The interesting part is not simply "AI found bugs." The interesting part is the operational pressure that follows.
+
+If AI tools can produce more reports, then maintainers need better ways to separate signal from noise.
+
+Otherwise the bottleneck just moves.
+
+```txt
+Old bottleneck:
+not enough bugs discovered
+
+New bottleneck:
+too many weak reports for humans to sort
+```
+
+That second bottleneck is sneakier because it looks like progress from far away.
+
+## A Bug Report Is Not A Bug Fix
+
+A useful bug report is a small piece of engineering infrastructure. It should help a maintainer act.
+
+A weak report says:
+
+```txt
+This looks unsafe.
+```
+
+A strong report says:
+
+```txt
+This fails on version X.
+Here is the minimal reproducer.
+Here is the expected behavior.
+Here is the actual behavior.
+Here is why this path is reachable.
+Here is the likely subsystem.
+Here are similar reports I checked first.
+Here is a candidate fix and a regression test.
+```
+
+That difference matters.
+
+The official [Linux kernel issue reporting guide](https://docs.kernel.org/admin-guide/reporting-issues.html) spends a lot of time on exactly these human details: reproduce the issue, search for existing reports, find the right subsystem, contact the right maintainers, include relevant environment details, and keep testing as the discussion continues.
+
+AI-generated reports should meet that bar, not skip around it.
+
+## The Real Problem With AI Bug Floods
+
+AI changes the economics of producing reports.
+
+Before, submitting a report took enough manual effort that there was at least some natural friction. Not perfect friction, but friction.
+
+Now a tool can scan a repository, generate hundreds of suspicious findings, create polished explanations, and maybe even attach patches.
+
+That sounds efficient until maintainers have to answer the hidden questions:
+
+- Is this a duplicate?
+- Did the tool test it?
+- Is the path reachable in a real build?
+- Is the issue already fixed on main?
+- Is this a false positive dressed in confident language?
+- Does the patch match the project's style?
+- Does the patch introduce another bug?
+- Is the report going to the right person?
+
+AI can make noise look professional. That is the dangerous part.
+
+Bad reports used to look bad. Now they can look fluent.
+
+## The Triage Layer We Actually Need
+
+The missing piece is not just a better model. It is a workflow that turns model output into maintainer-ready evidence.
+
+A good AI bug triage system should do something like this:
+
+```txt
+AI finding
+  -> duplicate check
+  -> reproduction attempt
+  -> minimal test case
+  -> affected version check
+  -> severity estimate
+  -> subsystem routing
+  -> maintainer-friendly report
+  -> patch or mitigation
+  -> verification evidence
+```
+
+The key word is evidence.
+
+Not vibes. Not "the model thinks." Evidence.
+
+I wrote about this same pattern in [AI Evals: Vibes Are Not Enough](/blog/ai-evals-vibes-are-not-enough): once AI enters serious workflows, confidence is cheap and verification becomes the product.
+
+Bug reports are no different.
+
+## Maintainer Time Is The Scarce Resource
+
+Open-source projects often have no shortage of users, no shortage of opinions, and no shortage of incoming work.
+
+What they lack is maintainer time.
+
+That means the best AI tool is not the one that produces the most issues. It is the one that protects maintainer attention.
+
+For an AI bug reporter, success should not be measured by:
+
+```txt
+number of issues opened
+```
+
+It should be measured by:
+
+```txt
+confirmed bugs fixed
+duplicate rate reduced
+time-to-reproduction reduced
+maintainer back-and-forth reduced
+regressions avoided
+```
+
+That is a very different scoreboard.
+
+It is also a healthier one.
+
+## What AI Should Do Before Opening An Issue
+
+If an AI agent is going to report bugs to a real project, it should behave like a careful contributor.
+
+At minimum, it should:
+
+- Read the contribution and reporting guidelines.
+- Search existing issues, mailing lists, and changelogs.
+- Reproduce the bug on a supported version.
+- Reduce the bug to the smallest clear example.
+- Mark uncertainty honestly.
+- Avoid opening many related issues at once.
+- Route reports to the right subsystem or owner.
+- Include logs, environment details, and test output.
+- Explain why the issue matters.
+- Offer a patch only when it has been tested.
+
+This is not glamorous.
+
+But it is the difference between helping a maintainer and handing them a polished pile of homework.
+
+## The Security Angle
+
+Security makes this even more delicate.
+
+AI can help find memory safety issues, injection paths, authentication bugs, unsafe defaults, and suspicious dependency behavior. That is genuinely useful.
+
+But security reports need careful handling. A noisy AI report can waste time. A public report for a real vulnerability can create risk. A false claim can damage trust. A vague "critical security issue" can trigger unnecessary panic.
+
+For security work, triage should include:
+
+- exploitability checks
+- impact analysis
+- affected version ranges
+- responsible disclosure routing
+- reproduction in an isolated environment
+- patch validation
+- regression tests
+
+This connects closely with [AI Agent Incident Reports](/blog/ai-agent-incident-reports), because once AI systems take action in software workflows, we need clear records of what they found, what they changed, and how humans verified it.
+
+## Better AI For Maintainers, Not Just For Reporters
+
+There is another side to this: AI should help maintainers triage, not only help outsiders submit reports.
+
+Useful maintainer-side AI could:
+
+- cluster duplicate reports
+- summarize long issue threads
+- extract reproduction steps
+- identify affected files and maintainers
+- compare a report against recent commits
+- generate a first-pass severity label
+- suggest tests that would confirm or reject the issue
+- detect when a patch does not match the reported bug
+
+That is where AI feels less like a firehose and more like a filter.
+
+The future should not be:
+
+```txt
+AI opens 500 issues.
+Humans drown.
+```
+
+It should be:
+
+```txt
+AI finds 500 suspicious signals.
+The triage system reduces them to 25 strong reports.
+Maintainers get evidence, context, and tested fixes.
+```
+
+The second version is boring in the best possible way.
+
+## The Cultural Rule
+
+Every open-source project has a social API.
+
+It may not be written down in JSON, but it exists.
+
+Some projects want GitHub issues. Some want mailing lists. Some want patches sent a certain way. Some expect detailed reproduction steps. Some prefer discussion before large changes. Some are allergic to drive-by automation.
+
+AI tools need to respect that.
+
+The more automated the reporter, the more polite the workflow has to be.
+
+An AI agent that ignores maintainer norms is not just technically weak. It is socially buggy.
+
+## The Takeaway
+
+AI bug finding is real, and it will keep improving.
+
+But the real breakthrough will not be "AI found a scary number of bugs."
+
+The breakthrough will be:
+
+```txt
+AI helped maintainers fix more real bugs
+with less noise
+and more confidence.
+```
+
+That requires triage.
+
+Deduplication. Reproduction. Prioritization. Routing. Verification.
+
+Not just more reports.
+
+More useful reports.
+
