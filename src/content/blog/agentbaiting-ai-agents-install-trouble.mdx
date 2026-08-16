@@ -1,0 +1,296 @@
+---
+title: AgentBaiting: When AI Agents Install Trouble
+date: 2026-08-16
+summary: AI agents are starting to search for tools, Skills, and MCP servers on our behalf. AgentBaiting shows why discovery is not the same as trust, and why agent tool installation needs provenance checks, sandboxing, and human review.
+tags: ai, cybersecurity, software-supply-chain, mcp, developer-tools
+image: /blog/agentbaiting-ai-agents-install-trouble-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AgentBaiting: When AI Agents Install Trouble
+
+AI agents are becoming useful because they can do more than chat.
+
+They can search the web, read documentation, install tools, run commands, call APIs, and stitch together workflows.
+
+That is powerful.
+
+It also creates a very old security problem in a new costume:
+
+```txt
+What happens when the thing choosing the tool is also the thing that can run it?
+```
+
+That is the uncomfortable idea behind AgentBaiting.
+
+## What AgentBaiting Means
+
+AgentBaiting is a supply-chain attack pattern where malicious projects are designed to be discovered by AI agents.
+
+Instead of only tricking a human with a fake repository, attackers make a repository look useful to an assistant:
+
+- convincing README
+- familiar integration name
+- tool-like description
+- installation commands
+- fake popularity signals
+- Skill or MCP server branding
+- a downloadable archive that looks like setup material
+
+The agent searches for a capability, finds the polished repository, treats the README as documentation, and passes the install path forward.
+
+The dangerous part is subtle:
+
+```txt
+The agent did not need to be hacked.
+It just needed to trust the wrong source.
+```
+
+Discovery became the attack surface.
+
+## The FakeGit Wake-Up Call
+
+Security researchers at Island reported a FakeGit campaign involving thousands of malicious GitHub repositories. Coverage from [Help Net Security](https://www.helpnetsecurity.com/2026/07/21/github-repos-malware-campaign-fakegit-ai-agents/) says the operation included roughly 7,600 malicious repositories, with more than 800 posing as AI Skills or Model Context Protocol servers.
+
+The same reporting says the malicious repositories used convincing project copies, lookalike profiles, readable documentation, and malicious ZIP files to deliver SmartLoader, which could then install StealC-class information stealing malware.
+
+That is not a theoretical "AI may someday be dangerous" story.
+
+It is a normal supply-chain attack adapting to a new kind of user:
+
+```txt
+the AI agent
+```
+
+And the timing matters. As agents become more autonomous, attackers will not only optimize for humans clicking links. They will optimize for agents selecting tools.
+
+## Why MCP And Skills Change The Shape Of Risk
+
+Model Context Protocol servers and agent Skills are useful because they extend what an AI system can do.
+
+A plain model can answer questions.
+
+An agent with tools can touch the world.
+
+It might access:
+
+- local files
+- terminals
+- browsers
+- email
+- cloud accounts
+- databases
+- package managers
+- internal documentation
+- API keys and tokens
+
+So installing a Skill or MCP server is not like bookmarking a web page.
+
+It is closer to installing a browser extension, package dependency, CLI plugin, and automation script all at once.
+
+That means the trust bar should be higher.
+
+## The Core Mistake
+
+The core mistake is treating an agent recommendation as a security review.
+
+It is not.
+
+An AI assistant can be good at finding something that appears relevant. That does not mean it has verified:
+
+- who published it
+- whether the repo is authentic
+- whether releases match source code
+- whether the package was recently created
+- whether the maintainer is legitimate
+- whether install scripts are safe
+- whether the permissions are excessive
+- whether the tool phones home
+- whether the same tool has a known official source
+
+This is the new rule:
+
+```txt
+Search result != trust signal
+README quality != legitimacy
+Agent confidence != verification
+```
+
+The third one is the most important.
+
+Fluent recommendations can make weak provenance feel strong.
+
+## Why This Is Different From Normal Malware
+
+Traditional malware distribution often depends on a human doing something risky:
+
+- downloading cracked software
+- opening an attachment
+- clicking a fake support link
+- copying a command from a shady forum
+
+AgentBaiting can enter through a workflow that feels responsible.
+
+A developer might ask:
+
+```txt
+Find me a free MCP server for this service.
+```
+
+The agent searches, compares options, summarizes the README, and returns an install command.
+
+That feels like help.
+
+But if the discovery layer is poisoned, the agent becomes a very polite delivery mechanism.
+
+The attack does not need to break the model. It exploits the model's helpfulness.
+
+That connects directly to the broader point in [Reward Hacking in AI Systems](/blog/reward-hacking-ai-systems): an AI system can optimize the visible task while missing the actual human intention. In this case, the visible task is "find and install a useful tool." The real intention is "find a useful tool that is safe, authentic, and appropriate for this environment."
+
+Those are not the same task.
+
+## The New Install Checklist
+
+Before an AI agent installs a tool, the workflow should pause and verify provenance.
+
+A basic checklist should include:
+
+- Is this linked from the official project or vendor site?
+- Is the publisher identity old, consistent, and verifiable?
+- Is the repository history real or suspiciously fresh?
+- Are releases built from visible source?
+- Are install commands simple and explainable?
+- Does the tool request more permissions than it needs?
+- Are there unexpected binaries, ZIP files, or obfuscated scripts?
+- Does the package contact unknown hosts?
+- Is there a signed release, checksum, or reproducible build?
+- Can it be tested with fake credentials first?
+
+This may sound boring.
+
+Good security usually does.
+
+But for agents, boring gates are exactly what keep useful automation from becoming accidental malware delivery.
+
+## A Better Agent Tool Workflow
+
+The safer pattern looks like this:
+
+```txt
+Agent discovers tool
+  -> check official source
+  -> inspect repository age and publisher
+  -> scan release assets
+  -> explain permissions
+  -> run in sandbox
+  -> test with synthetic data
+  -> ask human approval
+  -> install with least privilege
+```
+
+Notice where the human appears.
+
+Not at every tiny step.
+
+But at the trust boundary.
+
+That is where human review still matters.
+
+I wrote in [AI Agents Need Identity Cards](/blog/ai-agents-identity-cards) that agents need clear identity, authority, and audit trails. AgentBaiting is the other side of that same coin: tools also need identity, authority, and audit trails.
+
+An agent should not just ask:
+
+```txt
+Can this tool solve the task?
+```
+
+It should ask:
+
+```txt
+Who made this tool?
+What can it access?
+How do we know it is the real one?
+What is the blast radius if it lies?
+```
+
+## Agent Registries Need Package-Manager Discipline
+
+If Skills and MCP servers become common, their registries need some of the discipline package ecosystems learned the hard way.
+
+That means:
+
+- verified publishers
+- scoped permissions
+- signed releases
+- malware scanning
+- dependency transparency
+- install-time warnings
+- vulnerability reporting
+- takedown processes
+- reputation that cannot be faked overnight
+
+Even then, no registry will be perfect.
+
+But the current "agent found a repo, therefore install it" pattern is too loose for the amount of access agents can hold.
+
+An AI agent with terminal access is not browsing casually. It is operating inside your machine.
+
+## The Enterprise Version
+
+For companies, the answer is not simply "ban all external agent tools."
+
+That will not survive contact with real work.
+
+A better enterprise pattern is:
+
+- maintain an approved internal tool catalog
+- mirror trusted MCP servers and Skills
+- pin versions
+- scan every update
+- run agent tools with separate identities
+- avoid sharing the user's full privilege set
+- log tool calls and file access
+- require approval for new outbound hosts
+- rotate credentials after suspicious installs
+
+This is less about stopping people from using AI.
+
+It is about making the safe path easier than the risky path.
+
+## The Bigger Pattern
+
+AgentBaiting is part of a larger shift.
+
+The internet is no longer only designed for human readers. It is increasingly being interpreted by machines that act.
+
+That changes how attackers write.
+
+They will write README files for agents.
+
+They will name repositories for agents.
+
+They will structure documentation for agents.
+
+They will place instructions where agents are likely to retrieve them.
+
+They will optimize for helpfulness.
+
+That is why "AI security" cannot only mean model safety. It also has to mean workflow safety, tool safety, registry safety, and installation safety.
+
+## The Takeaway
+
+AgentBaiting teaches a simple lesson:
+
+```txt
+Discovery is not trust.
+```
+
+An AI agent finding a tool is only the first step.
+
+Before that tool gets installed, someone or something needs to verify where it came from, what it can do, what it can access, and whether it belongs in the environment at all.
+
+AI agents are useful because they reduce friction.
+
+Security exists because some friction is load-bearing.
+
