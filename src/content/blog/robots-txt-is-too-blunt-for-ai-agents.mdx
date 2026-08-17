@@ -1,0 +1,360 @@
+---
+title: robots.txt Is Too Blunt for AI Agents
+date: 2026-08-17
+summary: The old web mostly needed a yes-or-no crawling signal. The agentic web needs something more precise: separate permissions for search indexing, real-time agents, and model training.
+tags: ai, web, agents, search, internet
+image: /blog/robots-txt-ai-agents-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# robots.txt Is Too Blunt for AI Agents
+
+For a long time, the web had a simple crawling agreement.
+
+Search engines crawled pages.
+
+Websites allowed it because search sent people back.
+
+The deal was not perfect, but it was understandable:
+
+```txt
+You index my site.
+You send me visitors.
+```
+
+Then AI changed the shape of the traffic.
+
+Now a crawler might be doing search indexing, training a model, answering a question inside a chatbot, powering a browser-use agent, summarizing a page, checking prices, scraping a dataset, or acting on behalf of a user in real time.
+
+Those are not the same thing.
+
+But the old control surface still often looks like this:
+
+```txt
+Allow
+Disallow
+```
+
+That is too blunt for the agentic web.
+
+## What robots.txt Actually Does
+
+`robots.txt` is part of the Robots Exclusion Protocol, standardized as [RFC 9309](https://www.rfc-editor.org/rfc/rfc9309.html).
+
+At a basic level, a website publishes a text file at:
+
+```txt
+https://example.com/robots.txt
+```
+
+That file tells automated crawlers which paths they may access.
+
+Example:
+
+```txt
+User-agent: *
+Disallow: /private/
+Allow: /blog/
+```
+
+This is useful.
+
+It gives crawlers a common place to check site preferences. It helps site owners avoid unnecessary crawling. It gives responsible bots a clear signal.
+
+But there is an important limit: `robots.txt` is not authentication, authorization, payment, identity, provenance, or a business agreement.
+
+RFC 9309 is direct about this: robots rules are not a replacement for real access control.
+
+That matters more now because modern AI traffic is not just "a crawler came to look at a page."
+
+It can be the start of an entire workflow.
+
+## The Old Web Had One Main Question
+
+The old question was:
+
+```txt
+Can this crawler fetch this URL?
+```
+
+The new question is more like:
+
+```txt
+Why is this automated system fetching this URL?
+```
+
+That "why" changes everything.
+
+A website owner might be happy with:
+
+```txt
+Search crawler indexes my article and sends readers.
+```
+
+But unhappy with:
+
+```txt
+Training crawler copies the same article into a model dataset.
+```
+
+And unsure about:
+
+```txt
+User-directed agent opens the article to summarize it for one person.
+```
+
+Those are three different use cases.
+
+Treating them as one generic "bot" category makes the owner choose between visibility and control.
+
+That is a bad bargain.
+
+## Search, Agent, Training
+
+Cloudflare has been pushing this split into practical infrastructure. Its July 2026 AI bot controls separate automated traffic into three major buckets: [Search, Agent, and Training](https://blog.cloudflare.com/content-independence-day-ai-options/).
+
+That framing is useful even if you do not use Cloudflare.
+
+Here is the idea:
+
+| Category | What it means | Site owner's likely question |
+| --- | --- | --- |
+| Search | Crawling to make content discoverable later | Will this send people or value back? |
+| Agent | Real-time activity on behalf of a user | Is this user-directed and limited? |
+| Training | Collecting content to train or fine-tune models | Am I being compensated or credited? |
+
+Cloudflare's [bot policy docs](https://developers.cloudflare.com/bots/additional-configurations/block-ai-bots/) say its September 15, 2026 defaults will allow Search while blocking Agent and Training traffic on pages that display ads, unless customers change the settings.
+
+The specific defaults may evolve over time.
+
+But the direction is the interesting part:
+
+```txt
+Intent-aware access is replacing one-size-fits-all bot control.
+```
+
+That is the mental model worth keeping.
+
+## Why "Block All AI Bots" Is Also Too Simple
+
+Some site owners want to block everything AI-related.
+
+That is understandable.
+
+AI crawling has often felt extractive: content goes out, answers come back somewhere else, and the original creator sees less traffic, less attribution, and less control.
+
+But a total block can also hurt the site owner.
+
+If AI becomes a major way people discover information, then being absent from AI answers may mean being absent from discovery.
+
+So the real need is not just:
+
+```txt
+Block AI
+```
+
+It is:
+
+```txt
+Allow useful discovery.
+Control training.
+Limit real-time agents.
+Measure what value comes back.
+```
+
+That is much closer to how humans think about the problem.
+
+## Agents Are Not Just Crawlers
+
+The "Agent" category deserves special attention.
+
+A search crawler usually reads at scale for indexing.
+
+An AI agent may act for one user:
+
+- open a page
+- summarize a policy
+- compare products
+- fill a form
+- check availability
+- call an API
+- buy something
+- book something
+- trigger a workflow
+
+That looks less like indexing and more like delegated browsing.
+
+The site owner might want to allow that, but only under conditions:
+
+- identify the agent
+- identify the human principal
+- respect rate limits
+- avoid hidden training use
+- do not bypass paywalls
+- do not click destructive actions without consent
+- preserve attribution
+- keep audit logs
+
+This is where the old web starts to feel under-specified.
+
+`robots.txt` can say whether a crawler may access paths.
+
+It cannot express all of this:
+
+```txt
+You may fetch this page for a signed-in user who asked you to summarize it,
+but you may not store it for model training,
+and you may not use it to generate a competing answer without citation.
+```
+
+That is not a simple path rule anymore.
+
+That is policy.
+
+## The Business Model Is Part Of The Protocol Now
+
+Technical people like to separate protocols from business models.
+
+Usually, that is healthy.
+
+But the web's crawling deal always had an economic assumption inside it:
+
+```txt
+Indexing creates referrals.
+Referrals create value.
+```
+
+AI answer engines disturb that assumption.
+
+If an AI system answers the user's question directly, the user may never visit the original page. If a model trains on the page, the original creator may not see traffic at all. If an agent fetches the page for one user, maybe that is fair use of the web. If the same traffic is silently reused for training, maybe it is not.
+
+The protocol question and the business question are now tangled.
+
+That is why AI bot control keeps drifting toward words like:
+
+- attribution
+- licensing
+- compensation
+- provenance
+- intent
+- user agency
+- crawler identity
+
+The web is trying to discover a new bargain.
+
+## A Better Permission Model
+
+A healthier system would separate several permissions:
+
+```txt
+May index for search?
+May quote snippets?
+May answer using this content?
+May act on behalf of a user?
+May train on this content?
+May store this content?
+May share it with third parties?
+May access paywalled sections?
+May call actions like checkout or booking?
+```
+
+That sounds complicated because the problem is complicated.
+
+The old binary model hid the complexity.
+
+AI exposed it.
+
+## What Small Site Owners Should Think About
+
+If you run a personal blog, portfolio, docs site, newsletter archive, or small publication, you do not need to become a bot-policy lawyer overnight.
+
+But you should decide your intent.
+
+Ask:
+
+- Do I want AI search tools to discover and cite my work?
+- Do I want model training crawlers to use my content?
+- Do I care about attribution?
+- Do I monetize with ads or subscriptions?
+- Do I want agents to read pages for users?
+- Are any sections private enough to require real authentication?
+- Can I see which bots are actually visiting?
+
+The biggest mistake is assuming all automated traffic is the same.
+
+It is not.
+
+## What Builders Should Think About
+
+If you are building AI agents, crawlers, or answer engines, the lesson is simple:
+
+```txt
+Declare intent clearly.
+```
+
+A responsible AI crawler should not hide behind vague user agents or mixed-purpose behavior.
+
+It should be obvious whether it is crawling for:
+
+- search
+- user-directed retrieval
+- model training
+- safety scanning
+- dataset creation
+- commercial summarization
+
+The more transparent the crawler is, the easier it becomes for site owners to allow the useful parts.
+
+The opposite is also true.
+
+If crawlers blend all purposes into one identity, site owners will eventually block more aggressively.
+
+Transparency earns access.
+
+## Internal Link: This Connects To The Dead Internet Problem
+
+I wrote earlier about [Dead Internet Theory](/blog/dead-internet-theory), the fear that online spaces are increasingly filled with automated content and automated engagement.
+
+This is the infrastructure version of that problem.
+
+The question is not only:
+
+```txt
+How much of the internet is AI-generated?
+```
+
+It is also:
+
+```txt
+How much of the internet is AI-accessed, AI-indexed, AI-summarized, AI-acted-on, and AI-trained-on?
+```
+
+Once automated systems become major participants in the web, permissions need to become more explicit.
+
+## The Takeaway
+
+`robots.txt` was built for a simpler web.
+
+It still matters.
+
+But it is not enough by itself.
+
+The agentic web needs more expressive permissions:
+
+```txt
+Search is not Agent.
+Agent is not Training.
+Training is not Search.
+```
+
+Those distinctions sound small.
+
+They are not.
+
+They are how the web keeps discovery, ownership, automation, and trust from collapsing into one confusing pile.
+
+The next version of the web will not be governed by one switch.
+
+It will need intent-aware access.
+
