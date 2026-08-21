@@ -1,0 +1,394 @@
+---
+title: The Agent Harness Is The Product
+date: 2026-08-21
+summary: A model can reason, but a production agent needs a harness: the loop, tools, sandbox, approvals, context management, memory, tracing, and cost controls that turn model output into safe, observable action.
+tags: ai, agents, software-architecture, developer-tools, llm
+image: /blog/agent-harness-product-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# The Agent Harness Is The Product
+
+It is tempting to think an AI agent is mostly a model.
+
+You pick a strong LLM.
+
+You give it tools.
+
+You write a good system prompt.
+
+You ship.
+
+That works for demos.
+
+It does not survive production.
+
+The more serious agents become, the more obvious the real product becomes:
+
+```txt
+not just the model
+the harness around the model
+```
+
+The harness is what turns reasoning into reliable action.
+
+## The Fresh Signal
+
+TrueFoundry just announced [TrueForge](https://www.truefoundry.com/blog/engineering/trueforge-open-source-agent-harness/), an open-source agent harness the company says it runs in production. [VentureBeat](https://venturebeat.com/orchestration/truefoundrys-open-source-ai-agent-harness-trueforge-boasts-30-75-cheaper-task-completion-than-claude-managed-agents) covered the launch on August 19, 2026, focusing on TrueFoundry's claims around lower task-completion cost and more control compared with managed agent platforms.
+
+The interesting part is not simply that another open-source agent tool exists.
+
+The interesting part is the architecture.
+
+TrueForge is explicitly not trying to be "the smartest model." It is trying to be the runtime layer around the model:
+
+- agent loop
+- MCP tools
+- skills
+- sandboxing
+- approvals
+- context management
+- session state
+- tracing
+- UI and SDK
+
+That is the right place to look.
+
+The model matters.
+
+But in production, the harness decides whether the model can actually finish work safely.
+
+## Model Only Is Not An Agent
+
+A raw model can produce a plan.
+
+For example:
+
+```txt
+1. Query the database.
+2. Analyze the results.
+3. Create a summary.
+4. Email leadership.
+```
+
+Nice.
+
+But the model alone cannot safely do those things.
+
+It needs a runtime that knows:
+
+- which database can be queried
+- which credentials are allowed
+- whether the query is read-only
+- where code should run
+- whether the email requires approval
+- how intermediate results are stored
+- what happens if a tool fails
+- how to keep context small
+- how to log every step
+- how to stop when the task becomes unsafe
+
+That runtime is the harness.
+
+Without it, "agent" often means:
+
+```txt
+a model that talks like it can act
+```
+
+With it, "agent" starts to mean:
+
+```txt
+a system that can reason, execute, observe, and recover under constraints
+```
+
+That difference is everything.
+
+## The Agent Loop
+
+Most useful agents follow a loop:
+
+```txt
+plan
+  -> act
+  -> observe
+  -> update plan
+  -> act again
+  -> stop
+```
+
+The loop is where boring engineering becomes important.
+
+The harness decides:
+
+- when to call the model again
+- which tool result should go back into context
+- whether to retry
+- whether to ask a human
+- whether to compact history
+- whether to stop because the task is complete
+- whether to stop because the task is risky
+
+The loop is also where cost can quietly explode.
+
+Every extra tool call, every oversized result, every repeated context payload, every unnecessary model turn adds up.
+
+That connects with [The AI Token Tax](/blog/ai-token-tax): AI products do not only have feature cost. They have runtime cost.
+
+Agents amplify that because they can call the model many times inside one user request.
+
+## Context Engineering Is A Harness Problem
+
+Prompt engineering was about asking better.
+
+Context engineering is about carrying the right information at the right time.
+
+A production harness has to decide:
+
+- which tool schemas are loaded
+- which files are read
+- which memories are retrieved
+- which prior messages are still relevant
+- which intermediate outputs should be summarized
+- which outputs should be stored as files instead of pasted into the prompt
+- which subtask should be delegated to a subagent
+
+TrueForge's launch post talks about context compaction, subagents, deferred tool loading, and large-result offloading. These are not decorative features.
+
+They are the difference between:
+
+```txt
+the agent keeps working
+```
+
+and:
+
+```txt
+the agent drowns in its own transcript
+```
+
+I wrote yesterday about [Agent Memory Is Not Just Bigger Context](/blog/agent-memory-is-not-bigger-context). This is the runtime version of the same lesson.
+
+The question is not "how many tokens can we stuff in?"
+
+The question is:
+
+```txt
+what information should be active right now?
+```
+
+## Sandbox As A Tool
+
+One TrueForge detail I like is treating the sandbox as a tool instead of making every agent live inside a sandbox from the start.
+
+The idea is simple:
+
+```txt
+only provision an isolated execution environment when the agent actually needs to run code or work with files
+```
+
+That matters because not every task needs code execution.
+
+Some tasks are planning, reading, classifying, routing, drafting, or calling safe APIs.
+
+Keeping a sandbox running for every agent turn can waste infrastructure.
+
+Provisioning it only when needed can reduce cost and improve concurrency.
+
+But there is a design tradeoff.
+
+The harness must still make sandbox boundaries obvious:
+
+- what can the sandbox access?
+- are secrets injected?
+- can files leave the sandbox?
+- how long does it live?
+- is network access allowed?
+- are writes persisted?
+- are logs retained?
+
+"Sandbox as a tool" is elegant only if the permission model is explicit.
+
+Otherwise it becomes a fancy footgun.
+
+## Approvals Are Not A Weakness
+
+Some people talk about human approval as if it means the agent failed.
+
+I think that is backwards.
+
+Approval gates are how you let agents enter serious workflows without pretending every action is safe.
+
+Good harnesses should support approval before:
+
+- sending messages
+- spending money
+- deleting data
+- changing production systems
+- writing to customer records
+- modifying permissions
+- installing dependencies
+- exposing private content
+
+The point is not to interrupt everything.
+
+The point is to separate low-risk work from high-risk action.
+
+```txt
+Read: usually safe
+Draft: often safe
+Execute: depends
+Destroy: ask first
+```
+
+That should be visible in the harness, not buried in a prompt.
+
+## Tracing Is How Agents Become Debuggable
+
+When a normal API fails, you inspect logs.
+
+When an agent fails, you need more than logs.
+
+You need to know:
+
+- what the user asked
+- what the model planned
+- which tools it called
+- what each tool returned
+- what context was visible
+- what the model ignored
+- where it got confused
+- which approval was requested
+- what the final action changed
+
+That is tracing.
+
+Without tracing, debugging agents becomes storytelling.
+
+Everyone guesses.
+
+The user says the agent did something weird. The developer checks a few logs. The model output looks plausible. The tool calls are scattered across services. Nobody knows whether the bug was retrieval, reasoning, permissions, stale memory, tool schema confusion, or a bad prompt.
+
+Production agents need receipts.
+
+This is close to the point in [AI Bug Reports Need Triage](/blog/ai-bug-reports-need-triage): more output only helps if humans can inspect, reproduce, and act on it.
+
+Agent traces are the reproduction steps for autonomous work.
+
+## Vendor-Neutral Is Really About Optionality
+
+TrueForge is positioned as vendor-neutral: bring your own model, tools, MCP servers, sandbox, and infrastructure.
+
+That matters because the model market changes fast.
+
+The best model for coding today may not be the best one next month.
+
+The cheapest model for classification may not be the best one for tool use.
+
+A managed platform can be convenient, but it may tie together:
+
+```txt
+model
+runtime
+tools
+pricing
+data retention
+identity
+observability
+deployment
+```
+
+That bundle is easy at first.
+
+It can become a lock-in problem later.
+
+A harness that separates those layers gives teams more room to route, swap, self-host, or govern.
+
+That connects to [The Future AI Stack Is A Router](/blog/ai-stack-router), but the layer is different:
+
+```txt
+Router: which model should handle this?
+Harness: how does the agent safely complete the task?
+```
+
+You probably need both.
+
+## Open Source Does Not Automatically Mean Governed
+
+Open-source harnesses are useful.
+
+But open source by itself does not solve enterprise governance.
+
+If a team runs agents with scattered keys, informal permissions, missing traces, no budget controls, and no identity model, the harness being open source does not magically make the system safe.
+
+Governance still needs:
+
+- authentication
+- user identity
+- role-based access
+- credential handling
+- budget limits
+- audit logs
+- policy checks
+- model routing
+- data masking
+- incident review
+
+The harness gives you the runtime.
+
+You still need the control plane.
+
+That distinction matters because agent sprawl is becoming real. Different teams will bring different tools, models, MCP servers, and workflows.
+
+The architecture has to assume plurality.
+
+## What Builders Should Watch
+
+If you are evaluating an agent framework or harness, I would ask these questions:
+
+- Can I swap models without rewriting the agent?
+- Can I delay tool loading until needed?
+- Can I run code in an isolated sandbox?
+- Can I require human approval for risky actions?
+- Can I trace the full run end to end?
+- Can I persist and resume sessions?
+- Can I compact context without losing critical state?
+- Can I plug in MCP servers safely?
+- Can I cap cost per task, user, or team?
+- Can I self-host if the workflow becomes sensitive?
+
+If the answer is mostly "just put it in the prompt," be careful.
+
+Prompts are not infrastructure.
+
+They are instructions.
+
+Infrastructure is what makes instructions survive contact with reality.
+
+## The Takeaway
+
+Models reason.
+
+Harnesses make them reliable.
+
+That is the shift.
+
+The next wave of useful AI agents will not be won only by the biggest model or the flashiest demo.
+
+It will be won by the systems that make agent work:
+
+```txt
+observable
+bounded
+recoverable
+cost-aware
+permissioned
+repeatable
+debuggable
+```
+
+The model is still important.
+
+But the product is the harness.
+
