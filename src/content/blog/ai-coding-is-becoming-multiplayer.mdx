@@ -1,0 +1,366 @@
+---
+title: AI Coding Is Becoming Multiplayer
+date: 2026-08-22
+summary: AI coding agents are moving from private terminals into shared team spaces where plans, diffs, previews, tests, and reviews happen in the open. That shift matters because code is social long before it gets merged.
+tags: ai, coding, software-engineering, developer-tools, collaboration
+image: /blog/ai-coding-multiplayer-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Coding Is Becoming Multiplayer
+
+The first wave of AI coding felt personal.
+
+One developer.
+
+One editor.
+
+One chat panel.
+
+One model helping with boilerplate, bugs, tests, and explanations.
+
+That made sense.
+
+Coding assistants started as private tools because the easiest interface was:
+
+```txt
+developer asks
+assistant answers
+developer decides
+```
+
+But software engineering is not actually private.
+
+It is full of shared context:
+
+- tickets
+- branches
+- design discussions
+- pull requests
+- review comments
+- CI results
+- preview deployments
+- release plans
+- team conventions
+- customer incidents
+
+So the next wave of AI coding will not only live inside a solo terminal.
+
+It will move into the team room.
+
+## The Fresh Signal
+
+Slack announced [Slack Code](https://slack.com/blog/productivity/slack-code), a paid add-on that brings coding agents into Slack conversations. Coverage from [VentureBeat](https://venturebeat.com/ai/slack-reveals-newest-ai-agent-push-a-chatbot-that-codes) describes it as a way for teams to summon AI coding agents inside channels, review proposed changes, see previews, and move work toward pull requests without making the agent a hidden side process.
+
+The details will evolve.
+
+But the direction is obvious:
+
+```txt
+AI coding is becoming multiplayer.
+```
+
+Not because every engineer wants another chat notification.
+
+Because agent work needs shared visibility.
+
+## The Solo Agent Problem
+
+A coding agent in a private terminal can be useful.
+
+It can read files, edit code, run tests, and explain errors.
+
+But private agent work has a failure mode:
+
+```txt
+the agent changes things before the team understands the plan
+```
+
+That creates awkward questions:
+
+- Why did it choose this approach?
+- What files did it touch?
+- Did it understand the ticket?
+- Did it run the right tests?
+- Was the change reviewed?
+- Did it follow team conventions?
+- Is the preview deploy working?
+- Is this patch solving the real problem or only the visible symptom?
+
+When the work happens silently, the review happens late.
+
+And late review is expensive.
+
+## Code Is Social Before It Is Technical
+
+Code has syntax.
+
+But software has agreements.
+
+A team agrees on:
+
+- naming
+- architecture
+- error handling
+- test style
+- deployment risk
+- product behavior
+- what counts as "done"
+- what tradeoffs are acceptable
+
+An AI agent can generate code without understanding all of those agreements.
+
+That is why team context matters.
+
+A shared room gives the agent a better workflow:
+
+```txt
+read the ticket
+state the plan
+show the diff
+run the checks
+open the preview
+ask for review
+revise from feedback
+then merge only after approval
+```
+
+That is much closer to how real engineering already works.
+
+## Plans Should Be Public
+
+Before an agent writes code, it should explain the intended path.
+
+Not a long essay.
+
+Just enough for a teammate to catch the wrong direction early.
+
+Example:
+
+```txt
+Plan:
+1. Add validation at the API boundary.
+2. Return a typed error for missing email.
+3. Add unit tests for empty and invalid email.
+4. Avoid touching the database layer.
+```
+
+That last line matters.
+
+It tells the team what the agent will not do.
+
+Public plans reduce surprise.
+
+They also make agent behavior easier to coach. If the plan is wrong, the team can correct the plan before the codebase changes.
+
+## Diffs Are The Real Conversation
+
+AI coding tools often talk too much.
+
+The most useful artifact is still the diff.
+
+A team does not need the agent to narrate every thought. It needs to see:
+
+- what changed
+- why it changed
+- what tests were added
+- what risk remains
+- what needs human review
+
+The ideal workflow is not:
+
+```txt
+Trust me, I fixed it.
+```
+
+It is:
+
+```txt
+Here is the diff.
+Here is the preview.
+Here are the tests.
+Here is what I am unsure about.
+```
+
+That is why AI coding belongs near pull requests, CI, preview environments, and review threads.
+
+The agent's job is not to avoid review.
+
+It is to make review easier.
+
+## Preview Links Matter
+
+For product work, a code diff is not enough.
+
+People need to see behavior.
+
+That is where preview deployments become part of the AI workflow.
+
+If an agent changes a form, a dashboard, a landing page, or a data flow, the team should be able to inspect the result quickly:
+
+```txt
+Plan -> diff -> tests -> preview -> review -> merge
+```
+
+This is where chat-based collaboration can work well.
+
+The channel becomes a lightweight coordination space:
+
+- agent posts the plan
+- agent posts the diff summary
+- CI posts test results
+- preview bot posts the URL
+- teammate leaves feedback
+- agent revises
+- pull request gets reviewed
+
+That is not magic.
+
+It is plumbing.
+
+Good plumbing changes behavior.
+
+## Multiplayer Does Not Mean Noisy
+
+There is a danger here.
+
+Putting agents into team chat can become chaos.
+
+Nobody wants channels filled with giant model logs, half-baked patches, repeated status updates, or agents arguing with each other.
+
+The multiplayer version needs discipline:
+
+- short plans
+- compact status
+- links to detailed traces
+- clear owner
+- one agent per task unless needed
+- visible stop button
+- human approval before merge
+- no unsolicited code changes
+- no channel spam for every tiny step
+
+The point is shared visibility, not shared annoyance.
+
+The agent should be present enough to collaborate, but quiet enough to not become another meeting.
+
+## This Connects To The Harness Layer
+
+Yesterday I wrote that [The Agent Harness Is The Product](/blog/agent-harness-is-the-product).
+
+This post is the collaboration side of that idea.
+
+The harness makes the agent observable and bounded.
+
+The team room makes the agent socially legible.
+
+Together, they answer two different questions:
+
+```txt
+Can the agent safely execute?
+Can the team understand and guide the work?
+```
+
+Both matter.
+
+A safe agent that nobody can coordinate with is still awkward.
+
+A collaborative agent with weak controls is risky.
+
+Production coding agents need both.
+
+## What Teams Should Require
+
+If a team brings coding agents into shared workflows, I would want these basics:
+
+- every task starts from a ticket or clear request
+- the agent posts a plan before editing
+- diffs are reviewable like normal human patches
+- tests and CI results are attached
+- preview links exist for UI changes
+- risky actions require approval
+- secrets are never exposed in chat
+- agent traces are available when debugging
+- merges still follow branch protection
+- the agent can be told to stop
+
+This is not anti-agent.
+
+It is pro-engineering.
+
+The goal is not to make AI slower.
+
+The goal is to make AI changes understandable enough to trust.
+
+## Why This Matters For Junior Developers Too
+
+There is another subtle benefit.
+
+When agent work happens in the open, junior developers can learn from it.
+
+They can see:
+
+- how a task is broken down
+- how a diff changes after review
+- why a test was added
+- how teammates challenge assumptions
+- why a simpler fix beats a clever one
+
+Private AI coding can become a black box.
+
+Shared AI coding can become a teaching surface.
+
+That only happens if the workflow exposes the right artifacts: plan, diff, tests, review, and final reasoning.
+
+## The Risk: Rubber-Stamp Reviews
+
+There is one failure mode I worry about:
+
+```txt
+AI makes code review look done before it is done.
+```
+
+If an agent posts a polished explanation, green-looking checks, and a confident summary, humans may skim and approve too quickly.
+
+That is dangerous.
+
+Teams need to keep review habits sharp:
+
+- inspect the actual diff
+- run or trust real tests, not claims
+- check edge cases
+- verify product behavior
+- ask what the agent did not consider
+- watch for broad unrelated changes
+- require human ownership of merged code
+
+AI can accelerate review.
+
+It should not replace accountability.
+
+## The Takeaway
+
+AI coding started as a private assistant.
+
+It is becoming a shared teammate.
+
+That shift is bigger than a UI change.
+
+It changes how teams plan work, review diffs, test behavior, and keep accountability intact.
+
+The best coding agents will not disappear into silent terminals.
+
+They will work in the open:
+
+```txt
+plan visible
+diff visible
+preview visible
+tests visible
+review visible
+ownership visible
+```
+
+Agents need teammates, not silence.
+
