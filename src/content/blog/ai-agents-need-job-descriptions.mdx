@@ -1,0 +1,394 @@
+---
+title: AI Agents Need Job Descriptions
+date: 2026-08-25
+summary: As AI agents move into real workplace workflows, identity is not enough. Each agent needs a job description: goal, inputs, tools, limits, approvals, owner, success criteria, and clear rules for when to stop.
+tags: ai, agents, product-design, software-architecture, workplace
+image: /blog/ai-agents-job-descriptions-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Agents Need Job Descriptions
+
+AI agents are being pushed into more workplace tasks.
+
+Not just chat.
+
+Actual workflows:
+
+- summarize documents
+- prepare reports
+- update tickets
+- analyze spreadsheets
+- draft emails
+- search internal knowledge bases
+- call APIs
+- route support cases
+- create pull requests
+- monitor dashboards
+
+That is useful.
+
+But there is a missing artifact in many agent deployments:
+
+```txt
+a job description
+```
+
+Not a prompt.
+
+Not a vague role like "helpful assistant."
+
+A real operational description of what the agent is allowed to do, what it must not do, who owns it, and how success is measured.
+
+## The Fresh Signal
+
+TechCrunch recently reported that OpenAI is working on more agentic workplace tools, with the broader goal of pushing AI deeper into daily professional workflows. OpenAI has also been positioning [ChatGPT for work](https://openai.com/chatgpt/work/) around team and enterprise use cases where AI helps with analysis, writing, research, coding, and productivity.
+
+The exact product packaging will keep changing.
+
+The deeper trend is stable:
+
+```txt
+AI is moving from answering questions
+to doing bounded work.
+```
+
+Once an AI system starts doing bounded work, the question changes.
+
+It is no longer enough to ask:
+
+```txt
+Can the model handle this task?
+```
+
+You also have to ask:
+
+```txt
+What is this agent's job?
+```
+
+## Identity Is Necessary, But Not Sufficient
+
+I wrote earlier that [AI Agents Need Identity Cards](/blog/ai-agents-identity-cards).
+
+That still matters.
+
+Every agent should have:
+
+- identity
+- owner
+- scope
+- expiry
+- token policy
+- audit trail
+- revoke path
+
+But identity answers only one part of the problem:
+
+```txt
+Who is this agent?
+```
+
+A job description answers the next part:
+
+```txt
+What work is this agent responsible for?
+```
+
+Those are different.
+
+An employee badge does not tell you whether someone is allowed to approve payroll, deploy code, or send customer refunds.
+
+An agent identity card has the same limitation.
+
+It tells you who the agent is.
+
+It does not fully define the job.
+
+## The Problem With "General Assistant"
+
+"General assistant" sounds convenient.
+
+It is also dangerous.
+
+A general assistant can become a permissions magnet:
+
+- read all docs
+- access all tickets
+- summarize all meetings
+- update all records
+- email anyone
+- call many tools
+- remember many facts
+- act across teams
+
+That may feel powerful in a demo.
+
+But in production it creates unclear accountability.
+
+When something goes wrong, nobody knows whether the agent exceeded its role because the role was never concrete.
+
+The failure mode is predictable:
+
+```txt
+unclear goal
+unclear tools
+unclear limits
+unclear owner
+unclear blame
+```
+
+That is not autonomy.
+
+That is unmanaged delegation.
+
+## A Useful Agent Job Description
+
+A practical agent job description should fit on one page.
+
+It should include:
+
+```txt
+Name:
+What is this agent called?
+
+Goal:
+What outcome is it responsible for?
+
+Inputs:
+Which data sources can it read?
+
+Tools:
+Which systems can it use?
+
+Limits:
+What must it never do?
+
+Approvals:
+Which actions require human review?
+
+Owner:
+Which human or team is accountable?
+
+Success criteria:
+How do we know it did the job well?
+
+Stop conditions:
+When should it pause, escalate, or shut down?
+```
+
+This is boring in the best possible way.
+
+It turns agent autonomy from a vague idea into an inspectable contract.
+
+## Example: Weekly Project Status Agent
+
+Here is a simple example.
+
+```txt
+Name:
+Weekly Project Status Agent
+
+Goal:
+Create a weekly project status draft for stakeholders.
+
+Inputs:
+Project board, closed tasks, open risks, milestone dates, recent team notes.
+
+Tools:
+Project tracker, docs, spreadsheet export, internal chat search.
+
+Limits:
+Read-only access to finance and HR systems.
+No external sharing.
+No direct task reassignment.
+
+Approvals:
+Human review required before sending or posting status.
+
+Owner:
+Project manager.
+
+Success criteria:
+Accurate summary, clear risks, no private data leakage, posted before Friday noon.
+
+Stop conditions:
+Missing data, conflicting dates, sensitive personnel issue, or unclear stakeholder list.
+```
+
+Notice what this does.
+
+It does not make the agent less useful.
+
+It makes the usefulness bounded.
+
+That is the point.
+
+## Job Descriptions Make Evaluation Easier
+
+Without a job description, agent evaluation becomes vague.
+
+People ask:
+
+```txt
+Was it helpful?
+```
+
+That is too soft.
+
+With a job description, you can ask sharper questions:
+
+- Did it use only approved inputs?
+- Did it produce the expected output?
+- Did it follow the approval rule?
+- Did it avoid prohibited actions?
+- Did it escalate when required?
+- Did the owner understand the final result?
+- Did it reduce work without increasing risk?
+
+That is measurable.
+
+This connects with [AI Evals: Vibes Are Not Enough](/blog/ai-evals-vibes-are-not-enough). An agent cannot be evaluated properly if its job is undefined.
+
+You need the role before you can measure role performance.
+
+## Job Descriptions Also Reduce Prompt Bloat
+
+A lot of agent prompts become huge because teams try to put everything into one system instruction.
+
+The prompt becomes:
+
+```txt
+You are a helpful assistant for sales, support, finance, engineering, HR, legal...
+```
+
+Then it grows into a policy swamp.
+
+That is usually a sign that the agent role is too broad.
+
+Better design is:
+
+```txt
+small agent
+clear job
+limited tools
+specific owner
+explicit approval points
+```
+
+This works better with the idea from [The Agent Harness Is The Product](/blog/agent-harness-is-the-product): the harness should enforce boundaries instead of expecting the prompt to carry every rule perfectly.
+
+Prompts guide behavior.
+
+Harnesses enforce behavior.
+
+Job descriptions define expected behavior.
+
+You need all three.
+
+## The Approval Line
+
+The most important part of the job description is the approval line.
+
+For each agent, define what it can:
+
+```txt
+read
+draft
+recommend
+change
+send
+delete
+purchase
+deploy
+```
+
+These are different powers.
+
+An agent that can read a document should not automatically be able to email its contents.
+
+An agent that can draft a refund note should not automatically be able to issue the refund.
+
+An agent that can summarize incidents should not automatically be able to change firewall rules.
+
+The job description should make this explicit.
+
+## Stop Conditions Matter
+
+Most agent demos focus on completion.
+
+Good agent design also defines when to stop.
+
+Useful stop conditions include:
+
+- confidence is low
+- source data conflicts
+- sensitive data appears
+- requested action is outside scope
+- tool returns unexpected result
+- cost budget is exceeded
+- user asks for a prohibited action
+- irreversible action is required
+- policy is ambiguous
+
+An agent that knows when to stop is safer than an agent that tries to complete every task no matter what.
+
+That is not weakness.
+
+That is operational maturity.
+
+## The Human Owner Is Not Optional
+
+Every useful workplace agent needs a human owner.
+
+Not because the human has to approve every action.
+
+Because someone must be accountable for:
+
+- access reviews
+- output quality
+- prompt changes
+- tool changes
+- incident review
+- budget control
+- policy updates
+- decommissioning
+
+Agents without owners become software orphans.
+
+Software orphans become risk.
+
+This is especially true when an agent quietly keeps running after the original team, project, or business process has changed.
+
+## The Takeaway
+
+AI agents are becoming workplace actors.
+
+That makes vague autonomy dangerous.
+
+Identity tells us who the agent is.
+
+A harness controls how it acts.
+
+A job description defines what work it is allowed to do.
+
+The minimum useful agent job description is:
+
+```txt
+Goal
+Inputs
+Tools
+Limits
+Approvals
+Owner
+Success criteria
+Stop conditions
+```
+
+Autonomy needs boundaries.
+
+Without boundaries, agents do not become coworkers.
+
+They become unmanaged permissions with a chat interface.
+
