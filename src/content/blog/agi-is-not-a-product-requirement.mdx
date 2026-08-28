@@ -1,0 +1,343 @@
+---
+title: AGI Is Not A Product Requirement
+date: 2026-08-28
+summary: Nvidia CEO Jensen Huang's latest AGI comments are a useful reminder that vague intelligence milestones do not help product teams ship better AI systems. Useful AI should be measured through capabilities, constraints, costs, safety checks, and real-world outcomes.
+tags: ai, agi, product-design, evals, software-engineering
+image: /blog/agi-not-product-requirement-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AGI Is Not A Product Requirement
+
+AGI is one of the loudest words in AI.
+
+It is also one of the least useful words when you are trying to ship a product.
+
+People use it to mean many different things:
+
+- human-level intelligence
+- autonomous workers
+- economic replacement
+- scientific reasoning
+- general problem solving
+- recursive self-improvement
+- a system that passes enough benchmarks
+- a model that feels different from everything before it
+
+That looseness is the problem.
+
+The word sounds precise.
+
+But in practice, it often hides the actual question.
+
+```txt
+What can this system reliably do?
+```
+
+## The Fresh Signal
+
+On August 27, 2026, [The Verge](https://www.theverge.com/ai-artificial-intelligence/985597/jensen-huang-says-nvidia-achieved-senseless-agi) reported on Nvidia CEO Jensen Huang's latest comments about AGI during Nvidia's Q2 fiscal 2027 earnings call.
+
+Nvidia's own [Q2 fiscal 2027 results](https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027) showed how central AI infrastructure has become to the company, with $96.2 billion in quarterly revenue and $89 billion from data center revenue.
+
+The [earnings-call transcript](https://investor.nvidia.com/files/content_files/TRANSCRIPT_-NVIDIA-Corp-NVDA-US-Q2-2027-Earnings-Call-26-August-2026-5_00-PM-ET.pdf) is more interesting for this post than the revenue number.
+
+Huang said that for many tasks, people could say AGI has already been achieved, while also arguing that these milestones are "kind of senseless" compared with AI doing useful work.
+
+That is a revealing tension.
+
+On one hand:
+
+```txt
+we achieved AGI
+```
+
+On the other:
+
+```txt
+the milestone is not the point
+```
+
+I think the second part is the useful part.
+
+## The Word Is Doing Too Much Work
+
+AGI tries to compress too many dimensions into one label.
+
+A model can be excellent at coding but unreliable at long-horizon planning.
+
+It can summarize legal documents well but fail at basic arithmetic in a workflow.
+
+It can pass a benchmark and still hallucinate a source.
+
+It can solve hard math problems but ignore a user's actual intent.
+
+It can use tools but break when a file path contains a space.
+
+It can reason beautifully in a demo and behave strangely when connected to a production system.
+
+So when someone says:
+
+```txt
+this is AGI
+```
+
+the practical response should be:
+
+```txt
+AGI at what?
+Under what constraints?
+At what cost?
+With what failure modes?
+For which users?
+With what safety boundary?
+```
+
+That is not pedantry.
+
+That is engineering.
+
+## Product Teams Need Capability Maps
+
+A product team does not need a mystical intelligence label.
+
+It needs a capability map.
+
+For example:
+
+- **Accuracy:** how often does the system produce a correct answer for this task?
+- **Reliability:** does it keep working across normal messy inputs?
+- **Latency:** how fast does it respond under real usage?
+- **Cost:** what does each useful task cost to run?
+- **Tool use:** can it call APIs, browse, write files, or operate software safely?
+- **Memory:** what context does it need, and how stable is that memory?
+- **Safety:** what can it refuse, block, escalate, or require approval for?
+- **Recoverability:** what happens when it makes a mistake?
+- **Observability:** can we inspect what happened after the fact?
+
+That list is less exciting than an AGI headline.
+
+It is also much closer to what determines whether an AI product works.
+
+This is why I keep coming back to evaluation.
+
+I wrote earlier that [AI benchmarks are signals, not full intelligence meters](/blog/what-ai-benchmarks-mean). Benchmarks matter, but only when you understand what they actually measure.
+
+AGI is even looser than a benchmark.
+
+At least a benchmark has a dataset, a scoring method, and a known test setup.
+
+AGI is often a vibe wearing a lab coat.
+
+## Useful Work Beats Big Words
+
+If a model helps a doctor catch a rare condition, that matters.
+
+If it helps a developer fix a real production bug, that matters.
+
+If it helps a student understand proof by contradiction, that matters.
+
+If it helps a designer generate ten useful campaign directions in twenty minutes, that matters.
+
+If it helps a support team resolve tickets faster without making customers miserable, that matters.
+
+None of those require the word AGI.
+
+They require the system to do useful work under real constraints.
+
+The most important AI question for most teams is not:
+
+```txt
+Is this system generally intelligent?
+```
+
+It is:
+
+```txt
+Can this system reliably improve this workflow?
+```
+
+That sounds smaller.
+
+It is actually harder.
+
+Because real workflows include missing context, legacy tools, weird permissions, unclear goals, tired humans, bad data, compliance rules, and edge cases nobody put in the demo.
+
+## The Demo Trap
+
+AGI language loves demos.
+
+Demos reward surprise.
+
+They reward moments where a model does something that feels impossible.
+
+But products are not demos.
+
+Products reward boring consistency.
+
+They need:
+
+- repeatable behavior
+- graceful failure
+- cost control
+- permission boundaries
+- human override
+- logs
+- test cases
+- rollout plans
+- support paths
+
+An AI model can look more general than it really is because a demo only shows the successful path.
+
+The product has to survive the unsuccessful path.
+
+That is where many AGI claims become less useful.
+
+They focus attention on the peak behavior of a system.
+
+Production cares about the distribution.
+
+```txt
+Not the best answer it can produce.
+The range of answers it actually produces.
+```
+
+## Intelligence Is Multi-Dimensional
+
+Human intelligence is not one number.
+
+Neither is machine capability.
+
+A person can be brilliant at mathematics and bad at social judgment.
+
+Another person can be excellent with people and weak at formal logic.
+
+A model can be strong at:
+
+- code generation
+- summarization
+- classification
+- image understanding
+- theorem-style reasoning
+- planning
+- tool orchestration
+- translation
+
+and still be weak at:
+
+- long-term consistency
+- truthfulness under uncertainty
+- real-world causality
+- embodied action
+- moral judgment
+- security boundaries
+- knowing when it should stop
+
+So a single milestone word flattens the actual engineering landscape.
+
+It makes the model sound like it crossed one universal finish line.
+
+There is no such finish line for product work.
+
+There are only domains, tasks, constraints, and failure modes.
+
+## AGI Does Not Remove The Need For Verification
+
+Even if a future system deserves the AGI label under some definition, it would still need verification.
+
+It would still need tests.
+
+It would still need monitoring.
+
+It would still need permissions.
+
+It would still need human accountability.
+
+It would still need a way to explain why it took an action.
+
+It would still need a rollback plan.
+
+That connects directly to [Why AI Can Never Be 100% Perfect](/blog/why-ai-can-never-be-perfect). More capable systems do not magically escape uncertainty, incomplete context, ambiguous goals, or limits of computation.
+
+In some ways, capability makes verification more important.
+
+A weak model fails quietly.
+
+A powerful model can fail at scale.
+
+## The Better Question
+
+Instead of asking:
+
+```txt
+Did we reach AGI?
+```
+
+ask:
+
+```txt
+What new class of work became practical?
+```
+
+That question is concrete.
+
+It lets you compare systems.
+
+It lets you decide whether to adopt a model.
+
+It lets you build evaluations.
+
+It lets you design safety boundaries.
+
+It lets non-technical people ask better questions too.
+
+For example:
+
+- What can this AI do today that it could not do last year?
+- Where does it still fail?
+- What does it cost per completed task?
+- How often does a human need to fix it?
+- What data does it need?
+- What tools can it access?
+- What actions require approval?
+- What happens when it is uncertain?
+
+Those questions are not as dramatic as AGI.
+
+They are more useful.
+
+## The Takeaway
+
+AGI may remain a useful research aspiration, a philosophical debate, or a fundraising word.
+
+But it is not a product requirement.
+
+A product requirement should be testable.
+
+It should say what the system must do, under what conditions, with what limits, and how failure is handled.
+
+```txt
+"Build AGI" is not a requirement.
+"Resolve 80% of tier-one support tickets with less than 2% harmful escalation errors" is closer.
+```
+
+That is where AI becomes real.
+
+Not when the industry agrees on a magic word.
+
+When systems do useful work, safely, repeatedly, and cheaply enough that people can depend on them.
+
+So yes, keep the AGI debate if you want.
+
+But when building, buying, or evaluating AI, translate it back into something measurable:
+
+```txt
+capabilities
+constraints
+costs
+risks
+outcomes
+```
+
+That is the language products actually understand.
