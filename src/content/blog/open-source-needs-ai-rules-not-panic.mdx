@@ -1,0 +1,395 @@
+---
+title: Open Source Needs AI Rules, Not Panic
+date: 2026-09-01
+summary: Debian's vote to allow responsible use of generative AI is a useful signal for open source. The hard problem is not whether a patch touched an AI tool. It is whether the contribution is reviewable, licensed, tested, maintainable, and owned by an accountable human.
+tags: ai, open-source, software-engineering, governance, developer-tools
+image: /blog/open-source-ai-rules-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# Open Source Needs AI Rules, Not Panic
+
+Open source has a new uncomfortable question:
+
+```txt
+What do we do with AI-assisted contributions?
+```
+
+Some people want a ban.
+
+Some people want disclosure.
+
+Some people want normal review rules.
+
+Some people want project-by-project decisions.
+
+Some people are already tired of the entire debate.
+
+That reaction is understandable.
+
+AI-generated code can be useful.
+
+It can also be wrong, insecure, legally unclear, overconfident, stylistically inconsistent, and annoying for maintainers who already have too much to review.
+
+But panic is not a policy.
+
+Open source needs rules.
+
+Not theater.
+
+## The Fresh Signal
+
+Debian recently voted on how its project should handle generative AI in contributions.
+
+The official [Debian general resolution page](https://www.debian.org/vote/2026/vote_002) shows that **Choice 5: Responsible Use of Generative AI** won. That choice says Debian does not specially endorse or prohibit generative AI tools, while keeping contributors responsible for quality, correctness, maintainability, legal compliance, privacy, and review.
+
+[The Verge](https://www.theverge.com/tech/986789/linux-debian-generative-ai-policy) covered the decision on August 31, 2026, noting that Debian rejected proposals that would have banned AI-generated contributions outright.
+
+[The Register](https://www.theregister.com/ai-and-ml/2026/08/30/debian-votes-to-let-contributors-code-with-ai/5293421) and [Phoronix](https://www.phoronix.com/news/Debian-Votes-Responsible-AI-Use) also covered the result, with the same basic conclusion: Debian chose responsible use over a blanket ban.
+
+That matters because Debian is not a casual project.
+
+Debian is old, serious, stable, volunteer-heavy, and deeply tied to the free software ecosystem.
+
+When Debian debates AI code, it is not just arguing about one tool.
+
+It is arguing about what maintainership means when code becomes cheaper to produce.
+
+## The Real Problem Is Not The Tool
+
+The first mistake is treating AI as one category.
+
+There is a difference between:
+
+- asking an AI to explain a function
+- using autocomplete for boilerplate
+- generating a first draft of tests
+- asking for a packaging file
+- submitting a whole patch without understanding it
+- mass-filing generated bug reports
+- copying model output with unclear licensing
+- sending private security information into a cloud chatbot
+
+Those are not the same risk.
+
+A ban can feel clean because it collapses the problem into one rule:
+
+```txt
+no AI
+```
+
+But enforcement gets messy quickly.
+
+How do you prove a patch was AI-assisted?
+
+Does autocomplete count?
+
+Does spell-check count?
+
+Does asking a model to explain compiler output count?
+
+Does rewriting a comment count?
+
+Does a human manually editing generated code make it acceptable?
+
+The other extreme is also weak:
+
+```txt
+anything goes if the tests pass
+```
+
+That ignores licensing, provenance, maintainability, hidden security issues, and the burden placed on reviewers.
+
+The useful middle ground is stricter:
+
+```txt
+the contributor owns the contribution
+```
+
+That sounds simple.
+
+It is actually a serious standard.
+
+## Accountability Does Not Outsource
+
+If a developer submits a patch, they should be able to explain it.
+
+Not vaguely.
+
+Technically.
+
+They should understand:
+
+- what changed
+- why it changed
+- what behavior is affected
+- what alternatives were considered
+- what tests were run
+- what license applies
+- what failure modes remain
+- what maintainers need to know
+
+AI assistance does not remove that obligation.
+
+It increases it.
+
+Because AI tools can make weak work look polished.
+
+A patch can have neat formatting, confident explanations, and plausible tests while still being wrong.
+
+That is the dangerous part.
+
+Bad work used to look more obviously bad.
+
+Now bad work can arrive with professional packaging.
+
+This connects directly to [AI Bug Reports Need Triage](/blog/ai-bug-reports-need-triage). AI can increase the volume of findings, reports, and patches. But maintainers do not need more fluent noise. They need reproducible evidence and reviewable work.
+
+## Maintainers Need Better Control Surfaces
+
+Open-source projects should not rely on moral vibes.
+
+They need concrete contribution rules.
+
+A practical AI contribution policy should answer:
+
+- Is AI assistance allowed?
+- Is disclosure required, encouraged, or optional?
+- Are there different rules for code, docs, translations, tests, and packaging?
+- Are mass-generated issues or patches allowed?
+- What private data must never be sent into AI tools?
+- What licensing/provenance checks are required?
+- What review evidence must accompany AI-assisted work?
+- Can maintainers reject generated-looking work even if the submitter does not disclose AI use?
+
+That last question matters.
+
+Maintainers should not need a courtroom-grade proof that AI was used.
+
+They should be able to reject work because it is low quality, unreviewable, suspicious, poorly explained, legally unclear, or too costly to maintain.
+
+The decision should be based on the contribution.
+
+Not the origin story alone.
+
+```txt
+Review the contribution, not the vibes.
+```
+
+## Disclosure Helps, But It Is Not Magic
+
+AI disclosure is useful.
+
+It gives maintainers context.
+
+It helps reviewers decide where to look closely.
+
+It lets projects track patterns over time.
+
+It gives other contributors a way to make informed choices.
+
+But disclosure is not enough.
+
+An honest disclosure does not make a bad patch good.
+
+No disclosure does not automatically make a good patch bad.
+
+And mandatory disclosure is difficult to enforce if the project has no reliable way to detect AI assistance.
+
+So disclosure should be treated as one signal inside a larger review process.
+
+The stronger controls are still:
+
+- tests
+- explanation
+- reproducibility
+- license clarity
+- maintainer judgment
+- human accountability
+
+That is less dramatic than a badge.
+
+It works better.
+
+## Legal Uncertainty Is A Real Constraint
+
+Open source cannot hand-wave licensing.
+
+That is one reason the Debian debate matters.
+
+AI-generated material can raise uncomfortable questions:
+
+- Was copyrighted training material reproduced?
+- Can the output be copyrighted?
+- Is the license status clear enough for distribution?
+- Does the contributor understand where the code came from?
+- Can the project defend including it?
+
+Different jurisdictions may answer some of these questions differently.
+
+Projects do not need to solve global copyright law before writing policy.
+
+But they do need a rule of thumb:
+
+```txt
+Do not contribute material whose legal status you cannot reasonably justify.
+```
+
+That should apply whether the material came from a model, a forum post, a Stack Overflow answer, an internal company snippet, or a random file found online.
+
+AI does not invent the licensing problem.
+
+It accelerates it.
+
+## Privacy Is Easier To Forget Than Copyright
+
+A lot of AI policy focuses on generated output.
+
+Input risk matters too.
+
+Contributors should not paste private project discussions, embargoed security issues, credentials, private emails, customer data, or non-public infrastructure details into external AI services unless the project has clearly authorized that.
+
+This is not theoretical hygiene.
+
+Open-source projects often handle:
+
+- security embargoes
+- private vulnerability reports
+- maintainer identities
+- infrastructure credentials
+- unreleased patches
+- internal coordination
+
+One careless prompt can leak sensitive context.
+
+So a good policy should cover both sides:
+
+```txt
+what AI produces
+and what contributors feed into AI
+```
+
+## Mass Automation Needs Prior Consent
+
+The worst open-source AI failure mode is scale.
+
+One weak patch is annoying.
+
+One hundred generated patches are a maintainer tax.
+
+One thousand generated bug reports can become a denial-of-service attack on volunteer attention.
+
+Even if the intention is good, large-scale AI contribution campaigns should require prior discussion.
+
+Projects need the right to say:
+
+```txt
+not like this
+```
+
+before maintainers wake up to a queue full of machine-generated work.
+
+This is similar to security reporting. A useful report is welcome. A flood of low-quality scanner output is not.
+
+AI contribution policy should make that distinction explicit.
+
+## What A Good Project Policy Might Say
+
+Here is a practical policy shape for open-source projects:
+
+```txt
+AI tools may be used as assistants.
+Contributors remain fully responsible for every submitted change.
+Contributors should disclose substantial AI assistance where relevant.
+Generated or assisted work must meet the same quality, style, testing, licensing, and maintainability standards as any other contribution.
+Private, embargoed, credentialed, or non-public project material must not be sent to external AI services without authorization.
+Large-scale generated issues, reports, translations, docs, or patches require prior maintainer agreement.
+Maintainers may reject contributions that are unreviewable, unexplained, legally unclear, low quality, or too costly to maintain.
+```
+
+That is not perfect.
+
+But it is better than pretending the project can escape the question.
+
+## The Human Part Still Matters
+
+Open source is not only code.
+
+It is trust.
+
+People review each other's work.
+
+People maintain packages for years.
+
+People argue about standards.
+
+People carry institutional memory.
+
+People decide whether a change is acceptable.
+
+AI tools can assist that process.
+
+They can also strain it.
+
+The key is to keep the responsibility attached to a human contributor.
+
+Not because humans are perfect.
+
+They are not.
+
+But because open-source maintainership depends on accountable relationships.
+
+A project can ask a human:
+
+```txt
+Do you understand this change?
+Can you defend it?
+Will you respond to review?
+Can you fix it if it breaks?
+```
+
+It cannot ask a prompt history to be a maintainer.
+
+## The Takeaway
+
+Debian's decision is not a final answer for every project.
+
+It is a useful pattern.
+
+AI does not need a panic response.
+
+It needs contribution discipline.
+
+The strongest rule is not:
+
+```txt
+AI is banned
+```
+
+or:
+
+```txt
+AI is always fine
+```
+
+The stronger rule is:
+
+```txt
+You are responsible for what you submit.
+```
+
+That responsibility includes quality, tests, maintainability, licensing, privacy, security, and respect for reviewer time.
+
+Open source can survive AI-assisted code.
+
+What it cannot survive is unaccountable work dumped onto maintainers at machine speed.
+
+The future policy should be calm, explicit, and enforceable:
+
+```txt
+Use tools.
+Own the output.
+Respect the project.
+Do not make maintainers clean up your automation.
+```
