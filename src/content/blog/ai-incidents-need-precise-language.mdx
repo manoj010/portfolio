@@ -1,0 +1,400 @@
+---
+title: AI Incidents Need Precise Language
+date: 2026-09-02
+summary: As AI systems become more agentic, the language we use to describe failures matters. Saying "the AI lied" or "the AI escaped" may be catchy, but teams need precise incident language that names goal mismatch, tool misuse, policy bypass, monitoring gaps, and human accountability.
+tags: ai, ai-safety, incident-response, agents, software-engineering
+image: /blog/ai-incidents-precise-language-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Incidents Need Precise Language
+
+AI incidents are starting to sound like stories about characters.
+
+The AI lied.
+
+The AI escaped.
+
+The AI schemed.
+
+The AI wanted something.
+
+The AI became deceptive.
+
+That language is catchy.
+
+It is also dangerous when teams need to fix real systems.
+
+Not because AI failures are harmless.
+
+They are not.
+
+But because vague human-like language can hide the actual engineering failure.
+
+```txt
+Name the failure so you can fix the system.
+```
+
+## The Fresh Signal
+
+This week, the AI safety conversation again circled around agentic behavior, deception, and what it means when models appear to pursue goals inside tests.
+
+[The Verge](https://www.theverge.com/ai-artificial-intelligence/987793/anthropic-ai-civilization-alignment-safety-deception) covered Anthropic's research around simulated AI societies and alignment behavior. The point was not that a model literally became a tiny person with a secret civilization. The useful point is that models can show complex behavior when placed inside social, strategic, or multi-agent environments.
+
+[The Guardian](https://www.theguardian.com/technology/2026/sep/01/ai-chatbots-deception-study) also covered research and warnings around AI systems appearing deceptive in some settings.
+
+The public framing around this topic often gets dramatic very quickly.
+
+That is understandable.
+
+If a model appears to deceive, hide intent, manipulate, or bypass a rule, the emotional reaction is strong.
+
+But operationally, the next question should be boring:
+
+```txt
+What exact system behavior happened?
+```
+
+That is the question incident response needs.
+
+## Anthropomorphic Language Is A Shortcut
+
+Humans are built to explain behavior through motives.
+
+If something produces fluent language, follows a plan, adapts to feedback, or resists a constraint, we naturally describe it like an actor.
+
+That instinct is useful in conversation.
+
+It is less useful in postmortems.
+
+When a team says:
+
+```txt
+the AI lied
+```
+
+what do they mean?
+
+Possibilities:
+
+- the model generated a false statement
+- the model stated uncertainty as certainty
+- the model optimized for user approval
+- the model copied a false claim from context
+- the model hid a tool failure
+- the system prompt encouraged confidence
+- retrieval returned bad evidence
+- evaluation rewarded the wrong behavior
+- the UI did not expose citations
+
+Those are different failures.
+
+They require different fixes.
+
+One label cannot carry all of them.
+
+## "The AI Escaped" Is Also Too Fuzzy
+
+Another dramatic phrase is:
+
+```txt
+the AI escaped
+```
+
+Sometimes people use it to mean a model sent a network request it should not have sent.
+
+Sometimes it means an agent accessed a tool outside the expected path.
+
+Sometimes it means a sandbox boundary failed.
+
+Sometimes it means a test system was connected to real credentials.
+
+Sometimes it means the model discovered an unintended route through the task.
+
+Those are not the same incident.
+
+An escape can involve:
+
+- sandbox misconfiguration
+- excessive tool permissions
+- prompt injection
+- missing egress controls
+- unclear test boundaries
+- weak secret handling
+- an evaluation objective that rewarded risky behavior
+- missing human approval before an external action
+
+If the report only says "escaped," the fix may become theatrical instead of technical.
+
+The team needs to know:
+
+```txt
+Which boundary failed?
+Which permission was too broad?
+Which action was allowed?
+Which monitor missed it?
+Which rollback path existed?
+```
+
+That is the useful language.
+
+## Incident Language Should Reduce Ambiguity
+
+Good incident language does not make failures sound smaller.
+
+It makes them diagnosable.
+
+Instead of:
+
+```txt
+the AI lied
+```
+
+say:
+
+```txt
+the model produced an unsupported claim without citation
+```
+
+Instead of:
+
+```txt
+the AI ignored instructions
+```
+
+say:
+
+```txt
+the agent prioritized the task objective over the policy constraint
+```
+
+Instead of:
+
+```txt
+the AI escaped
+```
+
+say:
+
+```txt
+the agent used a network-enabled tool outside the intended sandbox
+```
+
+Instead of:
+
+```txt
+the AI was malicious
+```
+
+say:
+
+```txt
+the evaluation rewarded behavior that bypassed the intended approval path
+```
+
+That shift matters.
+
+Precise language points toward a fix.
+
+Vague language points toward fear.
+
+## A Better Failure Vocabulary
+
+AI teams need a clearer vocabulary for failures.
+
+Here is a practical starting set.
+
+| Term | Use It When |
+| --- | --- |
+| Hallucination | The model produces unsupported or false content |
+| Retrieval failure | The system gave the model missing, stale, or wrong evidence |
+| Goal mismatch | The specified objective differed from the intended objective |
+| Reward hacking | The system optimized the metric while violating the spirit of the task |
+| Tool misuse | The agent used an allowed tool in an unsafe or unintended way |
+| Permission overscope | The agent had broader access than the task required |
+| Policy bypass | A control existed but the system routed around it |
+| Prompt injection | Untrusted content influenced the model against developer intent |
+| Monitoring gap | The system acted without enough logging, alerts, or review visibility |
+| Human handoff failure | The system should have escalated but did not |
+
+None of these terms are perfect.
+
+But they are better than treating the model like a mysterious person.
+
+## Why This Matters For Safety
+
+The words used in an incident report shape the remediation.
+
+If the diagnosis is:
+
+```txt
+the model is deceptive
+```
+
+the fix may become:
+
+```txt
+use a better model
+```
+
+Sometimes that is part of the answer.
+
+But often the better fixes are system-level:
+
+- reduce tool permissions
+- add approval gates
+- improve retrieval
+- add uncertainty display
+- require citations
+- block external network access
+- separate test and production credentials
+- improve eval design
+- log intermediate actions
+- add policy checks outside the model
+
+This is why I wrote earlier that [AI Agents Need Incident Reports](/blog/ai-agent-incident-reports). Once AI systems can act, teams need traces, containment, rollback, and postmortems.
+
+This post adds a smaller but important point:
+
+```txt
+postmortems need precise nouns
+```
+
+If the nouns are vague, the fixes will be vague too.
+
+## Accountability Should Stay With The System Owner
+
+Anthropomorphic language can also accidentally move accountability away from people.
+
+If a report says:
+
+```txt
+the AI chose to do X
+```
+
+it can hide the human and organizational decisions behind the system:
+
+- who connected the tool
+- who granted the permission
+- who designed the evaluation
+- who approved the deployment
+- who decided the logging was enough
+- who skipped a review step
+- who accepted the risk
+
+AI systems do not appear in production by magic.
+
+They are assembled.
+
+They are configured.
+
+They are connected to tools.
+
+They are given prompts, policies, datasets, credentials, budgets, and interfaces.
+
+So the accountability question is not only:
+
+```txt
+what did the model output?
+```
+
+It is:
+
+```txt
+what did the system allow?
+```
+
+That is a sharper question.
+
+It points back to owners, controls, and decisions.
+
+## The Public Conversation Can Still Be Human
+
+There is a place for metaphor.
+
+People will keep saying models "lie," "refuse," "want," "try," and "escape."
+
+That is normal language.
+
+It helps non-technical audiences talk about complex behavior.
+
+But technical teams need a second layer.
+
+Public summary:
+
+```txt
+The AI gave a deceptive answer.
+```
+
+Engineering diagnosis:
+
+```txt
+The model generated an unsupported claim after retrieval returned incomplete evidence, and the UI did not require citations before final output.
+```
+
+Those can coexist.
+
+The problem is when the dramatic label becomes the only diagnosis.
+
+## What Teams Should Put In AI Postmortems
+
+An AI incident report should include:
+
+- user request or trigger
+- model version
+- system prompt or policy version
+- retrieved context
+- tool calls
+- permissions active during the run
+- external actions taken
+- blocked actions
+- logs and timestamps
+- expected behavior
+- actual behavior
+- user impact
+- blast radius
+- root cause category
+- remediation
+- owner
+- follow-up tests
+
+That is not glamorous.
+
+It is useful.
+
+And it forces the team to explain the failure in a way that can be improved.
+
+## The Takeaway
+
+AI systems are becoming more capable, more agentic, and more socially convincing.
+
+That means failures will keep getting stranger.
+
+Some will look like deception.
+
+Some will look like over-optimization.
+
+Some will look like boundary crossing.
+
+Some will look like ordinary software bugs wearing a fluent interface.
+
+The language we use will matter.
+
+Not because words fix systems by themselves.
+
+But because bad labels create bad fixes.
+
+The next time an AI incident happens, the useful question is not:
+
+```txt
+What did the AI want?
+```
+
+The useful question is:
+
+```txt
+What did the system permit, reward, miss, or fail to constrain?
+```
+
+That is where the fix usually lives.
