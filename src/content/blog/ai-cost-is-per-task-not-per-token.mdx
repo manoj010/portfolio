@@ -1,0 +1,408 @@
+---
+title: AI Cost Is Per Task, Not Per Token
+date: 2026-09-03
+summary: Gemini 3.8 Flash is a useful reminder that model pricing can look simple while real AI costs stay messy. For agents, coding tools, and enterprise workflows, teams need to measure cost per completed task, including reasoning, retries, tool calls, context, latency, and failure.
+tags: ai, llm, finops, software-engineering, product-design
+image: /blog/ai-cost-per-task-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Cost Is Per Task, Not Per Token
+
+AI pricing looks simple from far away.
+
+Input tokens cost one amount.
+
+Output tokens cost another amount.
+
+Maybe there is a discount for batch processing.
+
+Maybe context caching has a separate line item.
+
+Maybe search grounding or tool use has an add-on cost.
+
+That seems manageable.
+
+Then you build a real workflow.
+
+The model reasons.
+
+It calls tools.
+
+It retries.
+
+It reads long context.
+
+It writes intermediate summaries.
+
+It waits on APIs.
+
+It fails once and tries again.
+
+Suddenly the useful unit is not:
+
+```txt
+cost per token
+```
+
+The useful unit is:
+
+```txt
+cost per completed task
+```
+
+## The Fresh Signal
+
+Google's Gemini API [release notes](https://ai.google.dev/gemini-api/docs/changelog) say Gemini 3.8 Flash became generally available on September 2, 2026.
+
+The [Gemini 3.8 Flash model page](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash) describes it as Google's most intelligent Flash model, aimed at long-horizon software engineering, autonomous agents, and complex enterprise workflows.
+
+The [Gemini API pricing page](https://ai.google.dev/gemini-api/docs/pricing) also shows why pricing needs careful reading. Gemini 3.8 Flash has an introductory paid-tier price through December 31, 2026, and a higher standard price beginning January 1, 2027. The pricing table also treats output price as including thinking tokens.
+
+That last detail matters.
+
+For simple chat, output is mostly what the user sees.
+
+For reasoning-heavy workflows, output can include thinking work the user never directly reads.
+
+So the question is not only:
+
+```txt
+How cheap is this model per million tokens?
+```
+
+The better question is:
+
+```txt
+How many tokens, tool calls, retries, and seconds does it need to finish useful work?
+```
+
+## Cheap Tokens Can Still Produce Expensive Workflows
+
+Imagine two models.
+
+Model A is cheaper per token.
+
+Model B is more expensive per token.
+
+At first, Model A looks like the obvious choice.
+
+But then you test them inside a real task.
+
+Model A:
+
+- reads more context
+- retries more often
+- calls tools unnecessarily
+- produces longer intermediate output
+- needs a verification pass
+- fails more tasks
+
+Model B:
+
+- uses less context
+- plans better
+- finishes sooner
+- calls fewer tools
+- needs less human repair
+- completes more tasks on the first attempt
+
+Now the token price is only one part of the bill.
+
+The final cost depends on:
+
+```txt
+tokens x behavior x success rate x human review x latency x infrastructure
+```
+
+That is why per-token pricing can be misleading.
+
+It is like judging a delivery service only by fuel cost while ignoring failed deliveries.
+
+## Agents Make This More Obvious
+
+A normal chatbot response might be one model call.
+
+An agent workflow might be ten.
+
+For example:
+
+```txt
+User asks for a repo fix.
+Agent reads the issue.
+Agent searches files.
+Agent opens related code.
+Agent plans the change.
+Agent edits files.
+Agent runs tests.
+Agent inspects failures.
+Agent retries.
+Agent writes a summary.
+```
+
+The user sees:
+
+```txt
+fixed
+```
+
+The system pays for the journey.
+
+That journey includes model calls, tool calls, file reads, logs, test runs, retries, and sometimes wasted branches of work.
+
+This is why I wrote in [The AI Token Tax Is The New Cloud Bill](/blog/ai-token-tax) that production AI cost is becoming closer to cloud infrastructure management than old SaaS seat pricing.
+
+This post is the next practical layer:
+
+```txt
+do not stop at token observability
+measure task economics
+```
+
+## The Hidden Multipliers
+
+Real AI cost has multipliers that do not fit neatly into one price table.
+
+### Reasoning
+
+Reasoning-capable models may spend extra tokens before producing a final answer.
+
+That can be worth it.
+
+Better reasoning can reduce failures.
+
+But it still needs measurement.
+
+If the task is simple classification, heavy reasoning may be waste.
+
+If the task is complex debugging, reasoning may save money by avoiding bad patches.
+
+The point is not:
+
+```txt
+reasoning is expensive
+```
+
+The point is:
+
+```txt
+reasoning should earn its cost
+```
+
+### Tool Calls
+
+Tool calls can be powerful.
+
+They let AI systems search, read files, query databases, use browsers, call APIs, and act in real systems.
+
+But each tool call can add:
+
+- latency
+- infrastructure cost
+- permission risk
+- extra context
+- more failure paths
+- more logs to inspect
+
+An agent that calls five tools when one would do is not just slower.
+
+It is more expensive and harder to audit.
+
+### Retries
+
+Retries are silent budget leaks.
+
+If a workflow fails once and succeeds on the second try, the user may never notice.
+
+The bill notices.
+
+Retries can come from:
+
+- unclear prompts
+- weak tool schemas
+- flaky APIs
+- context overload
+- timeout limits
+- bad planning
+- missing permissions
+
+The best teams do not only track final success.
+
+They track first-pass success.
+
+### Context
+
+Long context is useful.
+
+It is also easy to abuse.
+
+Dumping an entire repository, policy library, or document history into every request is usually lazy architecture.
+
+A better system retrieves only what the task needs, caches stable context, summarizes carefully, and keeps irrelevant material out of the prompt.
+
+This connects to [Why Context Is Becoming More Important Than Prompts](/blog/why-context-is-becoming-more-important-than-prompts). Context quality matters more than context size.
+
+Bad context costs money twice:
+
+```txt
+you pay to include it
+and you pay again when it confuses the model
+```
+
+### Latency
+
+Latency is not only user experience.
+
+It is also cost.
+
+Slow workflows hold compute, tie up queues, delay users, increase retries, and make human review less efficient.
+
+For internal tools, latency also changes adoption.
+
+If an AI workflow saves thirty seconds but makes the user wait twenty seconds wondering whether it worked, people stop trusting it.
+
+## The Metric That Matters
+
+The practical metric is:
+
+```txt
+cost per useful completed task
+```
+
+Not per prompt.
+
+Not per response.
+
+Not per token.
+
+A useful completed task should include:
+
+- model cost
+- tool cost
+- search or grounding cost
+- context caching cost
+- retry cost
+- infrastructure cost
+- human review time
+- failure rate
+- rollback or correction effort
+
+That sounds heavier than a pricing page.
+
+It is also closer to reality.
+
+For example, a support workflow should ask:
+
+```txt
+How much does it cost to resolve one ticket correctly?
+```
+
+A coding workflow should ask:
+
+```txt
+How much does it cost to merge one correct, tested patch?
+```
+
+A research workflow should ask:
+
+```txt
+How much does it cost to produce one cited, usable brief?
+```
+
+That framing forces teams to connect cost to outcome.
+
+## A Simple Cost Review Template
+
+For every serious AI workflow, track these numbers:
+
+| Metric | Why It Matters |
+| --- | --- |
+| Total tokens | Basic model usage |
+| Reasoning/output tokens | Hidden thinking and generation cost |
+| Tool calls | Workflow complexity and risk |
+| Context size | Retrieval quality and prompt efficiency |
+| Retry count | Reliability and wasted spend |
+| Latency | User trust and operational efficiency |
+| Human review minutes | Real labor cost |
+| First-pass success rate | Whether the system works cleanly |
+| Correction rate | Downstream cleanup cost |
+| Cost per accepted output | The real unit of value |
+
+This table is not complicated.
+
+But it changes the conversation.
+
+Instead of arguing:
+
+```txt
+Model X is cheaper than Model Y.
+```
+
+You can ask:
+
+```txt
+Which model completes this workflow cheaper at the same quality bar?
+```
+
+That is the right question.
+
+## Model Choice Becomes Routing
+
+As models become more specialized, teams should not pick one model for everything.
+
+They should route work.
+
+Simple tasks can use cheaper, faster models:
+
+- classification
+- formatting
+- extraction
+- short summaries
+- low-risk drafts
+
+Harder tasks may deserve stronger reasoning:
+
+- complex code changes
+- legal-style comparison
+- incident analysis
+- multi-step planning
+- customer-impacting decisions
+
+The goal is not to always use the cheapest model.
+
+The goal is to use the cheapest model that meets the required quality, safety, and latency bar.
+
+This also connects to [AGI Is Not A Product Requirement](/blog/agi-is-not-a-product-requirement). Product teams do not need magic labels. They need measurable capabilities under real constraints.
+
+## The Takeaway
+
+Gemini 3.8 Flash is another sign that "fast" models are becoming more capable at serious work.
+
+That is good.
+
+But better models do not remove the need for cost discipline.
+
+They make it more important.
+
+Because as models handle longer workflows, the unit of measurement shifts.
+
+The question is no longer only:
+
+```txt
+What is the price per million tokens?
+```
+
+The question is:
+
+```txt
+What does it cost to finish the job correctly?
+```
+
+That is where AI cost engineering is heading.
+
+Tokens are the raw material.
+
+Tasks are the product.
+
+Measure the product.
