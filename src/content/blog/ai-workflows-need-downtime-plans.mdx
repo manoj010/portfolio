@@ -1,0 +1,405 @@
+---
+title: AI Workflows Need Downtime Plans
+date: 2026-09-04
+summary: A same-day disruption across major AI tools is a reminder that AI is now part of real work infrastructure. Teams using AI for coding, support, research, operations, and agents need fallback routing, cached context, manual queues, retry rules, and clear degradation paths.
+tags: ai, reliability, llmops, software-engineering, operations
+image: /blog/ai-workflows-downtime-plans-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Workflows Need Downtime Plans
+
+AI still feels like an app.
+
+You open a chat box.
+
+You paste a problem.
+
+You wait for the answer.
+
+But in many teams, AI is no longer just an app.
+
+It is becoming infrastructure.
+
+It writes code drafts, triages support tickets, summarizes incidents, searches documents, prepares sales notes, explains logs, routes work, and powers internal agents.
+
+That changes the reliability question.
+
+The question is no longer only:
+
+```txt
+Is the model good?
+```
+
+It is also:
+
+```txt
+What happens when the model is unavailable?
+```
+
+## The Fresh Signal
+
+On September 3, 2026, OpenAI's status API listed a resolved incident named ["Elevated errors across ChatGPT and Codex"](https://status.openai.com/api/v2/incidents.json).
+
+Anthropic's status API also listed a resolved incident the same day named ["Elevated errors for multiple models"](https://status.anthropic.com/api/v2/incidents.json).
+
+[Wired reported](https://www.wired.com/story/nobody-is-saying-why-openai-and-anthropic-had-outages-today/) on same-day outages affecting major AI services, including ChatGPT, Claude, and Grok.
+
+The important point is not to overstate the cause.
+
+From the public information available, we should not pretend we know whether these incidents shared one root cause.
+
+The more useful lesson is simpler:
+
+```txt
+AI tools can go down at the same time people are depending on them.
+```
+
+That is enough to change how teams should design AI workflows.
+
+## An Outage Is Not Just A Missing Chatbot
+
+If one person loses access to a chatbot for an hour, that is annoying.
+
+If a company has quietly placed AI into real workflow paths, the blast radius is bigger.
+
+An AI outage can affect:
+
+- developers relying on coding assistants
+- support teams using AI for ticket drafts
+- incident teams summarizing logs and timelines
+- sales teams generating account research
+- analysts turning documents into briefs
+- internal agents that call tools on a schedule
+- review workflows that depend on model-based checks
+
+The risk is not that every team collapses immediately.
+
+The risk is that nobody knows which work depended on AI until the AI is gone.
+
+That is how an app dependency becomes an operations problem.
+
+## AI Dependency Is Still Dependency
+
+Teams already understand this for databases, payment providers, email vendors, auth systems, queues, CDNs, and search indexes.
+
+They track availability.
+
+They define fallback behavior.
+
+They set timeout rules.
+
+They document manual paths.
+
+They decide what fails closed and what fails open.
+
+AI should be treated with the same seriousness.
+
+An LLM API or AI workspace has all the normal dependency risks:
+
+- downtime
+- latency spikes
+- rate limits
+- degraded model quality
+- authentication failures
+- tool-call failures
+- policy changes
+- provider-specific outages
+- unexpected cost spikes
+
+But AI adds one extra problem.
+
+Its failure can look like partial success.
+
+A database outage is usually obvious.
+
+An AI workflow can fail more quietly:
+
+- weak answer
+- missing citation
+- hallucinated summary
+- skipped edge case
+- half-finished tool call
+- confident but wrong explanation
+
+That makes observability and fallback design even more important.
+
+## The Wrong Reaction
+
+The wrong reaction is:
+
+```txt
+AI went down, so AI is useless.
+```
+
+That is lazy.
+
+Email goes down.
+
+Cloud regions go down.
+
+Payment gateways go down.
+
+Databases go down.
+
+Nobody serious concludes that infrastructure is useless because it fails sometimes.
+
+The serious conclusion is:
+
+```txt
+if a system matters, design for failure
+```
+
+AI is moving into systems that matter.
+
+So AI needs downtime plans.
+
+## What Graceful Degradation Looks Like
+
+A good AI workflow should have modes.
+
+Not just:
+
+```txt
+working
+broken
+```
+
+More like:
+
+```txt
+normal mode
+degraded mode
+manual mode
+retry later
+stop and escalate
+```
+
+For example, imagine an internal AI support assistant.
+
+Normal mode:
+
+```txt
+read ticket
+retrieve docs
+draft response
+suggest next action
+```
+
+Degraded mode:
+
+```txt
+use cached docs
+use a fallback model
+draft only short summaries
+disable risky actions
+```
+
+Manual mode:
+
+```txt
+queue ticket for human review
+show relevant templates
+preserve the audit trail
+mark AI assistance unavailable
+```
+
+Retry later:
+
+```txt
+save the task
+back off safely
+retry after provider recovery
+notify the owner if deadline is near
+```
+
+Stop and escalate:
+
+```txt
+do not guess
+do not send
+do not delete
+do not approve
+ask a human
+```
+
+That is graceful degradation.
+
+The workflow still has shape when the model is unavailable.
+
+## A Practical Fallback Checklist
+
+For each serious AI workflow, teams should define:
+
+| Question | Why It Matters |
+| --- | --- |
+| What depends on AI? | You cannot protect what you have not mapped. |
+| Which provider or model is used? | Dependency ownership must be visible. |
+| What is the timeout? | Hanging workflows are operational debt. |
+| Can another model handle the task? | Some tasks can route around failures. |
+| Is local fallback possible? | Small local models may handle simple work. |
+| What context is cached? | Cached docs and templates keep work moving. |
+| What actions are disabled during outage? | Degraded mode should reduce risk. |
+| Who owns manual review? | A queue without an owner is just delay. |
+| What gets retried automatically? | Retries should be safe and bounded. |
+| What must never fail open? | Security and approval checks need hard stops. |
+
+This does not require a massive platform team.
+
+Even a small team can write a one-page downtime plan for every important AI workflow.
+
+## Do Not Fail Open
+
+The most dangerous outage behavior is failing open.
+
+For example:
+
+```txt
+AI review unavailable, so merge anyway.
+```
+
+Or:
+
+```txt
+AI fraud check unavailable, so approve anyway.
+```
+
+Or:
+
+```txt
+AI privacy scan unavailable, so send anyway.
+```
+
+That is not resilience.
+
+That is removing the guardrail exactly when the system is weaker.
+
+If AI is part of safety, compliance, approval, or security, the fallback should usually be stricter:
+
+```txt
+pause
+queue
+manual review
+reduced capability
+```
+
+AI downtime should not quietly downgrade the seriousness of the workflow.
+
+## Measure AI Reliability Like Product Reliability
+
+Teams should measure AI dependency health in the same way they measure other production systems.
+
+Useful metrics include:
+
+- provider uptime
+- p95 and p99 latency
+- timeout rate
+- error rate
+- rate-limit events
+- tool-call failure rate
+- retry count
+- fallback route usage
+- manual queue size
+- first-pass success rate
+- user abandonment during degraded mode
+
+This connects directly to [Why AI Agents Need Observability](/blog/why-ai-agents-need-observability).
+
+If an AI workflow can act, route, draft, or decide, it needs logs and health signals.
+
+Otherwise, failures become anecdotes.
+
+And anecdotes do not run operations.
+
+## Cost And Reliability Are Connected
+
+Fallback planning also changes AI cost.
+
+A team may choose a cheaper model for normal tasks, but keep a stronger or different provider available for failure mode.
+
+That looks more expensive on paper.
+
+But if the fallback keeps important work moving, the real metric is not token price.
+
+As I wrote in [AI Cost Is Per Task, Not Per Token](/blog/ai-cost-is-per-task-not-per-token), the useful unit is completed work.
+
+An outage plan is part of that cost model.
+
+Because failed workflows have a cost too:
+
+- delayed tickets
+- blocked developers
+- repeated prompts
+- manual cleanup
+- missed deadlines
+- reduced trust
+
+Reliability is not separate from AI economics.
+
+It is part of it.
+
+## Agents Need Even More Care
+
+Chatbots can disappoint users.
+
+Agents can leave work half-done.
+
+That is a bigger problem.
+
+If an agent reads a ticket, drafts a response, calls a tool, then fails before writing the final status, what happens?
+
+Does the task get marked incomplete?
+
+Does the tool action roll back?
+
+Does the human owner get notified?
+
+Does the agent retry?
+
+Does it risk doing the same action twice?
+
+This is why [AI Agents Need Job Descriptions](/blog/ai-agents-need-job-descriptions).
+
+Every production agent should know:
+
+- what it can do
+- what it cannot do
+- when to stop
+- when to ask for review
+- how to behave when dependencies fail
+
+Downtime planning belongs inside the job description.
+
+## The Takeaway
+
+AI outages are not surprising.
+
+They are normal infrastructure reality arriving in a new layer of work.
+
+The mistake is not using AI.
+
+The mistake is using AI as if it cannot fail.
+
+The teams that handle this well will not be the teams with the most dramatic AI demos.
+
+They will be the teams with boring, useful answers to questions like:
+
+```txt
+What happens if this model is down?
+What happens if it is slow?
+What happens if it gives partial output?
+What happens if the fallback also fails?
+Who owns the queue?
+What must never continue automatically?
+```
+
+That is the mature version of AI adoption.
+
+Not just better prompts.
+
+Not just smarter models.
+
+Operational muscle.
+
+If AI is infrastructure, plan for failure.
