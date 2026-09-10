@@ -1,0 +1,468 @@
+---
+title: AI Model Outputs Are An Attack Surface
+date: 2026-09-10
+summary: The debate over malicious AI distillation shows that model security is not only about protecting prompts, weights, and infrastructure. Outputs can also leak capability. AI companies and builders need rate limits, abuse monitoring, output-use policies, watermark signals, and clearer rules for model-derived training.
+tags: ai, security, llmops, model-distillation, software-engineering
+image: /blog/ai-model-outputs-attack-surface-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Model Outputs Are An Attack Surface
+
+When people think about AI security, they usually think about inputs.
+
+Prompt injection.
+
+Jailbreaks.
+
+Poisoned documents.
+
+Bad retrieval.
+
+Secrets pasted into chat.
+
+Those risks are real.
+
+But there is another side that gets less attention:
+
+```txt
+the output
+```
+
+The answer itself can become valuable data.
+
+If someone collects enough outputs from a strong model, they may be able to train another model to imitate part of its behavior.
+
+That is distillation.
+
+And in frontier AI, distillation is turning model responses into a security, business, and policy problem.
+
+## The Fresh Signal
+
+On September 10, 2026, [AP reported](https://apnews.com/article/0f6ca61301630134607551b1dab0d632) that China rejected U.S. claims that Chinese AI developers engaged in "malicious" distillation of advanced American AI systems.
+
+The AP report says U.S. agencies accused companies including DeepSeek, Alibaba, Moonshot AI, and Z.ai of extracting proprietary capabilities from top U.S. models, while China dismissed the claims as groundless.
+
+[The Wall Street Journal reported](https://www.wsj.com/tech/ai/is-china-stealing-american-ai-why-distillation-has-washington-up-in-arms-f924d29e) that U.S. security agencies accused several Chinese AI firms of using distillation techniques against models such as Claude, ChatGPT, Gemini, and Grok.
+
+The legal and factual details are contested.
+
+So the careful framing is:
+
+```txt
+these are allegations
+but the risk category is real
+```
+
+Even Anthropic's own help center says its terms do not allow using Claude outputs to train models that compete with Anthropic.
+
+That tells us something important.
+
+Model providers already treat outputs as strategically sensitive.
+
+## What Distillation Means
+
+Distillation is not inherently bad.
+
+In machine learning, it often means training a smaller model to imitate a larger model.
+
+The larger model is sometimes called the teacher.
+
+The smaller model is the student.
+
+The teacher produces outputs.
+
+The student learns from them.
+
+This can be useful.
+
+For example:
+
+- making a smaller model faster
+- reducing serving cost
+- moving capability to edge devices
+- compressing internal models
+- adapting a model to a narrow domain
+- teaching a model from approved synthetic data
+
+Distillation can be normal engineering.
+
+The problem starts when the teacher model is proprietary, the outputs are collected at scale, and the goal is to clone capability without permission.
+
+Then the response stream starts to look like an extraction channel.
+
+## Why Outputs Are Different From Normal API Responses
+
+Most APIs return data.
+
+Weather.
+
+Prices.
+
+Search results.
+
+User records.
+
+A model API returns behavior.
+
+That behavior can encode:
+
+- reasoning patterns
+- style
+- coding habits
+- safety boundaries
+- domain knowledge
+- instruction-following behavior
+- refusal patterns
+- tool-use strategies
+- problem-solving shortcuts
+
+That makes model outputs unusual.
+
+They are not just answers.
+
+They are samples of capability.
+
+If someone collects millions of those samples, the dataset may become a rough behavioral map of the original model.
+
+That does not mean cloning is easy.
+
+It does not mean a smaller model magically becomes equal to the frontier model.
+
+But it does mean outputs can carry more strategic value than normal API responses.
+
+## The Response Is Data Too
+
+AI builders spend a lot of time protecting:
+
+```txt
+model weights
+training data
+system prompts
+infrastructure
+customer inputs
+```
+
+They should also protect:
+
+```txt
+high-volume output behavior
+```
+
+That is a strange idea at first.
+
+Users are supposed to see outputs.
+
+The product exists to produce outputs.
+
+But openness to normal use is not the same as openness to mass extraction.
+
+A person asking questions is one thing.
+
+A system harvesting outputs to train a competing model is another.
+
+The security problem is deciding where normal use ends and extraction begins.
+
+## This Is Hard To Detect
+
+Distillation attempts can look like normal usage.
+
+Someone sends prompts.
+
+The model answers.
+
+The account pays.
+
+The API behaves as designed.
+
+No server is hacked.
+
+No database is breached.
+
+No password is stolen.
+
+That is what makes the risk awkward.
+
+The extraction happens through the front door.
+
+Signals may include:
+
+- unusually high query volume
+- systematic coverage of task categories
+- repeated benchmark-style prompts
+- many near-duplicate accounts
+- prompt patterns designed to elicit chain-like reasoning
+- requests across many domains
+- scraping-like timing behavior
+- accounts reselling generated outputs
+- outputs appearing in suspicious training datasets
+
+None of those signals are perfect.
+
+Heavy legitimate users can look unusual.
+
+Researchers can run systematic evaluations.
+
+Enterprise customers can generate large volumes.
+
+That is why detection has to be careful.
+
+Invisible punishment can damage legitimate work.
+
+## The Wrong Defense
+
+One bad defense is secretly degrading answers.
+
+If a provider suspects extraction and silently makes outputs worse, it may protect itself in the short term.
+
+But it also breaks trust.
+
+Researchers cannot tell whether they are evaluating the model or a hidden degraded mode.
+
+Customers cannot tell whether the product is failing.
+
+Developers cannot debug quality.
+
+The user experience becomes haunted by invisible policy.
+
+That is why transparency matters.
+
+If a request is blocked, rate limited, rerouted, or restricted because it looks like model extraction, the system should say so clearly when possible.
+
+Security does not require making the product mysterious.
+
+It requires making the boundary enforceable.
+
+## A Better Defense Stack
+
+A better model-output protection stack includes:
+
+| Control | What It Does |
+| --- | --- |
+| Rate limits | Slows mass extraction without blocking normal users. |
+| Usage analytics | Finds suspicious prompt and account patterns. |
+| Terms enforcement | Defines what output use is not allowed. |
+| Account verification | Raises the cost of large-scale fake usage. |
+| Watermark signals | Helps detect model-derived synthetic data. |
+| Research access programs | Gives legitimate evaluators a clean path. |
+| Clear block messages | Tells users when policy, not model quality, caused refusal. |
+| Audit logs | Lets providers review suspicious behavior later. |
+| Legal escalation | Handles repeated or commercial misuse. |
+| Customer appeal paths | Reduces harm from false positives. |
+
+None of these is magic.
+
+Together, they make extraction harder, slower, and easier to investigate.
+
+## Terms Are Part Of The Security Boundary
+
+People often treat terms of service like boring legal text.
+
+For AI, terms are part of the security boundary.
+
+They define whether a user can:
+
+- store outputs
+- resell outputs
+- train another model on outputs
+- build a competing model
+- publish derived datasets
+- automate high-volume querying
+- benchmark the model publicly
+
+If those rules are unclear, every technical defense gets harder.
+
+If the rules are too broad, they may chill legitimate research and competition.
+
+If the rules are too weak, providers may lose control over expensive capability they built.
+
+This is a real product-design tension.
+
+The industry needs rules that distinguish:
+
+```txt
+ordinary use
+research
+interoperability
+internal evaluation
+approved synthetic data
+competitive cloning
+covert extraction
+```
+
+Throwing all of those into one bucket creates bad policy.
+
+## Open Models Change The Equation
+
+Open models make distillation more complicated.
+
+If a model is openly licensed and allows derivative training, distillation can be perfectly legitimate.
+
+Many useful smaller models exist because larger open models taught them.
+
+That is good.
+
+The issue is not:
+
+```txt
+distillation is evil
+```
+
+The issue is:
+
+```txt
+what was the teacher model
+what did the license allow
+how were outputs collected
+what was the intended use
+```
+
+This connects to [Open Source Needs AI Rules, Not Panic](/blog/open-source-needs-ai-rules-not-panic).
+
+Open ecosystems need clear contribution and usage rules.
+
+Closed frontier models need clear output-use rules.
+
+Both sides need less shouting and more precise boundaries.
+
+## Developers Should Care Too
+
+This is not only a lab problem.
+
+If you build an AI product, your own outputs may become training data for someone else.
+
+That might be fine.
+
+Or it might be a problem.
+
+For example:
+
+- a tutoring app's explanations could train a rival tutor
+- a legal assistant's structured analysis could become a dataset
+- a coding agent's patches could teach another coding model
+- a support bot's answers could be scraped into a competitor
+- a domain-specific agent's outputs could reveal proprietary process knowledge
+
+If your product creates valuable AI-shaped work, think about output policy.
+
+Not only input privacy.
+
+Ask:
+
+- Can users export outputs?
+- Can customers use outputs for their own model training?
+- Can partners resell generated datasets?
+- Are outputs watermarked or traceable?
+- Do contracts distinguish human use from model training?
+- Do logs show suspicious harvesting?
+- Is there an appeal path for legitimate bulk use?
+
+The response is data too.
+
+Treat it that way.
+
+## This Connects To AI Cost
+
+Distillation is also an economics story.
+
+Frontier models are expensive to build.
+
+Training costs money.
+
+Data costs money.
+
+Researchers cost money.
+
+Evaluation costs money.
+
+Safety work costs money.
+
+Infrastructure costs money.
+
+If another company can query the model heavily and train a cheaper model from the outputs, it changes the return on that investment.
+
+This is one reason providers care so much.
+
+It also connects to [AI Cost Is Per Task, Not Per Token](/blog/ai-cost-is-per-task-not-per-token).
+
+For normal users, the API bill is about completing tasks.
+
+For extractive users, the API bill may be a cheap way to buy training signal.
+
+Same interface.
+
+Different intent.
+
+That is hard to govern.
+
+## The Geopolitics Will Get Loud
+
+The AP report shows how quickly this becomes geopolitical.
+
+When model capability is treated as strategic technology, distillation becomes more than a terms-of-service dispute.
+
+It becomes part of:
+
+- export controls
+- sanctions
+- national security
+- cloud access policy
+- AI regulation
+- diplomatic tension
+- industrial strategy
+
+Some of that concern may be justified.
+
+Some of it may become overreach.
+
+The hard part is that both things can be true.
+
+AI capability is valuable enough to protect.
+
+AI progress also depends on research, competition, and legitimate model reuse.
+
+If policy becomes too blunt, it may protect incumbents more than society.
+
+If policy is too weak, it may encourage covert extraction at industrial scale.
+
+This is a narrow bridge.
+
+## The Takeaway
+
+AI security is not only about keeping attackers away from the model.
+
+Sometimes the model is doing exactly what it was asked to do:
+
+```txt
+answering
+```
+
+And the answer is the thing being harvested.
+
+That is why model outputs are an attack surface.
+
+Not because users should stop using AI.
+
+Not because distillation is always wrong.
+
+But because output streams can leak capability, economics, and strategic value.
+
+The practical future looks like:
+
+```txt
+clear output-use rules
+rate limits
+abuse monitoring
+visible enforcement
+research carveouts
+watermark signals
+appeal paths
+better contracts
+```
+
+The prompt is input.
+
+The response is data.
+
+And in AI, data can become another model.
