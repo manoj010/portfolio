@@ -1,0 +1,495 @@
+---
+title: AI Interfaces Still Need Buttons
+date: 2026-09-11
+summary: Natural language is becoming a powerful interface, but it should not replace every control. Good AI products need buttons, previews, undo, approvals, sliders, logs, and visible state so users can move from fuzzy intent to precise action without losing trust.
+tags: ai, ux, product-design, agents, software-engineering
+image: /blog/ai-interfaces-still-need-buttons-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Interfaces Still Need Buttons
+
+Natural language is an incredible interface.
+
+You can say what you want.
+
+You do not need to learn a menu.
+
+You do not need to remember a command.
+
+You do not need to click through ten screens just to ask:
+
+```txt
+Summarize these documents and make a draft plan.
+```
+
+That is powerful.
+
+But there is a trap hiding inside the excitement:
+
+```txt
+chat should not become the whole interface
+```
+
+Some things are better said.
+
+Some things are better clicked.
+
+Some things need a preview.
+
+Some things need a slider.
+
+Some things need an undo button.
+
+Some things need an audit log.
+
+And some things should never happen just because a sentence was interpreted confidently.
+
+AI interfaces still need buttons.
+
+## The Fresh Signal
+
+On September 10, 2026, [The Verge's Decoder mailbag](https://www.theverge.com/podcast/992141/decoder-mailbag-ai-backlash-surveillance-midterms-data-centers) discussed a growing tech backlash around AI, surveillance, data centers, and the feeling that large platforms keep forcing new systems onto people before the social contract is clear.
+
+That discussion is not only about policy.
+
+It is also about product design.
+
+When technology feels imposed, users look for control.
+
+When AI systems become more agentic, that control has to be designed into the interface.
+
+A related pattern shows up far outside AI too. [Car and Driver reported](https://www.caranddriver.com/news/a66092637/this-tiny-electric-sports-car-features-the-virtual-joystick-steering-system-of-the-future/) on steer-by-wire and virtual joystick controls in future vehicles. The details are automotive, but the lesson is familiar:
+
+```txt
+when software mediates action, interface clarity matters
+```
+
+If the interface is confusing, people do not just dislike it.
+
+They stop trusting the system.
+
+AI products are walking into the same problem.
+
+## Chat Is Great For Intent
+
+Chat is wonderful when the user is describing intent.
+
+For example:
+
+```txt
+Help me compare these proposals.
+Turn these notes into a client update.
+Find the risky assumptions in this plan.
+Explain this error like I am new to the codebase.
+Draft a polite reply.
+Summarize the last ten customer complaints.
+```
+
+Those tasks are fuzzy.
+
+They benefit from language.
+
+The user may not know the exact command yet.
+
+They may need to explore.
+
+They may want the system to infer structure.
+
+That is where AI feels magical.
+
+But intent is not the same as execution.
+
+The moment the system is ready to act, the interface should become more precise.
+
+## Buttons Are Good At Commitment
+
+A button is boring in a beautiful way.
+
+It says:
+
+```txt
+this action happens when you press here
+```
+
+That is useful.
+
+Especially when the action has consequences.
+
+For example:
+
+- send email
+- buy item
+- delete file
+- merge pull request
+- publish blog
+- update invoice
+- change calendar
+- share document
+- deploy service
+- revoke access
+
+These actions should not depend only on whether the model understood a sentence correctly.
+
+The model can help prepare the action.
+
+The interface should help commit the action.
+
+That distinction matters.
+
+```txt
+natural language for expression
+buttons for commitment
+```
+
+## The Problem With Invisible State
+
+Chat interfaces hide state too easily.
+
+The user asks:
+
+```txt
+Can you handle this?
+```
+
+The AI says:
+
+```txt
+Sure.
+```
+
+But what does "handle" mean?
+
+Did it read files?
+
+Did it call tools?
+
+Did it send data to another service?
+
+Did it save anything?
+
+Did it queue a background task?
+
+Did it plan to retry later?
+
+Did it use a memory?
+
+Did it change permissions?
+
+If the answer is hidden in the transcript, the interface is doing too much work with words and too little with visible state.
+
+Good AI products should show state clearly:
+
+- current task
+- tools available
+- tools used
+- pending approvals
+- changes proposed
+- risks detected
+- files affected
+- undo available
+- history and logs
+
+The user should not have to interrogate the assistant to know what is happening.
+
+## Preview Before Action
+
+One of the most important AI interface patterns is preview.
+
+Before sending, show the message.
+
+Before buying, show the cart.
+
+Before deleting, show the files.
+
+Before merging, show the diff.
+
+Before publishing, show the final page.
+
+Before updating a record, show old value and new value.
+
+The model can generate.
+
+The user should inspect.
+
+This is not about slowing everything down.
+
+It is about matching friction to risk.
+
+Low-risk actions can be fast.
+
+High-risk actions need preview.
+
+The more autonomous the AI becomes, the more important previews become.
+
+## Undo Is A Trust Feature
+
+People trust tools more when mistakes are recoverable.
+
+That is why undo is one of the best interface inventions ever.
+
+AI products need more of it.
+
+Not only:
+
+```txt
+regenerate answer
+```
+
+But real undo:
+
+- restore old text
+- revert changed settings
+- recover deleted drafts
+- undo file edits
+- roll back generated changes
+- cancel queued tasks
+- revoke an action before it completes
+
+AI can make large changes quickly.
+
+So the interface needs quick recovery too.
+
+Speed without reversibility feels risky.
+
+Speed with undo feels empowering.
+
+## Sliders Beat Prompts For Some Things
+
+Prompting is flexible.
+
+But some controls are better as knobs.
+
+For example:
+
+- creativity level
+- length
+- formality
+- risk tolerance
+- citation strictness
+- reading level
+- image variation strength
+- budget limit
+- time range
+- confidence threshold
+
+You can express these in a prompt:
+
+```txt
+Make it a little more concise but still friendly and professional.
+```
+
+That works.
+
+But sometimes a slider or segmented control is cleaner:
+
+```txt
+Short | Medium | Detailed
+Casual | Neutral | Formal
+Draft | Reviewed | Ready to send
+```
+
+The best interface may combine both.
+
+The user states the goal in language.
+
+Then uses controls to tune the output.
+
+That is not less intelligent.
+
+It is more usable.
+
+## Approvals Need Shape
+
+I wrote in [Personal AI Agents Need Permission Receipts](/blog/personal-ai-agents-need-permission-receipts) that personal agents need scoped, visible, reversible permissions.
+
+That same idea applies to AI interfaces generally.
+
+Approval should not be one vague button:
+
+```txt
+Allow AI to act?
+```
+
+It should be specific:
+
+```txt
+Approve sending this email
+Approve buying this item
+Approve updating this record
+Approve sharing this file
+Approve running this command
+Approve using this source
+```
+
+Different actions need different approval shapes.
+
+Approving a draft is not the same as approving a purchase.
+
+Approving read access is not the same as approving write access.
+
+Approving one-time use is not the same as granting persistent permission.
+
+The interface should make those differences visible.
+
+## Logs Are Part Of The UI
+
+Logs are usually treated as developer infrastructure.
+
+For AI, logs are also user interface.
+
+If an AI agent does meaningful work, users need a human-readable trail:
+
+```txt
+I read these files.
+I used these sources.
+I changed this paragraph.
+I called this tool.
+I asked for approval here.
+I stopped because this looked risky.
+```
+
+This connects to [Why AI Agents Need Observability](/blog/why-ai-agents-need-observability).
+
+Observability is not only for engineers debugging production.
+
+It is for users trying to understand whether an AI system deserves trust.
+
+If the product cannot explain what happened, the user is left with vibes.
+
+Vibes are not enough.
+
+## Chat Should Create UI
+
+Here is the more interesting direction:
+
+AI should not replace buttons.
+
+AI should generate the right controls for the task.
+
+For example, if I ask:
+
+```txt
+Help me plan a trip under $900.
+```
+
+The interface could create:
+
+- budget slider
+- date picker
+- destination filters
+- flight/hotel comparison table
+- approval button
+- saved shortlist
+
+If I ask:
+
+```txt
+Review this pull request.
+```
+
+The interface could create:
+
+- file list
+- severity filters
+- inline comments
+- test status
+- approve/request-changes controls
+- risk summary
+
+If I ask:
+
+```txt
+Summarize customer feedback.
+```
+
+The interface could create:
+
+- source selector
+- date range
+- sentiment filter
+- citation panel
+- export button
+- confidence notes
+
+That is the sweet spot.
+
+Natural language starts the workflow.
+
+UI controls make the workflow inspectable.
+
+## The Command Line Lesson
+
+Developers already know this balance.
+
+The command line is powerful because language-like commands compose well.
+
+But even developers rely on structured controls:
+
+- flags
+- prompts
+- diffs
+- confirmations
+- status output
+- logs
+- exit codes
+- rollback commands
+
+Nobody serious wants a deployment tool that only says:
+
+```txt
+Sure, I deployed it.
+```
+
+They want:
+
+```txt
+what changed
+where it deployed
+which version
+which tests passed
+how to roll back
+```
+
+AI products should learn from that.
+
+Conversational interfaces need operational surfaces.
+
+## The Takeaway
+
+Natural language is one of the best interfaces we have ever added to software.
+
+But it is not a replacement for every other interface.
+
+It is best at intent.
+
+Buttons are good at commitment.
+
+Previews are good at trust.
+
+Undo is good at recovery.
+
+Sliders are good at tuning.
+
+Logs are good at accountability.
+
+Approvals are good at boundaries.
+
+The future of AI product design is not:
+
+```txt
+everything becomes chat
+```
+
+The better future is:
+
+```txt
+chat plus controls
+```
+
+Talk is flexible.
+
+Controls are precise.
+
+Good AI interfaces need both.
