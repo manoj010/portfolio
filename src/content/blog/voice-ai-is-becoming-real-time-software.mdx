@@ -1,0 +1,532 @@
+---
+title: Voice AI Is Becoming Real-Time Software
+date: 2026-09-17
+summary: New live audio models can keep talking while tools run, accept interruptions, use visual context, and reason in the background. That changes voice AI from a speech feature into a real-time software system where latency, turn-taking, state, recovery, cost, and trust all have to be engineered together.
+tags: ai, voice-ai, real-time-systems, software-engineering, product-design
+image: /blog/voice-ai-real-time-software-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# Voice AI Is Becoming Real-Time Software
+
+For a long time, voice AI was basically a pipeline.
+
+```txt
+speech in
+transcription
+text model
+text-to-speech
+speech out
+```
+
+It worked.
+
+But it often felt like talking through a slow walkie-talkie.
+
+You spoke.
+
+You waited.
+
+The system processed the whole turn.
+
+Then it answered.
+
+That architecture is changing.
+
+New voice models can listen, reason, speak, call tools, use visual context, and accept interruptions inside one live session.
+
+That sounds like a model upgrade.
+
+It is also a software architecture change.
+
+Voice AI is becoming real-time software.
+
+## The Fresh Signal
+
+On September 15, 2026, [Google introduced Gemini 3.8 Live and Gemini 3.8 Live Extended Thinking](https://blog.google/innovation-and-ai/technology/developers-tools/build-real-time-voice-applications-gemini-audio/).
+
+Google says the models support asynchronous function calling, visual context, incremental content updates, and dialogue that can continue while tools run in the background.
+
+The regular Live model is positioned for low-latency voice agents. The Extended Thinking version can do deeper background reasoning while giving spoken progress cues.
+
+The [Gemini Live API documentation](https://ai.google.dev/gemini-api/docs/live-api/capabilities) makes the engineering shift especially visible.
+
+It describes:
+
+- streamed audio events
+- explicit interruption behavior
+- non-blocking tool calls
+- tool scheduling modes
+- session state
+- interaction status
+- multiple content parts in one event
+
+Those are not just AI model features.
+
+They are real-time system primitives.
+
+## A Voice Agent Cannot Freeze
+
+In a text interface, waiting can be acceptable.
+
+The user sends a message.
+
+A spinner appears.
+
+The answer arrives ten seconds later.
+
+Voice is different.
+
+Silence feels broken much faster than a loading indicator.
+
+A voice system has to show that it heard the request, understood enough to begin, and is still working.
+
+Imagine asking:
+
+```txt
+Can you check my calendar, move tomorrow's meeting,
+and email the new time to everyone?
+```
+
+That request may require several tool calls.
+
+A weak voice interface goes silent until everything finishes.
+
+A better one can say:
+
+```txt
+I found the meeting. I am checking everyone's availability now.
+```
+
+Then it keeps the conversation alive while the work continues.
+
+That requires concurrency.
+
+The agent may be doing several things at once:
+
+- receiving more audio
+- generating speech
+- calling a calendar API
+- waiting for a network response
+- updating session state
+- watching for an interruption
+- deciding whether confirmation is required
+
+Voice AI is no longer one request followed by one response.
+
+It is a live event loop.
+
+## Latency Is A Product Feature
+
+Developers usually talk about latency as a performance metric.
+
+In voice products, latency becomes part of the personality.
+
+A response that begins quickly feels attentive.
+
+A long pause feels confused.
+
+An answer that starts fast but changes direction halfway through feels unreliable.
+
+An agent that speaks over the user feels rude.
+
+The total experience depends on several delays:
+
+```txt
+microphone capture
+network transport
+speech detection
+model processing
+tool execution
+audio generation
+speaker playback
+```
+
+Optimizing only model speed is not enough.
+
+A fast model behind a slow audio pipeline still feels slow.
+
+A fast first response followed by a blocked tool call still feels broken.
+
+The engineering goal is not simply lowest latency.
+
+It is useful responsiveness.
+
+Sometimes the right response is an immediate answer.
+
+Sometimes it is a short acknowledgement followed by background work.
+
+Sometimes it is silence because the user is still speaking.
+
+Good voice software knows the difference.
+
+## Turn-Taking Is State Management
+
+Human conversation is messy.
+
+We interrupt.
+
+We pause to think.
+
+We correct ourselves.
+
+We start one sentence and finish with another idea.
+
+We say "yes" before the other person fully finishes.
+
+A voice agent has to decide:
+
+- Has the user finished?
+- Is this a pause or the end of a turn?
+- Did the user interrupt the agent?
+- Should current audio stop immediately?
+- Should a background tool call continue?
+- Does the new request replace or modify the old one?
+- Which partial result is still valid?
+
+This is a state machine problem.
+
+For example:
+
+```txt
+User: Book a table for four at seven.
+Agent: I found three restaurants near-
+User: Actually, make it six people.
+```
+
+The system should stop speaking.
+
+But should it cancel the restaurant search?
+
+Maybe not.
+
+It may only need to update the party size and reuse the earlier location and time.
+
+That distinction matters.
+
+If every interruption destroys the whole task, the agent wastes time and money.
+
+If interruptions never cancel anything, stale actions may continue behind the scenes.
+
+Real-time voice systems need explicit rules for cancellation, continuation, replacement, and confirmation.
+
+## Async Tools Change The Conversation
+
+Traditional agents often call tools sequentially.
+
+```txt
+listen
+think
+call tool
+wait
+receive result
+speak
+```
+
+Non-blocking tool calls create a different architecture.
+
+```txt
+listen
+start tool
+keep talking
+receive new user input
+merge tool result
+continue
+```
+
+This is powerful.
+
+It is also harder.
+
+The agent must avoid announcing a result before the tool confirms it.
+
+It must distinguish between:
+
+```txt
+I am checking that.
+```
+
+and:
+
+```txt
+That is done.
+```
+
+Those sentences sound close.
+
+Operationally, they are completely different.
+
+The first describes intent.
+
+The second claims a state change.
+
+If the calendar API fails after the agent says the meeting was moved, the product has created a trust problem.
+
+This is why live agents need visible and audible state boundaries.
+
+They should communicate:
+
+- what they understood
+- what they have started
+- what is still pending
+- what succeeded
+- what failed
+- what needs confirmation
+
+This connects to [AI Interfaces Still Need Buttons](/blog/ai-interfaces-still-need-buttons).
+
+Voice can make software feel natural, but important actions still need durable controls, confirmations, and records.
+
+## Barge-In Is Not Just Stop Audio
+
+"Barge-in" means letting the user interrupt the agent while it is speaking.
+
+At first, this sounds simple:
+
+```txt
+if user speaks:
+    stop playback
+```
+
+But the system also has to answer harder questions.
+
+Did the microphone capture the agent's own speaker output?
+
+Was the sound actually speech?
+
+Did the user say "wait," or were they talking to someone nearby?
+
+Should the model forget the unfinished sentence?
+
+Should a tool call be cancelled?
+
+Should the agent remember what it already said?
+
+Can the user interrupt during a required safety warning?
+
+Audio cancellation is only the first layer.
+
+The real feature is semantic interruption.
+
+The system has to understand what the interruption means for the task.
+
+## Confirmation Must Survive The Conversation
+
+Voice makes it easy to move quickly.
+
+That is useful for low-risk tasks.
+
+It is dangerous for high-impact actions.
+
+An agent should not treat every conversational "yeah" as permission to:
+
+- send money
+- delete files
+- publish content
+- cancel a booking
+- message a client
+- change account security
+
+The confirmation should name the action clearly.
+
+```txt
+I am ready to send NPR 12,000 to Sita.
+Should I submit the transfer now?
+```
+
+For important actions, the interface may also need a visual confirmation button.
+
+That is not a failure of voice design.
+
+It is good multimodal design.
+
+The voice channel handles speed and accessibility.
+
+The screen handles precision, review, and durable evidence.
+
+This also connects to [Personal AI Agents Need Permission Receipts](/blog/personal-ai-agents-need-permission-receipts).
+
+When an agent acts, users need a clear record of what was requested, what permission was granted, and what actually happened.
+
+## Voice Cost Is Continuous
+
+Text AI is easy to imagine as discrete requests.
+
+Voice AI is often an open session.
+
+The system may be processing:
+
+- incoming audio
+- outgoing audio
+- live transcripts
+- visual frames
+- reasoning tokens
+- tool calls
+- session memory
+
+That means cost can accumulate while the conversation is merely open.
+
+Google lists Gemini 3.8 Live pricing in per-minute terms for audio input and output.
+
+That is a useful reminder for product teams.
+
+The cost unit is no longer only the message.
+
+It may be:
+
+```txt
+active minute
+connected session
+tool-assisted task
+completed call
+successful outcome
+```
+
+Teams should measure cost per completed task, not only cost per audio minute.
+
+A cheap conversation that fails to resolve the user's problem is expensive.
+
+A more expensive conversation that completes the task correctly may be good value.
+
+## Observability Has To Include The Timeline
+
+Debugging a text chatbot often starts with the prompt and response.
+
+That is not enough for live voice.
+
+You need a timeline.
+
+```txt
+10:00:01.120  speech started
+10:00:02.940  partial transcript
+10:00:03.420  turn detected
+10:00:03.610  model response began
+10:00:04.030  tool call started
+10:00:04.210  audio playback began
+10:00:05.100  user interrupted
+10:00:05.180  playback stopped
+10:00:05.620  tool result returned
+10:00:05.840  task state updated
+```
+
+Without this sequence, developers cannot answer basic questions:
+
+- Why did the agent talk over the user?
+- Why was the wrong tool result used?
+- Why did the agent repeat itself?
+- Why did an action continue after cancellation?
+- Where did the delay happen?
+- Was the error in speech recognition, reasoning, transport, or the tool?
+
+Real-time products need event-level observability.
+
+They also need privacy boundaries.
+
+Raw audio is sensitive.
+
+Transcripts are sensitive.
+
+Visual context may be even more sensitive.
+
+Logging everything makes debugging easier and privacy worse.
+
+The system needs deliberate retention, redaction, access control, and deletion policies.
+
+## Failure Recovery Must Be Conversational
+
+Networks fail.
+
+APIs time out.
+
+Audio packets drop.
+
+Microphones disconnect.
+
+Sessions expire.
+
+The agent needs a recovery strategy that makes sense to a person.
+
+Bad recovery sounds like:
+
+```txt
+An unexpected error occurred.
+```
+
+Better recovery says:
+
+```txt
+I still have the restaurant details, but the booking service timed out.
+I can retry without starting over.
+```
+
+That sentence exposes useful state.
+
+It tells the user what survived and what failed.
+
+It also avoids repeating completed work.
+
+This connects to [AI Workflows Need Downtime Plans](/blog/ai-workflows-need-downtime-plans).
+
+When AI becomes part of a live workflow, graceful failure is part of the product.
+
+## What Developers Should Build For
+
+A production voice agent needs more than a model connection.
+
+It needs an architecture for:
+
+| Concern | Engineering Question |
+| --- | --- |
+| Latency | How quickly does the user hear a useful response? |
+| Turn detection | How does the system know the user has finished? |
+| Interruption | What stops, continues, or changes when the user speaks? |
+| Tool concurrency | Can tools run without freezing the conversation? |
+| Confirmation | Which actions require explicit approval? |
+| State | What survives corrections, interruptions, and reconnects? |
+| Recovery | Can the session continue after a partial failure? |
+| Observability | Can developers reconstruct the event timeline? |
+| Privacy | What audio, transcript, and visual data is retained? |
+| Cost | What does a successfully completed voice task cost? |
+
+The model matters.
+
+But the surrounding system determines whether the experience feels trustworthy.
+
+## The Takeaway
+
+Voice AI is moving beyond transcription plus a chatbot plus a synthetic voice.
+
+It is becoming a live software environment.
+
+The agent listens while it speaks.
+
+It reasons while tools run.
+
+It receives new information before the old task is finished.
+
+It must respond to interruptions without losing the plot.
+
+That makes the important engineering questions broader than:
+
+```txt
+How intelligent is the model?
+```
+
+We also have to ask:
+
+```txt
+How does the system manage time?
+How does it manage state?
+How does it recover?
+How does it confirm actions?
+How does it explain what is happening now?
+```
+
+The future of voice AI will not be won by the model with the nicest voice alone.
+
+It will be won by systems that can stay responsive, interruptible, understandable, and reliable while many things happen at once.
+
+Voice AI is becoming real-time software.
+
+It should be engineered like it.
