@@ -17,6 +17,16 @@ export const Hero = () => {
         className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px]"
       />
       <motion.div
+        aria-hidden="true"
+        animate={{
+          x: [0, 180, 80, 0],
+          y: [0, 100, 180, 0],
+          opacity: [0.08, 0.16, 0.1, 0.08],
+        }}
+        transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
+        className="pointer-events-none absolute -top-32 -left-32 h-72 w-72 rounded-full bg-white blur-[100px]"
+      />
+      <motion.div
         style={{ y: y2, rotate }}
         className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-secondary/5 blur-[150px]"
       />

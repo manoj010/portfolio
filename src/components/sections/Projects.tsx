@@ -1,11 +1,30 @@
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { GithubIcon } from '../ui/BrandIcons';
 import budgetBuddyImage from '../../assets/budgetbuddy-project.png';
+import budgetBuddyFlutterImage from '../../assets/budgetbuddy-flutter-project.png';
 import minilinksImage from '../../assets/minilinks-project.png';
 import nepseNotifierImage from '../../assets/nepse-notifier-project.png';
+import projectXImage from '../../assets/project-x-project.png';
 
 const projects = [
+  {
+    title: 'Project X',
+    category: 'Developer Workspace',
+    description: 'A private Supabase-backed workspace for Markdown notes, reusable snippets, encrypted secrets, recovery tools, and portable backups.',
+    image: projectXImage,
+    tags: ['React', 'Supabase', 'TypeScript'],
+    link: 'https://github.com/manoj010/Project-X'
+  },
+  {
+    title: 'BudgetBuddy Flutter',
+    category: 'Mobile Finance App',
+    description: 'A local-first Flutter Android expense tracker with budgets, savings goals, recurring reminders, reports, and SQLite storage.',
+    image: budgetBuddyFlutterImage,
+    tags: ['Flutter', 'Dart', 'SQLite'],
+    link: 'https://github.com/manoj010/BudgetBuddy-Flutter'
+  },
   {
     title: 'BudgetBuddy',
     category: 'Full-stack Application',
@@ -33,6 +52,24 @@ const projects = [
 ];
 
 export const Projects = () => {
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const scrollProjects = (direction: 'previous' | 'next') => {
+    const carousel = carouselRef.current;
+
+    if (!carousel) {
+      return;
+    }
+
+    const cardWidth = carousel.querySelector<HTMLElement>('[data-project-card]')?.offsetWidth ?? 320;
+    const gap = 40;
+
+    carousel.scrollBy({
+      left: direction === 'next' ? cardWidth + gap : -(cardWidth + gap),
+      behavior: 'smooth',
+    });
+  };
+
   return (
     <section id="projects" className="py-24 md:py-48 bg-surface px-6">
       <div className="content-container">
@@ -62,16 +99,31 @@ export const Projects = () => {
           </motion.a>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-          {projects.map((project, index) => (
-            <motion.div 
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.8 }}
-              className="group flex flex-col gap-6 md:gap-8"
-            >
+        <div className="-mx-6 flex items-start gap-4 md:-mx-12 lg:-mx-24">
+          <button
+            type="button"
+            onClick={() => scrollProjects('previous')}
+            className="mt-[18vw] hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-outline-variant/40 bg-surface-container-lowest text-on-surface-variant shadow-lg shadow-on-surface/5 transition-all hover:-translate-x-0.5 hover:bg-surface-container-low hover:text-on-surface sm:inline-flex md:mt-[13vw] lg:mt-32"
+            aria-label="Show previous projects"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+
+          <div
+            ref={carouselRef}
+            className="flex min-w-0 flex-1 snap-x snap-mandatory gap-8 overflow-x-auto scroll-smooth px-6 pb-8 md:gap-10 md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            aria-label="Featured projects carousel"
+          >
+            {projects.map((project, index) => (
+              <motion.div 
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.8 }}
+                data-project-card
+                className="group flex min-w-[86%] snap-start flex-col gap-6 md:min-w-[46%] md:gap-8 lg:min-w-[31%]"
+              >
               <a 
                 href={project.link}
                 target="_blank"
@@ -119,8 +171,18 @@ export const Projects = () => {
                   ))}
                 </div>
               </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => scrollProjects('next')}
+            className="mt-[18vw] hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-outline-variant/40 bg-surface-container-lowest text-on-surface-variant shadow-lg shadow-on-surface/5 transition-all hover:translate-x-0.5 hover:bg-surface-container-low hover:text-on-surface sm:inline-flex md:mt-[13vw] lg:mt-32"
+            aria-label="Show next projects"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
         </div>
       </div>
     </section>
