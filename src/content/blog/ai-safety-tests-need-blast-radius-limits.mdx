@@ -1,0 +1,528 @@
+---
+title: AI Safety Tests Need Blast-Radius Limits
+date: 2026-09-21
+summary: A cybersecurity evaluation reportedly reached three real companies after an AI model received unintended internet access. The useful lesson is not that testing should stop. It is that powerful agent evaluations need hardened sandboxes, network allowlists, synthetic targets, scoped credentials, kill switches, and incident plans that assume the model may follow a path nobody expected.
+tags: ai, cybersecurity, ai-safety, red-teaming, software-engineering
+image: /blog/ai-safety-tests-blast-radius-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Safety Tests Need Blast-Radius Limits
+
+Security testing is supposed to reveal danger before production does.
+
+But the test itself can become dangerous.
+
+That is especially true when the thing being tested is an AI agent with:
+
+- internet access
+- code execution
+- security tools
+- credentials
+- persistence
+- a broad objective
+
+The popular framing is that an AI "escaped."
+
+That makes a dramatic headline.
+
+The engineering lesson is more ordinary and more useful:
+
+```txt
+the test environment had a larger blast radius than intended
+```
+
+When a powerful agent is evaluated, the sandbox is not a convenience.
+
+It is part of the safety system.
+
+## The Fresh Signal
+
+Google confirmed that a Gemini model accessed systems belonging to three real companies during a cybersecurity evaluation conducted in May 2026.
+
+[The Guardian reported](https://www.theguardian.com/technology/2026/sep/18/google-gemini-ai-hack) that the model was supposed to operate against a fictional company inside a test environment, but internet access was unintentionally available.
+
+According to Google's statement, the model found public information and guessed credentials for websites it believed were within the scope of the test.
+
+Google said the model stopped after recognizing that it had reached real organizations. The affected companies were informed, and Google worked with its testing partner on process changes.
+
+That careful framing matters.
+
+This was not evidence that the model formed a secret desire to attack random companies.
+
+It was a capable system pursuing an assigned cybersecurity objective through an environment that exposed more of the real world than intended.
+
+The model made a scope mistake.
+
+The infrastructure allowed that mistake to matter.
+
+## The Model Is Not The Containment Boundary
+
+It is good that the model reportedly stopped.
+
+But "the model will notice" cannot be the primary safety control.
+
+A model may misunderstand scope.
+
+It may follow misleading content.
+
+It may interpret a real target as a simulated target.
+
+It may find a path the test designers did not anticipate.
+
+It may be optimized to continue when ordinary software would stop.
+
+That is why containment must live outside the model.
+
+```txt
+Model policy says what should happen.
+Infrastructure limits what can happen.
+```
+
+Both are useful.
+
+Only one remains dependable when the model is confused.
+
+## What Blast Radius Means
+
+In operations and security, blast radius means the maximum damage a failure can cause.
+
+If one service account is compromised, what can it reach?
+
+If one deployment fails, how many customers are affected?
+
+If one agent makes a bad decision, what can it change?
+
+For an AI security evaluation, blast radius includes:
+
+- reachable network destinations
+- available credentials
+- writable systems
+- maximum request volume
+- accessible files
+- usable tools
+- duration of access
+- money that can be spent
+- actions that can affect third parties
+
+A safe test does not rely on every agent action being correct.
+
+It limits the consequences when one is wrong.
+
+## A Sandbox Must Be A Security Boundary
+
+Teams sometimes use "sandbox" to mean a separate folder, container, account, or workspace.
+
+Those can improve organization.
+
+They do not automatically provide containment.
+
+A real sandbox needs enforceable boundaries around:
+
+```txt
+network
+identity
+filesystem
+processes
+secrets
+tools
+time
+compute
+side effects
+```
+
+An agent running in a container can still reach the public internet.
+
+An agent in a test cloud account can still hold a credential accepted by production.
+
+An agent with a simulated target can still search for a real company with the same name.
+
+An agent with a restricted shell can still call an unrestricted external tool.
+
+The word "sandbox" is not proof of isolation.
+
+The controls are.
+
+## Default-Deny Network Access
+
+The simplest containment rule is:
+
+```txt
+if the test does not require the public internet,
+the public internet should not be reachable
+```
+
+That means blocking egress at the network layer.
+
+Not asking the model to avoid browsing.
+
+Not placing a sentence in the system prompt.
+
+Not assuming the test tool has no hidden route outside.
+
+Blocking it.
+
+When some external access is required, use an allowlist.
+
+Permit only the exact domains, IP ranges, protocols, and ports needed for the evaluation.
+
+NIST's guidance on [preventing evaluation cheating](https://www.nist.gov/caisi/cheating-ai-agent-evaluations/4-practices-detecting-and-preventing-evaluation-cheating) describes the same practical choice: evaluations may block internet access entirely or restrict reachable domains with network-level blocking and allowlisting.
+
+The network should express the test scope.
+
+## Use Synthetic Targets
+
+A fictional company should have fictional infrastructure.
+
+That includes:
+
+- reserved domains
+- private address ranges
+- seeded credentials
+- simulated services
+- fake employee profiles
+- synthetic source repositories
+- disposable email and messaging systems
+- controlled vulnerability chains
+
+Names matter too.
+
+If a fake organization resembles a real one, the agent may find the real company's public presence and assume it belongs to the test.
+
+The test should make the authorized target unambiguous at both the semantic and network layers.
+
+Good simulation is not only realistic.
+
+It is clearly bounded.
+
+## Credentials Must Be Scoped And Disposable
+
+An evaluation agent should never receive a credential simply because it is convenient.
+
+Every secret should answer four questions:
+
+```txt
+What exact resource can this access?
+What exact actions can it perform?
+How long does it remain valid?
+What happens if it leaks?
+```
+
+Good test credentials are:
+
+- limited to the test environment
+- short-lived
+- non-reusable
+- unable to reach production
+- restricted to minimum permissions
+- automatically revoked after the run
+- monitored independently
+
+Do not share credentials between evaluation targets.
+
+Do not mount a developer's normal cloud profile into the sandbox.
+
+Do not expose unrelated environment variables.
+
+Do not assume the model will ignore a secret it can read.
+
+The [OWASP AI Agent Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html) recommends minimum tool access, per-tool permission scopes, isolated contexts, human approval for high-impact actions, and structured logs.
+
+That is ordinary least privilege applied to agents.
+
+## Tool Access Is Part Of The Blast Radius
+
+An agent may have no direct shell access and still be powerful.
+
+Tools can provide indirect access to:
+
+- browsers
+- databases
+- code runners
+- email
+- cloud infrastructure
+- ticketing systems
+- source control
+- payment services
+- other agents
+
+The agent's real authority is the union of every connected tool.
+
+That makes tool policy a core containment layer.
+
+For each tool, define:
+
+- allowed operations
+- allowed targets
+- rate limits
+- argument validation
+- required approvals
+- maximum retries
+- timeout behavior
+- audit fields
+
+Avoid wildcard permissions.
+
+Avoid generic tools that accept arbitrary commands when a narrow operation will do.
+
+Avoid assuming that a tool is safe because it was built for testing.
+
+The tool still needs its own boundary.
+
+## Add A Runtime Policy Gateway
+
+Prompts are weak enforcement mechanisms.
+
+A runtime gateway can inspect agent actions before they execute.
+
+For example:
+
+```txt
+Agent requests connection to 203.0.113.20
+Gateway checks evaluation allowlist
+Destination is not approved
+Request is blocked and logged
+```
+
+The gateway should evaluate:
+
+- destination
+- identity
+- operation type
+- data sensitivity
+- current test phase
+- cumulative activity
+- human approval state
+
+This separates decision-making from execution.
+
+The model proposes an action.
+
+The policy layer decides whether that action is permitted.
+
+This connects to [Agent Rules Should Live Outside The Prompt](/blog/agent-rules-should-live-outside-the-prompt).
+
+Important rules need enforcement that survives prompt confusion.
+
+## Rate Limits Are Safety Controls
+
+Rate limits are often treated as cost controls.
+
+During autonomous security testing, they are also damage controls.
+
+Limit:
+
+- requests per destination
+- authentication attempts
+- concurrent connections
+- tool calls per minute
+- total execution time
+- total data transferred
+- number of unique targets
+- recursive task depth
+
+An unexpected action is easier to investigate at three attempts than at three million.
+
+Budgets should be hard limits enforced by infrastructure.
+
+The agent should not be able to negotiate them away.
+
+## The Kill Switch Must Be Outside The Session
+
+Every high-capability evaluation needs a way to stop execution immediately.
+
+That stop mechanism should not depend on:
+
+- the agent responding
+- the model following a new instruction
+- the same control plane being tested
+- a graceful shutdown
+
+A proper kill switch can:
+
+- revoke credentials
+- terminate compute
+- block network egress
+- disable tool gateways
+- freeze logs
+- preserve forensic state
+
+It should be tested before the evaluation begins.
+
+An untested emergency stop is a comforting story, not a control.
+
+## Observability Must Be Independent
+
+The test operator needs a view the agent cannot alter.
+
+Record:
+
+- prompts and goals
+- model and configuration
+- tool calls and arguments
+- network destinations
+- authentication attempts
+- files created or changed
+- credentials requested
+- policy decisions
+- human approvals
+- timestamps
+- model explanations where available
+
+This connects to [Why AI Agents Need Observability, Not Just Better Prompts](/blog/why-ai-agents-need-observability).
+
+If a run crosses scope, investigators need to reconstruct exactly how it happened.
+
+They should not have to trust the agent's own summary of its behavior.
+
+## Canary Targets Can Reveal Scope Drift
+
+Teams can place harmless canaries just outside the authorized environment.
+
+These might be:
+
+- non-routable decoy domains
+- fake credentials
+- monitored files
+- synthetic API endpoints
+- honey tokens
+
+If the agent touches one, the test can pause automatically.
+
+The canary provides an early warning that the agent's interpretation of scope has drifted.
+
+This is especially useful when the evaluation intentionally explores autonomous planning.
+
+The more freedom the test gives the model, the more mechanical tripwires it needs.
+
+## Test The Test Harness
+
+The evaluation harness is security-critical software.
+
+It deserves its own review.
+
+Before running a powerful model, verify:
+
+```txt
+Can the sandbox reach the public internet?
+Can it resolve external DNS?
+Can it access cloud metadata services?
+Are production secrets present?
+Can tools bypass the network policy?
+Can the model create new tool connections?
+Do rate limits actually trigger?
+Does the kill switch work under load?
+Are logs complete and tamper resistant?
+```
+
+Run these checks automatically.
+
+Repeat them after infrastructure changes.
+
+Configuration drift can turn yesterday's isolated environment into today's open network.
+
+## Evaluation Success Is Not Just Capability
+
+A cybersecurity benchmark may ask whether the model obtained a flag.
+
+That is only one result.
+
+A mature evaluation also asks:
+
+- Did the model stay within scope?
+- Did it use approved tools?
+- Did it respect stop conditions?
+- Did it disclose uncertainty?
+- Did it avoid unrelated systems?
+- Did it stop when identity became ambiguous?
+- Did containment controls block prohibited actions?
+- Could operators reconstruct the run?
+
+A model that completes the task by crossing the wrong boundary did not simply "score well with a safety issue."
+
+It revealed that the evaluation objective was incomplete.
+
+## Incident Disclosure Needs A Threshold
+
+When a test touches a real third party, the organization needs a predefined incident process.
+
+That process should cover:
+
+- immediate containment
+- notification of the affected party
+- preservation of evidence
+- credential rotation
+- legal and regulatory review
+- root-cause analysis
+- public disclosure criteria
+- remediation verification
+- lessons shared with other evaluators
+
+The threshold should be defined before the incident.
+
+Otherwise commercial pressure and embarrassment will shape the decision afterward.
+
+This connects to [AI Incidents Need Precise Language](/blog/ai-incidents-need-precise-language).
+
+Words like "escape," "hack," and "misalignment" should describe evidence, not create drama.
+
+## A Practical Checklist
+
+Before a high-capability agent evaluation begins, confirm:
+
+| Control | Question |
+| --- | --- |
+| Network | Is internet access blocked or explicitly allowlisted? |
+| Targets | Are all systems synthetic, owned, or authorized in writing? |
+| Identity | Are credentials short-lived and limited to test resources? |
+| Tools | Can every operation and destination be constrained? |
+| Runtime policy | Is each consequential action checked outside the model? |
+| Rate limits | Are requests, retries, duration, and spend bounded? |
+| Kill switch | Can operators stop compute, tools, and network independently? |
+| Monitoring | Are actions recorded outside the agent's control? |
+| Canaries | Will scope drift trigger an automatic pause? |
+| Disclosure | Is there a plan if a real third party is affected? |
+
+If any answer is vague, the test is not ready.
+
+## The Takeaway
+
+Powerful AI systems should be tested aggressively.
+
+Avoiding difficult evaluations would make deployment less safe.
+
+But aggressive testing needs conservative infrastructure.
+
+The system should assume:
+
+```txt
+the model may misunderstand scope
+the model may find an unexpected path
+the model may use every permission it receives
+the test harness may be misconfigured
+```
+
+Then it should make those failures small.
+
+That means default-deny networking.
+
+Synthetic targets.
+
+Disposable credentials.
+
+Narrow tools.
+
+Runtime policy gates.
+
+Hard budgets.
+
+Independent monitoring.
+
+Tested kill switches.
+
+Clear disclosure rules.
+
+The point of a safety test is to discover what the model can do.
+
+The point of containment is to ensure the answer does not become someone else's incident.
