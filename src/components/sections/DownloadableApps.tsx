@@ -14,7 +14,7 @@ const apps = [
       'A calm, offline-first expense tracker for understanding where your money goes. Track income, expenses, accounts, budgets, savings goals, and recurring transactions from one focused dashboard.',
     image: budgetBuddyImage,
     tags: ['Flutter', 'SQLite', 'Material 3'],
-    download: '/downloads/BudgetBuddy.apk',
+    download: 'https://github.com/manoj010/BudgetBuddy-Flutter/releases/download/v1.0.0/BudgetBuddy.apk',
     source: 'https://github.com/manoj010/BudgetBuddy-Flutter',
   },
 ];
