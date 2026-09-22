@@ -4,6 +4,7 @@ import { About } from './components/sections/About';
 import { Skills } from './components/sections/Skills';
 import { Experience } from './components/sections/Experience';
 import { Projects } from './components/sections/Projects';
+import { DownloadableApps } from './components/sections/DownloadableApps';
 import { Contact, Footer } from './components/layout/Footer';
 import { BlogPostPage } from './components/pages/BlogPostPage';
 import { ExtraBlogListPage } from './ExtraBlogListPage';
@@ -110,6 +111,7 @@ function App() {
           <Skills />
           <Experience />
           <Projects />
+          <DownloadableApps />
           <ExtraBlogTeaser />
           <Contact />
         </main>

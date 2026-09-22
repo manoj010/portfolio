@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Mail, ArrowUpRight } from 'lucide-react';
 import { GithubIcon, LinkedinIcon } from '../ui/BrandIcons';
 import { Button } from '../ui/Button';
+import { openEmailClient } from '../../constants/contact';
 
 export const Contact = () => {
   return (
@@ -39,7 +40,7 @@ export const Contact = () => {
         >
           <Button
             className="flex-1 py-8 md:py-10 rounded-[1.5rem] flex items-center justify-center gap-4 text-lg md:text-xl"
-            onClick={() => window.open('https://mail.google.com/mail/?view=cm&fs=1&to=manoj.ale2002@gmail.com', '_blank')}
+            onClick={openEmailClient}
           >
             <Mail className="w-5 h-5 md:w-6 md:h-6" />
             Email Me

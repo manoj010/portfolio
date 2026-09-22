@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Blocks, CheckCircle, Code2, Database, ShieldCheck, Store, Zap } from 'lucide-react';
+import { Blocks, CheckCircle, Code2, Database, Plug, ShieldCheck, Store, Workflow } from 'lucide-react';
 import { Card } from '../ui/Card';
 
 const experiences = [
@@ -8,27 +8,32 @@ const experiences = [
     role: 'Software Developer',
     period: 'Present',
     description:
-      'Working on custom business systems, Odoo development, CRM workflows, website customization, and ERP-based solutions. Focused on building practical modules that support business operations and automation.',
+      'Working across backend and frontend development, Odoo solutions, PHP and React applications, API integrations, and workflow automation for multiple business platforms.',
     achievements: [
-      'Developing and customizing Odoo modules for CRM, booking flows, websites, and business workflows.',
-      'Working with Python, JavaScript, PostgreSQL, XML views, QWeb, OWL components, and Odoo backend models.',
-      'Building custom website sections, forms, dashboards, and business process flows based on client requirements.',
+      'Integrated ImageMagic into the UP-T platform for order processing, product operations, image workflows, and automation.',
+      'Built and maintained backend systems using Laravel, PHP, CakePHP, Python, PostgreSQL, MySQL, and REST APIs.',
+      'Developed frontend applications using React, Tailwind CSS, and modern web technologies.',
+      'Developed custom Odoo modules for booking flows, CRM, websites, and ERP workflows.',
+      'Modernized legacy PHP systems through PHP 8 migration, debugging, and production improvements.',
     ],
     impact: [
-      { label: 'ERP Customization', icon: Blocks },
-      { label: 'Business Automation', icon: Zap },
+      { label: 'Development', icon: Code2 },
+      { label: 'API Integration', icon: Plug },
+      { label: 'ERP Development', icon: Blocks },
+      { label: 'Workflow Automation', icon: Workflow },
+      { label: 'Database Systems', icon: Database },
     ],
   },
   {
     company: "De Artisan's Café",
     role: 'Co-Founder',
-    period: 'Dec 2024 - Present',
+    period: 'Dec 2025 - Present',
     description:
-      'Started and operated a café business, gaining hands-on experience in business operations, customer handling, branding, digital presence, and daily management.',
+      'Co-founded and operated a café, gaining hands-on experience in business operations, customer service, branding, and digital presence.',
     achievements: [
-      'Managed café operations, customer service, branding, and daily business activities.',
-      'Built digital assets including website pages, QR links, and online customer engagement tools.',
-      'Gained practical business experience that strengthened understanding of real-world operational systems.',
+      'Managed daily operations, customer service, branding, and business activities.',
+      'Built the café website, QR-based resources, and digital customer touchpoints.',
+      'Applied technology to improve practical day-to-day business operations.',
     ],
     impact: [
       { label: 'Business Operations', icon: Store },
@@ -38,16 +43,16 @@ const experiences = [
   {
     company: 'MIDAS Technologies',
     role: 'Software Developer',
-    period: 'May 2024 - Oct 2024',
+    period: 'May 2024 - Oct 2025',
     description:
-      'Worked on healthcare, pharmacy, inventory, accounting, and reporting systems using Laravel and PostgreSQL. Focused mainly on backend development, API design, database operations, and business logic implementation.',
+      'Developed backend solutions for healthcare, pharmacy, inventory, accounting, and reporting systems using Laravel and PostgreSQL.',
     achievements: [
-      'Worked on pharmacy and inventory modules with purchase, sales, and reporting features.',
-      'Developed accounting-related features including ledgers, vouchers, financial reports, and Excel exports.',
-      'Built and maintained Laravel APIs with PostgreSQL, validation, service classes, and structured backend logic.',
+      'Developed pharmacy and inventory features for purchases, sales, and reporting.',
+      'Built accounting features including vouchers, ledgers, financial reports, and Excel exports.',
+      'Developed Laravel APIs with validation, service-layer logic, and PostgreSQL integration.',
     ],
     impact: [
-      { label: 'Backend Systems', icon: Code2 },
+      { label: 'Backend Development', icon: Code2 },
       { label: 'Data Integrity', icon: ShieldCheck },
     ],
   },

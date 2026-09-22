@@ -12,7 +12,7 @@ export const ExtraBlogTeaser = () => {
   }
 
   return (
-    <section id="blog" className="bg-surface-container-low px-6 py-24 md:py-48">
+    <section id="blog" className="bg-surface px-6 py-24 md:py-48">
       <div className="content-container">
         <div className="mb-16 flex flex-col items-start justify-between gap-8 md:mb-20 md:flex-row md:items-end">
           <div>

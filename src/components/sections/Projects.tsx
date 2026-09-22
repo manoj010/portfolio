@@ -15,7 +15,8 @@ const projects = [
     description: 'A private Supabase-backed workspace for Markdown notes, reusable snippets, encrypted secrets, recovery tools, and portable backups.',
     image: projectXImage,
     tags: ['React', 'Supabase', 'TypeScript'],
-    link: 'https://github.com/manoj010/Project-X'
+    link: 'https://github.com/manoj010/Project-X',
+    liveLink: 'https://project-x-lake-phi.vercel.app/'
   },
   {
     title: 'BudgetBuddy Flutter',
@@ -23,7 +24,8 @@ const projects = [
     description: 'A local-first Flutter Android expense tracker with budgets, savings goals, recurring reminders, reports, and SQLite storage.',
     image: budgetBuddyFlutterImage,
     tags: ['Flutter', 'Dart', 'SQLite'],
-    link: 'https://github.com/manoj010/BudgetBuddy-Flutter'
+    link: 'https://github.com/manoj010/BudgetBuddy-Flutter',
+    downloadLink: '/#apps'
   },
   {
     title: 'BudgetBuddy',
@@ -39,7 +41,8 @@ const projects = [
     description: 'A compact URL shortener and link management dashboard for creating short links, tracking clicks, and sharing links quickly.',
     image: minilinksImage,
     tags: ['React', 'Python', 'Dashboard'],
-    link: 'https://github.com/manoj010/minilinks.git'
+    link: 'https://github.com/manoj010/minilinks.git',
+    liveLink: 'https://minilinks-two.vercel.app'
   },
   {
     title: 'NEPSE Index Notifier',
@@ -124,24 +127,51 @@ export const Projects = () => {
                 data-project-card
                 className="group flex min-w-[86%] snap-start flex-col gap-6 md:min-w-[46%] md:gap-8 lg:min-w-[31%]"
               >
-              <a 
-                href={project.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`View ${project.title} on GitHub`}
-                className="relative aspect-[4/3] rounded-[2rem] overflow-hidden bg-surface-container-low shadow-sm transition-all duration-700 group-hover:shadow-[0_40px_80px_rgba(43,52,55,0.12)] border border-white/50 block"
-              >
-                <img 
-                  src={project.image} 
-                  alt={project.title} 
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                />
+              <div className="relative aspect-[4/3] rounded-[2rem] overflow-hidden bg-surface-container-low shadow-sm transition-all duration-700 group-hover:shadow-[0_40px_80px_rgba(43,52,55,0.12)] border border-white/50">
+                <a
+                  href={project.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`View ${project.title} on GitHub`}
+                  className="block h-full w-full"
+                >
+                  <img
+                    src={project.image}
+                    alt={project.title}
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                  />
+                </a>
                 <div className="absolute inset-0 bg-primary/20 opacity-0 lg:group-hover:opacity-100 transition-all duration-500 backdrop-blur-[2px] flex items-center justify-center">
-                  <span className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 font-headline text-sm font-semibold text-on-primary shadow-2xl shadow-primary/10 translate-y-4 lg:group-hover:translate-y-0 opacity-0 lg:group-hover:opacity-100 transition-all duration-500 delay-100">
-                    View on GitHub
-                  </span>
+                  <div className="flex flex-wrap items-center justify-center gap-3 translate-y-4 lg:group-hover:translate-y-0 opacity-0 lg:group-hover:opacity-100 transition-all duration-500 delay-100">
+                    <a
+                      href={project.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 font-headline text-sm font-semibold text-on-primary shadow-2xl shadow-primary/10"
+                    >
+                      View on GitHub
+                    </a>
+                    {project.liveLink && (
+                      <a
+                        href={project.liveLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center rounded-full bg-surface px-6 py-2.5 font-headline text-sm font-semibold text-on-surface shadow-2xl"
+                      >
+                        Live Link
+                      </a>
+                    )}
+                    {project.downloadLink && (
+                      <a
+                        href={project.downloadLink}
+                        className="inline-flex items-center justify-center rounded-full bg-surface px-6 py-2.5 font-headline text-sm font-semibold text-on-surface shadow-2xl"
+                      >
+                        Download APK
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </a>
+              </div>
               
               <div className="flex flex-col gap-4 px-2">
                 <div className="flex justify-between items-start">
@@ -162,6 +192,35 @@ export const Projects = () => {
                 <p className="text-on-surface-variant text-sm leading-relaxed font-light line-clamp-2">
                   {project.description}
                 </p>
+
+                <div className="flex flex-wrap items-center gap-4 text-xs font-bold uppercase tracking-widest">
+                  <a
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-on-surface-variant transition-colors hover:text-primary"
+                  >
+                    View on GitHub
+                  </a>
+                  {project.liveLink && (
+                    <a
+                      href={project.liveLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary transition-colors hover:text-on-surface"
+                    >
+                      Live Link
+                    </a>
+                  )}
+                  {project.downloadLink && (
+                    <a
+                      href={project.downloadLink}
+                      className="text-primary transition-colors hover:text-on-surface"
+                    >
+                      Download APK
+                    </a>
+                  )}
+                </div>
                 
                 <div className="flex flex-wrap gap-2 mt-2">
                   {project.tags.map(tag => (

@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/Button';
 import { Menu, Moon, Sun, X } from 'lucide-react';
+import { openEmailClient } from '../../constants/contact';
 
 const navLinks = [
   { name: 'About', href: '/#about', sectionId: 'about' },
   { name: 'Skills', href: '/#skills', sectionId: 'skills' },
   { name: 'Experience', href: '/#experience', sectionId: 'experience' },
   { name: 'Projects', href: '/#projects', sectionId: 'projects' },
+  { name: 'Apps', href: '/#apps', sectionId: 'apps' },
   { name: 'Blog', href: '/blog', sectionId: 'blog' },
   { name: 'Contact', href: '/#contact', sectionId: 'contact' },
 ];
@@ -155,7 +157,7 @@ export const Navbar = ({ pathname }: NavbarProps) => {
             <Button 
               size="sm" 
               className="hidden sm:flex"
-              onClick={() => window.open('https://mail.google.com/mail/?view=cm&fs=1&to=manoj.ale2002@gmail.com', '_blank')}
+              onClick={openEmailClient}
             >
               Connect
             </Button>
@@ -262,7 +264,7 @@ export const Navbar = ({ pathname }: NavbarProps) => {
                     size="lg" 
                     className="w-full rounded-full py-5 text-base font-bold shadow-2xl shadow-on-surface/5 active:scale-95 transition-transform"
                     onClick={() => {
-                      window.open('https://mail.google.com/mail/?view=cm&fs=1&to=manoj.ale2002@gmail.com', '_blank');
+                      openEmailClient();
                       setIsMobileMenuOpen(false);
                     }}
                   >
