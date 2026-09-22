@@ -25,7 +25,7 @@ const projects = [
     image: budgetBuddyFlutterImage,
     tags: ['Flutter', 'Dart', 'SQLite'],
     link: 'https://github.com/manoj010/BudgetBuddy-Flutter',
-    downloadLink: '/#apps'
+    downloadLink: 'https://github.com/manoj010/BudgetBuddy-Flutter/releases/download/v1.0.0/BudgetBuddy.apk'
   },
   {
     title: 'BudgetBuddy',
