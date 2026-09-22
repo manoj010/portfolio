@@ -51,7 +51,7 @@ export const Contact = () => {
               href="https://www.linkedin.com/in/manoj-ale/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-surface-container-highest text-on-surface rounded-[1.5rem] font-bold py-6 md:py-0 flex flex-col items-center justify-center gap-2 hover:bg-white transition-all shadow-sm hover:shadow-xl"
+              className="flex-1 bg-surface-container-highest text-on-surface rounded-[1.5rem] font-bold py-6 md:py-0 flex flex-col items-center justify-center gap-2 hover:bg-primary hover:text-on-primary transition-all shadow-sm hover:shadow-xl"
             >
               <LinkedinIcon className="w-5 h-5 md:w-6 md:h-6" />
               <span className="text-xs md:text-sm">LinkedIn</span>
@@ -60,7 +60,7 @@ export const Contact = () => {
               href="https://github.com/manoj010"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-surface-container-highest text-on-surface rounded-[1.5rem] font-bold py-6 md:py-0 flex flex-col items-center justify-center gap-2 hover:bg-white transition-all shadow-sm hover:shadow-xl"
+              className="flex-1 bg-surface-container-highest text-on-surface rounded-[1.5rem] font-bold py-6 md:py-0 flex flex-col items-center justify-center gap-2 hover:bg-primary hover:text-on-primary transition-all shadow-sm hover:shadow-xl"
             >
               <GithubIcon className="w-5 h-5 md:w-6 md:h-6" />
               <span className="text-xs md:text-sm">GitHub</span>
