@@ -1,0 +1,594 @@
+---
+title: Prompt Caching Is Part Of AI Architecture
+date: 2026-09-24
+summary: Prompt caching is no longer a small billing optimization. As AI applications carry larger instructions, tool definitions, documents, and conversation histories, cache-friendly context design can reduce latency and input cost. That means stable prefixes, deliberate breakpoints, observable hit rates, privacy boundaries, and invalidation rules belong in the architecture.
+tags: ai, llm, prompt-caching, software-architecture, performance
+image: /blog/prompt-caching-ai-architecture-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# Prompt Caching Is Part Of AI Architecture
+
+AI applications keep carrying more context.
+
+System instructions.
+
+Tool definitions.
+
+Examples.
+
+Policies.
+
+Documents.
+
+Conversation history.
+
+Agent state.
+
+Then the user adds one new sentence.
+
+Without caching, the model may need to process the entire input again.
+
+With prompt caching, the reusable beginning can be processed once and reused while only the changing end is handled again.
+
+That sounds like a billing feature.
+
+It is becoming an architecture feature.
+
+```txt
+stable prefix + changing suffix
+             ↓
+reuse the expensive prefix
+process only what changed
+```
+
+The teams that understand this will build AI systems that are faster and cheaper without necessarily changing models.
+
+The teams that ignore it may pay repeatedly for context they already sent.
+
+## The Fresh Signal
+
+OpenAI released GPT-6 Sol and GPT-6 Luna on September 22. Its current [API pricing](https://developers.openai.com/api/docs/pricing) makes the cache economics unusually visible: for the GPT-6 family, cached input is priced at one tenth of ordinary input, while writing a cache entry costs 1.25 times the ordinary input rate.
+
+The [prompt caching documentation](https://developers.openai.com/api/docs/guides/prompt-caching) now describes explicit breakpoints, cache prewarming, diagnostics, separate accounting keys, and techniques for changing reasoning effort or tool availability without destroying a reusable prefix.
+
+Anthropic is moving in the same direction. The [Claude prompt caching documentation](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) supports automatic caching, explicit breakpoints, multiple lifetimes, and cache prewarming. Anthropic's [Opus 5.5 announcement](https://www.anthropic.com/claude-opus-5-5) also emphasizes that cache reads cost substantially less than the previous Opus generation.
+
+The exact prices and APIs will change.
+
+The design signal is more durable:
+
+```txt
+repeated context now has its own lifecycle,
+cost model, latency profile, and observability
+```
+
+That is architecture.
+
+## Prompt Caching Is Not Response Caching
+
+The name can be confusing.
+
+A traditional response cache stores the final answer.
+
+If the same request arrives again, the application returns the stored answer without running the model.
+
+Prompt caching is different.
+
+It stores reusable intermediate state created while the model processes the beginning of an input. This is often described as key-value, or KV, state.
+
+The model still generates a new response.
+
+So two identical requests can still produce different answers.
+
+The optimization is:
+
+```txt
+do not recompute the unchanged beginning
+```
+
+Not:
+
+```txt
+return the previous answer
+```
+
+That distinction matters for product behavior, correctness, and debugging.
+
+## Why Prefixes Matter
+
+Prompt caches generally work from the beginning of the rendered input.
+
+Imagine this structure:
+
+```txt
+1. tool definitions
+2. system and developer instructions
+3. stable reference material
+4. few-shot examples
+5. conversation history
+6. current user message
+7. current timestamp
+```
+
+If the first five sections stay identical across requests, they are good candidates for reuse.
+
+If the timestamp appears at the top, every request begins differently.
+
+That tiny dynamic value can prevent everything after it from matching the cached prefix.
+
+This leads to one of the most useful design rules:
+
+```txt
+stable content first
+dynamic content later
+```
+
+That is simple in theory.
+
+Real agent systems make it harder.
+
+They change tools.
+
+They compact history.
+
+They inject fresh policies.
+
+They reorder documents.
+
+They add user-specific context.
+
+They update reasoning settings.
+
+Every one of those choices can change the rendered prefix and turn a cache hit into a miss.
+
+## Prompt Layout Now Affects Infrastructure Cost
+
+Developers have traditionally organized prompts for readability and model quality.
+
+Those still matter.
+
+Now layout also affects compute reuse.
+
+Consider two prompts containing exactly the same information.
+
+Prompt A:
+
+```txt
+current timestamp
+user-specific request
+shared instructions
+large tool catalog
+policy manual
+examples
+```
+
+Prompt B:
+
+```txt
+shared instructions
+large tool catalog
+policy manual
+examples
+current timestamp
+user-specific request
+```
+
+Prompt B is usually more cache-friendly because many requests can share its beginning.
+
+That does not mean every dynamic value must always appear last. Model behavior and instruction priority still matter.
+
+It means prompt construction should be deliberate.
+
+The application should know which blocks are:
+
+- stable across the deployment
+- stable for one tenant
+- stable for one user
+- stable for one conversation
+- unique to one request
+
+Those are different cache boundaries.
+
+## Breakpoints Are A Design Decision
+
+Modern APIs increasingly allow explicit cache breakpoints.
+
+A breakpoint says:
+
+```txt
+the reusable prefix ends here
+```
+
+That lets an application avoid paying a cache-write premium for a suffix that will never be reused.
+
+For example:
+
+```txt
+[global instructions]
+[tool schemas]
+[shared policy]          <- breakpoint A
+[customer documents]    <- breakpoint B
+[conversation history]  <- breakpoint C
+[new user request]
+```
+
+These layers change at different speeds.
+
+The global instructions may remain stable for a deployment.
+
+The customer's documents may remain stable for an hour.
+
+The conversation grows every turn.
+
+The new request is unique.
+
+Multiple breakpoints can preserve the longest useful prefix without treating the whole prompt as one permanent object.
+
+This resembles layered caching elsewhere in software, but the invalidation rules are tied to model input order.
+
+## A Cache Write Is An Investment
+
+Caching is not automatically cheaper.
+
+The first request may cost more because it writes reusable state.
+
+The savings arrive only if later requests read it before it expires.
+
+Using the current GPT-6 ratio as a simple example:
+
+```txt
+ordinary input cost = 1.00x
+cache write         = 1.25x
+cache read          = 0.10x
+```
+
+Processing the same prefix twice without caching costs:
+
+```txt
+1.00x + 1.00x = 2.00x
+```
+
+Writing it once and reading it once costs:
+
+```txt
+1.25x + 0.10x = 1.35x
+```
+
+But writing a prefix that nobody reuses costs 1.25x instead of 1.00x.
+
+That is why teams need to know:
+
+- how often the prefix repeats
+- how long cache entries live
+- whether requests arrive close enough together
+- how frequently the stable content changes
+- whether traffic reaches compatible regions and models
+- how often routing or configuration changes invalidate reuse
+
+A cache is valuable only when the workload has locality.
+
+## The Best Candidates Are Repetitive And Large
+
+Prompt caching works particularly well when many requests share expensive context.
+
+Examples include:
+
+### Support systems
+
+Every ticket may reuse the same product documentation, policies, response guidelines, and tool definitions.
+
+Only the customer issue changes.
+
+### Coding agents
+
+An agent may reuse repository instructions, tool schemas, coding standards, and a growing conversation while the next command changes.
+
+### Document analysis
+
+Users may ask many questions about the same contract, report, book, or media file.
+
+The document is stable.
+
+The question changes.
+
+### LLM judges
+
+An evaluation system may reuse the same rubric and examples while grading many different outputs.
+
+### Research agents
+
+The system instructions and tool catalog may be large and stable across many research requests.
+
+### Enterprise assistants
+
+Company policy, terminology, schemas, and workflow instructions may be shared by thousands of requests.
+
+These workloads are not unusual edge cases.
+
+They are becoming normal AI product shapes.
+
+## Tool Definitions Are Expensive Context
+
+Agent tools can consume a surprising amount of input.
+
+Every tool may include:
+
+- a name
+- a description
+- parameter definitions
+- nested JSON schemas
+- usage constraints
+- examples
+- output formats
+
+An agent with dozens of tools may send a large catalog before the user says anything.
+
+If the catalog stays stable, caching can reduce the repeated processing cost.
+
+If the application constantly adds, removes, reorders, or rewrites tool definitions, it can destroy that reuse.
+
+This creates a tradeoff:
+
+```txt
+dynamic tool loading reduces unused context
+stable tool definitions improve prefix reuse
+```
+
+The answer is not always to send every tool forever.
+
+It is to design tool loading with cache behavior in mind.
+
+Some systems keep a small stable core and append specialized tools only when needed. Others preserve the full catalog but restrict which tools the model may call. The right choice depends on tool count, schema size, task distribution, and provider behavior.
+
+Measure it.
+
+## Conversation Management Can Break The Cache
+
+Multi-turn conversations naturally create a reusable prefix.
+
+Each new turn appends to the previous history.
+
+That is cache-friendly.
+
+Then the context window fills up.
+
+The application summarizes old messages, removes tool results, rewrites history, or compacts the conversation.
+
+Now the earlier prefix changes.
+
+The compaction may save tokens while also causing a cache miss.
+
+That does not make compaction wrong.
+
+It means context management and caching cannot be optimized independently.
+
+The real question is:
+
+```txt
+does the smaller rewritten prompt save more
+than the lost cache reuse costs?
+```
+
+This connects to [Why Context Is Becoming More Important Than Prompts](/blog/why-context-is-becoming-more-important-than-prompts). Context is not only what the model knows. It is a structured runtime resource with quality, privacy, latency, and cost consequences.
+
+## Cache Invalidation Needs Ownership
+
+Every cache eventually becomes an invalidation problem.
+
+Prompt caching is no exception.
+
+A cache entry may need to stop being used when:
+
+- a policy changes
+- a document is corrected
+- a permission is revoked
+- a tool schema changes
+- a prompt version is rolled back
+- a user's role changes
+- sensitive content should no longer be available
+- a model snapshot changes
+
+Provider-managed prompt caches often expire automatically and may not expose manual deletion for individual entries.
+
+Applications still need a strategy.
+
+That may include:
+
+- versioning stable prefixes
+- rotating cache keys or namespaces
+- changing the prefix when policy changes
+- keeping lifetimes short for volatile data
+- separating tenants and regions
+- recording which prompt version produced each response
+- avoiding cached placement for data that requires immediate revocation
+
+If nobody owns invalidation, cached context can become stale context.
+
+Stale context produces confident mistakes cheaply and quickly.
+
+## Privacy Boundaries Still Apply
+
+Prompt caching does not remove the need for data governance.
+
+Teams should understand:
+
+- what representation is stored
+- where it is stored
+- how long it remains available
+- whether it crosses regions
+- how it is isolated between organizations, tenants, or users
+- whether it is compatible with zero-data-retention requirements
+- how cache-hit accounting could reveal information
+
+Even when the cache stores KV tensors rather than plain prompt text, it is still application state derived from user data.
+
+That deserves an explicit security and privacy review.
+
+Do not treat:
+
+```txt
+not stored as readable text
+```
+
+as equivalent to:
+
+```txt
+no retention or privacy implications
+```
+
+Provider documentation and contract terms should define the boundary, not assumptions.
+
+## Observe Hits, Misses, And Writes
+
+You cannot optimize a cache you cannot see.
+
+At minimum, trace:
+
+- cache-write tokens
+- cache-read tokens
+- uncached input tokens
+- hit rate by workflow
+- hit rate by tenant
+- time to first token
+- end-to-end latency
+- cost per successful task
+- invalidation reason
+- prompt and tool-schema version
+
+A global hit rate can be misleading.
+
+One high-volume workflow may look excellent while a costly agent workflow misses constantly.
+
+Break metrics down by product path.
+
+For every important workflow, ask:
+
+```txt
+What prefix did we expect to reuse?
+Did it actually match?
+If not, what changed first?
+Was the write reused enough to pay back its cost?
+```
+
+This is where cache diagnostics become more useful than a single discount line on the bill.
+
+## Do Not Optimize Away Correctness
+
+Cache-friendly prompts are not automatically better prompts.
+
+You can preserve a prefix so aggressively that the application keeps stale tools, outdated examples, or obsolete policy.
+
+You can avoid compaction to protect cache hits while drowning the model in irrelevant history.
+
+You can combine tenants to improve reuse while weakening privacy isolation.
+
+You can keep a long prefix just above a provider's minimum cacheable length even when the content does not help the model.
+
+The quality order should remain:
+
+```txt
+correctness
+safety
+privacy
+reliability
+then optimization
+```
+
+Caching should make a sound design more efficient.
+
+It should not make a bad design harder to change.
+
+## Test Cache-Aware Prompt Changes
+
+A prompt change can affect more than output quality.
+
+It can also change:
+
+- cache reuse
+- input cost
+- time to first token
+- tool behavior
+- context retention
+- regional routing
+- rate-limit consumption
+
+That means prompt releases need performance tests alongside behavioral evals.
+
+For a representative workload, compare:
+
+```txt
+baseline quality
+baseline latency
+baseline cache hit rate
+baseline cost per successful task
+```
+
+Then change one thing.
+
+Run the same workload again.
+
+This expands the idea in [AI Cost Is Per Task, Not Per Token](/blog/ai-cost-is-per-task-not-per-token). Cached-token discounts matter, but the final unit is still the completed task.
+
+A cheaper request that causes more failures is not an optimization.
+
+## A Practical Cache-Friendly Structure
+
+A reasonable starting layout looks like this:
+
+```txt
+1. stable global instructions
+2. stable tool definitions
+3. stable safety and policy rules
+4. shared reference context
+5. tenant-specific stable context
+6. preserved conversation history
+7. current tool results
+8. current user request
+9. timestamps and other volatile values
+```
+
+The exact order depends on instruction semantics and the API.
+
+But the questions are universal:
+
+- What changes least often?
+- What can be shared safely?
+- What must be isolated?
+- Where should the reusable prefix end?
+- What invalidates each layer?
+- How long should each layer live?
+- What is the expected reuse count?
+- How will we know when it misses?
+
+Answer those before adding cache flags.
+
+## The Bigger Lesson
+
+AI infrastructure is moving beyond:
+
+```txt
+send prompt
+receive answer
+```
+
+The prompt now has memory behavior.
+
+Its order affects reuse.
+
+Its stable sections have lifetimes.
+
+Its changes trigger invalidation.
+
+Its cached representation has privacy implications.
+
+Its hit rate affects latency and cost.
+
+That is why prompt caching belongs beside context management, model selection, evaluation, observability, and security in the system design.
+
+The new generation of model pricing makes the savings easier to notice.
+
+But the real shift is architectural.
+
+The fastest token is often the one the model does not need to process again.
