@@ -1,0 +1,535 @@
+---
+title: Always-On AI Needs A Work Schedule
+date: 2026-09-30
+summary: Always-on AI agents promise to monitor work and act proactively, but continuous availability should not mean continuous authority. Background agents need active windows, quiet hours, expiring tasks, action budgets, approval rules, pause controls, and logs that make time part of the permission system.
+tags: ai, agents, automation, product-design, security
+image: /blog/always-on-ai-work-schedule-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# Always-On AI Needs A Work Schedule
+
+The next AI assistant may not wait for you to open a chat.
+
+It may keep watching a project, checking for changes, following up on unfinished work, preparing updates, and acting when a condition is met.
+
+That sounds useful.
+
+It also changes one of the most basic assumptions in software:
+
+```txt
+the user is present when the action happens
+```
+
+An always-on agent breaks that assumption.
+
+It can wake up while you are asleep.
+
+It can notice a new email while you are in a meeting.
+
+It can retry a failed task after you have forgotten about it.
+
+It can keep working after the context that made the original instruction sensible has changed.
+
+That means "always available" must not become "always authorized."
+
+Always-on AI needs a work schedule.
+
+![An always-on AI task system controlled by active windows, quiet hours, action budgets, expiry, and approval checkpoints](/blog/always-on-ai-work-schedule-social.png)
+
+## The Fresh Signal
+
+At its September 29 developer conference, OpenAI introduced a new class of persistent agents called Dots.
+
+[Associated Press](https://apnews.com/article/77b6b8888145869206996d7509d24256) described them as "always-on" agents designed to complete ongoing tasks proactively. [Axios](https://www.axios.com/2026/09/29/openai-dots-ai-assistant-devday) reported that the initial release gives eligible users one agent each, with a longer-term vision of multiple agents working together.
+
+The exact features, limits, and packaging will change.
+
+The larger product direction is more important:
+
+```txt
+chatbot
+  -> agent
+  -> persistent agent
+  -> background worker
+```
+
+Each step increases usefulness.
+
+Each step also increases the distance between the user's decision and the software's action.
+
+A chatbot responds now.
+
+A persistent agent may act later.
+
+Time becomes part of the permission model.
+
+## A Permission Is Not Timeless
+
+Suppose you tell an agent:
+
+```txt
+Watch this project and keep the client updated.
+```
+
+That instruction looks simple, but it leaves important questions unanswered.
+
+- For how many days?
+- During which hours?
+- Which client contacts?
+- How often may it send an update?
+- What counts as a meaningful change?
+- Can it send messages while you are offline?
+- Can it attach files?
+- What happens after the deadline passes?
+- Does the instruction survive a change in project ownership?
+
+Traditional application permissions usually focus on **what** a system can access.
+
+An always-on agent also needs rules for **when** that access can become action.
+
+```txt
+permission = capability + scope + time + conditions
+```
+
+Leaving out time makes authority silently permanent.
+
+## Always-On Should Mean Reachable, Not Unbounded
+
+There is a healthy interpretation of always-on AI:
+
+The service is available continuously, can monitor approved signals, and can prepare work when useful.
+
+There is also an unhealthy interpretation:
+
+The agent may use every connected tool at any hour, indefinitely, because the user approved a vaguely related task once.
+
+Those are very different systems.
+
+A well-designed agent can remain available while its authority changes by state.
+
+For example:
+
+| State | Allowed behavior |
+|---|---|
+| Active window | Read approved sources and perform low-risk actions |
+| Quiet hours | Monitor and queue work, but do not contact people |
+| Approval pending | Prepare the action and wait |
+| Budget exhausted | Stop acting and produce a summary |
+| Task expired | Archive the task and revoke temporary access |
+| Paused | Perform no background work |
+
+Availability can be continuous.
+
+Authority should be conditional.
+
+## Give Every Background Task A Lifetime
+
+Background automation tends to outlive the moment that created it.
+
+A user says:
+
+```txt
+Monitor prices before my trip.
+```
+
+The trip happens.
+
+The monitor keeps running.
+
+Or:
+
+```txt
+Check this vendor every morning while we evaluate them.
+```
+
+The contract is signed with someone else.
+
+The check continues for months.
+
+This is how useful automation turns into invisible clutter, cost, and privacy risk.
+
+Every persistent task should therefore have:
+
+- a start time
+- an end time or review date
+- a clear owner
+- a reason it still exists
+- the tools it may use
+- a maximum run frequency
+- an explicit result when it expires
+
+The default should not be forever.
+
+Good defaults might be:
+
+```txt
+one-time task       -> expires after completion
+trip monitor        -> expires after travel date
+project monitor     -> reviewed every 30 days
+recurring report    -> reviewed every quarter
+temporary access    -> revoked when the task ends
+```
+
+I have written before that [AI memory needs expiration dates](/blog/ai-memory-expiration-dates).
+
+The same principle applies to delegated work.
+
+Old context should not live forever.
+
+Old authority should not keep waking up forever either.
+
+## Quiet Hours Are A Safety Feature
+
+Quiet hours sound like a notification preference.
+
+For an agent, they should be an operational boundary.
+
+During quiet hours, the system may still be allowed to:
+
+- watch a deployment
+- detect a changed document
+- prepare a draft
+- collect approved metrics
+- place a low-priority task in a queue
+
+But it may be blocked from:
+
+- sending external messages
+- publishing content
+- making purchases
+- changing production systems
+- calling people
+- inviting users
+- starting expensive workloads
+
+The important distinction is between **observing**, **preparing**, and **acting**.
+
+```txt
+observe now
+prepare safely
+act during the approved window
+```
+
+This makes the agent useful without forcing people to choose between full autonomy and turning it off completely.
+
+Emergency exceptions can exist, but they should be narrow.
+
+A production outage may justify paging an engineer at 2 AM.
+
+A weekly document summary does not.
+
+## Use Action Budgets, Not Only Money Budgets
+
+AI products increasingly show token or spending limits.
+
+Persistent agents also need limits on behavior.
+
+An action budget can constrain:
+
+- messages sent per day
+- external calls placed
+- files shared
+- records modified
+- purchase attempts
+- retries after failure
+- tool calls per run
+- recipients contacted
+- total runtime
+
+For example:
+
+```yaml
+task: follow up on unpaid invoices
+active_window: weekdays 09:00-16:00
+max_messages_per_day: 5
+max_retries_per_invoice: 1
+allowed_recipients: invoice_contacts
+payment_changes: approval_required
+expires: 2026-10-31
+```
+
+The point is not that every user needs to write YAML.
+
+The product should translate these ideas into understandable controls.
+
+An action budget limits blast radius when the agent misunderstands a condition, enters a retry loop, or encounters corrupted data.
+
+Without it, a tiny decision error can repeat at machine speed.
+
+## A Schedule Must Understand Time Zones
+
+Time-based permissions become surprisingly difficult once real people are involved.
+
+Which time zone controls the active window?
+
+What happens during daylight-saving transitions?
+
+If a team spans Kathmandu, London, and San Francisco, whose quiet hours matter?
+
+If a recipient is on holiday, should the agent still contact them?
+
+If a deadline moves, does the task schedule update automatically?
+
+A serious scheduling model should distinguish:
+
+- the owner's time zone
+- the workspace time zone
+- the recipient's local time
+- business calendars
+- holidays and leave
+- event-relative windows
+
+"Send at 9 AM" is incomplete if the system does not know whose 9 AM.
+
+The safest interface should show the resolved time before the user confirms it.
+
+```txt
+Will run at 09:00 Asia/Kathmandu
+Recipient local time: 20:15 America/Los_Angeles
+```
+
+Good automation removes mental work.
+
+It should not create accidental midnight emails.
+
+## Scheduled Authority Should Be Re-Evaluated
+
+A timer firing does not prove that an old action is still appropriate.
+
+Before acting, the agent should re-check the conditions that justified the task.
+
+Imagine an instruction created on Monday:
+
+```txt
+If the proposal is not approved by Friday, remind the client.
+```
+
+By Friday:
+
+- the proposal may have been approved in another system
+- the client contact may have changed
+- the project may have been paused
+- the user may have sent a manual message
+- the document may contain a newer deadline
+
+The agent should not treat the original task as a frozen command detached from current reality.
+
+A safer execution loop is:
+
+```txt
+schedule fires
+  -> refresh relevant state
+  -> check task is still valid
+  -> check permissions and budgets
+  -> detect conflicting human action
+  -> request approval if uncertainty is high
+  -> act
+  -> record what happened
+```
+
+This turns a schedule from a blind alarm into a conditional workflow.
+
+## Separate Monitoring From Communication
+
+An agent may need broad read access to notice important changes.
+
+That does not mean it needs broad authority to communicate externally.
+
+These should be separate permissions:
+
+```txt
+read project status
+draft update
+choose recipients
+attach files
+send update
+```
+
+A user might allow the first two continuously, restrict recipient selection to a known list, and require approval for the final send.
+
+This separation matters because background agents often produce persuasive, polished output. A fluent draft can make an uncertain conclusion look ready to publish.
+
+Preparation is reversible.
+
+External communication often is not.
+
+## Every Agent Needs A Visible Next Action
+
+One reason background automation becomes uncomfortable is that users cannot tell what it will do next.
+
+A good agent dashboard should answer:
+
+- What is the agent monitoring?
+- When will it wake up next?
+- What action is planned?
+- Which tools will it use?
+- Which data will it read?
+- Who may be contacted?
+- What requires approval?
+- When does the task expire?
+- How can it be paused?
+
+The next action should be visible before it happens, especially for high-impact tasks.
+
+```txt
+Tomorrow at 09:00
+Read: deployment dashboard
+Condition: error rate above 2%
+Prepare: incident summary
+Send: blocked until approval
+```
+
+This is not unnecessary complexity.
+
+It is how the product makes delegated authority legible.
+
+## Pause Must Be Immediate And Boring
+
+Every always-on agent needs a prominent pause control.
+
+Pause should not mean:
+
+```txt
+finish the current chain of actions,
+wait for every retry,
+then eventually stop
+```
+
+It should have a clear contract.
+
+A user should know whether pause:
+
+- prevents new runs
+- cancels queued actions
+- interrupts active tool use
+- preserves drafts
+- revokes temporary credentials
+- stops notifications
+- affects related subagents
+
+For sensitive workflows, the system may need multiple levels:
+
+```txt
+pause scheduling
+stop active work
+revoke access
+disable the agent
+```
+
+This connects to the broader idea that [AI agents need job descriptions](/blog/ai-agents-need-job-descriptions). A job description defines the work. A schedule defines when that work may exist as active authority.
+
+## Logs Need Time Context
+
+An audit log for a persistent agent should record more than the final action.
+
+It should show:
+
+- who created the task
+- when they created it
+- the original instruction
+- the schedule and time zone
+- permission changes
+- state refreshed before execution
+- model and policy versions
+- tools called
+- approvals requested and received
+- actions attempted, skipped, or blocked
+- retries
+- expiry or cancellation
+
+Time context helps explain whether the agent followed the intended schedule or acted under stale authority.
+
+For example:
+
+```txt
+09:00 task triggered
+09:00 permissions revalidated
+09:01 detected manual human update
+09:01 external send skipped
+09:02 owner notified
+```
+
+That is much more useful than:
+
+```txt
+task completed
+```
+
+## Design For The User Being Unavailable
+
+An always-on agent will eventually face a decision while its owner cannot respond.
+
+The product needs an explicit policy for that case.
+
+Possible outcomes include:
+
+- wait until the user returns
+- complete only reversible preparation
+- notify a backup owner
+- choose the safest no-action path
+- execute a pre-approved low-risk response
+- stop after a deadline
+
+The wrong default is to improvise broader authority because the user is absent.
+
+Unavailability should reduce what the agent can do, unless the user deliberately configured an emergency procedure.
+
+That is particularly important for purchases, messages, production changes, sensitive records, and anything that can affect another person.
+
+## A Practical Temporal Permission Model
+
+Teams building persistent agents can start with a simple checklist.
+
+| Control | Question |
+|---|---|
+| Active window | During which hours may the agent act? |
+| Quiet hours | What may it observe or prepare but not execute? |
+| Frequency | How often may it wake up? |
+| Expiry | When does the task end or require review? |
+| Action budget | How many messages, writes, calls, or retries are allowed? |
+| Approval | Which actions require a person to confirm? |
+| Revalidation | What current state must be checked before acting? |
+| Absence policy | What happens if the owner is unavailable? |
+| Pause | Can work and access be stopped immediately? |
+| Audit | Can someone reconstruct why an action happened then? |
+
+These controls should be understandable to ordinary users.
+
+The goal is not to turn every personal assistant into an enterprise scheduler.
+
+The goal is to prevent convenience from becoming invisible, permanent authority.
+
+## Final Thought
+
+Always-on AI is a meaningful product shift.
+
+An assistant that can notice, prepare, and follow through may be far more useful than one that waits inside an empty chat box.
+
+But background work changes the trust contract.
+
+The user is no longer watching every step.
+
+The instruction and the action may be separated by hours, days, or weeks.
+
+Context can change in between.
+
+So the system needs more than permission to use a tool.
+
+It needs a schedule for authority.
+
+```txt
+available all the time
+authorized only at the right time
+```
+
+That is the difference between an assistant that is always ready and an agent that is always loose.
+
+Always-on AI needs active hours.
+
+It needs quiet hours.
+
+It needs expiry.
+
+And it needs a pause button that still works when the user finally comes back.
