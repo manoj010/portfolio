@@ -1,0 +1,484 @@
+---
+title: AI Chips Compete Through Software, Not Silicon Alone
+date: 2026-10-01
+summary: A fast AI accelerator is only useful when developers can program, optimize, debug, deploy, and scale real models on it. DeepSeek's new open Ascend components show why chip competition is also a battle over compilers, kernels, runtimes, communication libraries, framework support, documentation, and migration cost.
+tags: ai, chips, compilers, infrastructure, software-engineering
+image: /blog/ai-chips-compete-through-software-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Chips Compete Through Software, Not Silicon Alone
+
+When people compare AI chips, the conversation usually starts with hardware numbers.
+
+More compute.
+
+More memory bandwidth.
+
+More accelerators per rack.
+
+Lower power per token.
+
+Those numbers matter.
+
+But a chip does not train a model by itself.
+
+Developers need to express an operation, compile it, move data, launch kernels, coordinate many devices, inspect failures, measure performance, and connect the result to frameworks that applications already use.
+
+That means an AI accelerator is never only silicon.
+
+It is a software platform.
+
+```txt
+useful accelerator
+  = hardware
+  + runtime
+  + compiler
+  + kernels
+  + libraries
+  + communication
+  + frameworks
+  + tools
+  + documentation
+```
+
+If any layer is weak, expensive hardware can spend a lot of time waiting.
+
+![AI accelerator software stack with frameworks, libraries, kernels, compiler, runtime, and hardware across different chips](/blog/ai-chips-compete-through-software-social.png)
+
+## The Fresh Signal
+
+On September 30, DeepSeek released several open-source components targeting Huawei's Ascend AI accelerators.
+
+The releases include an [Ascend implementation of DeepGEMM](https://github.com/deepseek-ai/DeepGEMM-Ascend), attention kernels in [FlashMLA](https://github.com/deepseek-ai/FlashMLA/blob/main/docs/20260930-ascend-prefill-deep-dive.md), communication work around DeepEP, and shared compilation infrastructure through [DeepJIT](https://github.com/deepseek-ai/DeepJIT).
+
+The interesting part is not simply that one model company supports another chip.
+
+It is the shape of the work.
+
+DeepGEMM-Ascend aims to preserve the same API and development workflow while changing the hardware-specific implementation underneath. DeepJIT presents similar compile, load, cache, and launch concepts for CUDA and Ascend backends. FlashMLA documents kernels designed around the memory hierarchy and execution behavior of Ascend hardware.
+
+This is what hardware competition looks like after the chip exists.
+
+The battle moves up the stack.
+
+## CUDA Is More Than A Language
+
+CUDA is sometimes discussed as if it were merely a syntax developers use to write GPU code.
+
+NVIDIA's own [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-programming-guide/index.html) describes something much broader: a parallel programming model and platform covering language support, execution, memory, multi-GPU behavior, libraries, tooling, and hardware features.
+
+In practice, the value includes years of accumulated software:
+
+- optimized math libraries
+- neural-network primitives
+- collective communication
+- compilers and assemblers
+- profilers
+- debuggers
+- framework integrations
+- examples and documentation
+- community knowledge
+- tested deployment patterns
+
+That ecosystem changes a buyer's calculation.
+
+A competing chip can look excellent on paper and still be expensive to adopt if engineers must rewrite kernels, chase unsupported operators, replace tooling, debug unfamiliar failures, or accept lower utilization on real workloads.
+
+The moat is not only transistor design.
+
+It is everything developers already know how to do.
+
+## Peak Performance Is Not Delivered Performance
+
+A chip specification might advertise enormous theoretical throughput.
+
+Applications rarely receive all of it automatically.
+
+Real performance depends on whether the workload can keep the hardware busy.
+
+Common bottlenecks include:
+
+- moving data from memory fast enough
+- poor tensor shapes
+- synchronization between cores
+- communication between devices
+- compilation overhead
+- unsupported operations
+- inefficient precision conversion
+- kernel launch latency
+- load imbalance in mixture-of-experts models
+- fragmented memory
+
+An accelerator can be fast while a software stack uses it badly.
+
+This is why kernel engineering matters.
+
+A kernel is a specialized program executed on the accelerator. Operations such as matrix multiplication, attention, normalization, routing, and data movement are assembled from kernels.
+
+Small changes in tiling, memory layout, pipelining, synchronization, or precision can produce large changes in throughput.
+
+The hardware provides capability.
+
+The kernel determines how much of that capability becomes useful work.
+
+## What DeepGEMM Is Trying To Hide
+
+General matrix multiplication, usually shortened to GEMM, sits near the center of modern AI computation.
+
+The mathematical operation is familiar:
+
+```txt
+C = A x B
+```
+
+The implementation is not simple.
+
+To run efficiently, engineers must think about:
+
+- how matrices are divided into tiles
+- where each tile lives in the memory hierarchy
+- how data is aligned
+- when data is loaded
+- which units perform the multiplication
+- how work overlaps across pipeline stages
+- how intermediate results are accumulated
+
+The [DeepGEMM-Ascend repository](https://github.com/deepseek-ai/DeepGEMM-Ascend) says its abstraction hides details such as fractal layouts, alignment constraints, address calculations, and verbose low-level parameters while applying Ascend-specific optimizations underneath.
+
+That is a meaningful design goal.
+
+Developers should be able to express the operation they need without rewriting every detail for every device generation.
+
+But abstraction cannot simply erase hardware differences.
+
+It must translate them.
+
+Good portability keeps the developer-facing contract stable while allowing the backend to remain deeply hardware-aware.
+
+## API Compatibility Reduces Switching Cost
+
+Compatibility can matter as much as a benchmark.
+
+Suppose a team has already built its inference stack around a library. Moving to a different accelerator may require changes across:
+
+- build scripts
+- Python packages
+- tensor formats
+- runtime configuration
+- monitoring
+- test infrastructure
+- container images
+- deployment automation
+- engineer training
+
+If the new backend preserves APIs and workflows, migration becomes more realistic.
+
+```txt
+same application contract
+different optimized backend
+```
+
+That does not make the migration free.
+
+Numerical behavior can differ. Unsupported shapes may fall back to slower paths. Error messages and profiling tools may be unfamiliar. Production performance may not match a microbenchmark.
+
+But compatibility narrows the gap between "the chip can run this model" and "our team can operate this model on the chip."
+
+That gap is where adoption often dies.
+
+## The Compiler Is A Hardware Translator
+
+Compilers are especially important because AI hardware changes quickly.
+
+A developer writes a relatively high-level description of work. The compiler must turn it into instructions that respect the architecture's execution units, registers, local memory, synchronization rules, and data paths.
+
+For just-in-time compilation, this happens close to execution.
+
+DeepSeek's [DeepJIT](https://github.com/deepseek-ai/DeepJIT) exposes CUDA and Ascend backends through a similar compile, cache, load, and launch workflow. Its documentation describes separate underlying toolchains while sharing runtime concepts.
+
+That shared interface matters because compilation infrastructure has a long list of operational responsibilities:
+
+- detect the device and compiler
+- choose architecture flags
+- cache compiled artifacts
+- invalidate stale caches
+- expose diagnostic output
+- integrate with framework streams
+- work across local and distributed filesystems
+- preserve reproducibility
+
+Compilation is not a one-time conversion step.
+
+It is part of the production system.
+
+A slow, unstable, or opaque compiler can erase the convenience of otherwise capable hardware.
+
+## Communication Libraries Decide Cluster Performance
+
+Frontier AI workloads rarely run on one accelerator.
+
+Training and large-scale inference distribute work across many devices.
+
+The devices must exchange:
+
+- gradients
+- activations
+- parameters
+- expert-routed tokens
+- attention state
+- synchronization signals
+
+The speed of one chip is therefore only part of the result.
+
+If communication is slow, the fastest accelerator waits for its neighbors.
+
+Mixture-of-experts models make this especially visible. Different tokens may be routed to different experts on different devices. The system needs efficient all-to-all communication and careful load balancing, not only fast matrix multiplication.
+
+This is why communication libraries belong in the competitive stack.
+
+The relevant question is not:
+
+```txt
+How fast is one accelerator?
+```
+
+It is:
+
+```txt
+How efficiently can the whole cluster complete the workload?
+```
+
+## Framework Support Is The Adoption Layer
+
+Most application developers do not write low-level kernels.
+
+They use frameworks such as PyTorch, inference servers, distributed-training systems, and model-serving libraries.
+
+A serious accelerator platform therefore needs reliable integration with the tools above it.
+
+That includes:
+
+- expected tensor operations
+- automatic differentiation
+- mixed precision
+- distributed execution
+- checkpoint loading
+- quantization
+- model export
+- serving engines
+- container support
+- observability
+
+An unsupported operator can force data back to a CPU, trigger a slow fallback, or prevent a model from running at all.
+
+Even when a demo succeeds, production teams still ask:
+
+- Does our exact model architecture work?
+- Does our required precision work?
+- Can we profile it?
+- Can we reproduce performance?
+- Can we deploy it through our existing platform?
+- Can on-call engineers diagnose it at 3 AM?
+
+Framework compatibility is where hardware becomes ordinary enough to buy.
+
+## Documentation Is Part Of Performance
+
+Documentation sounds softer than memory bandwidth.
+
+It is not.
+
+Poor documentation increases the time required to reach acceptable performance. It pushes engineers toward trial and error. It makes failures harder to distinguish from misconfiguration. It limits the number of people who can optimize the system.
+
+A mature platform needs:
+
+- installation guides that actually work
+- supported-version matrices
+- runnable examples
+- performance-tuning guides
+- error references
+- migration documentation
+- known limitations
+- profiling tutorials
+- release notes
+
+Community knowledge matters too.
+
+When thousands of developers have encountered similar problems, search results, issue discussions, blog posts, and internal experience become part of the platform's value.
+
+Software ecosystems compound.
+
+Every solved problem makes the next adoption slightly easier.
+
+## Open Source Helps, But It Does Not Guarantee A Platform
+
+Publishing code is an important step.
+
+It lets engineers inspect implementations, reproduce tests, file issues, extend support, and learn from performance techniques.
+
+But an open repository is not automatically a mature ecosystem.
+
+Teams still need to evaluate:
+
+- maintenance activity
+- test coverage
+- hardware availability
+- version compatibility
+- licensing
+- review quality
+- security response
+- documentation
+- long-term ownership
+- integration with upstream frameworks
+
+A repository can demonstrate that a path exists without proving that the path is stable enough for every production workload.
+
+That is especially important for newly released ports.
+
+Early code may support a specific device generation, model architecture, shape, or precision while broader compatibility remains unfinished.
+
+Open source makes verification possible.
+
+It does not replace verification.
+
+## Treat Performance Claims As Starting Points
+
+DeepSeek's documentation reports strong results for some Ascend kernels, including performance close to the hardware's theoretical peak under stated workloads.
+
+Those results are interesting.
+
+They should also be read precisely.
+
+A kernel benchmark does not automatically prove:
+
+- end-to-end model throughput
+- production latency under variable traffic
+- training stability over long runs
+- performance across every tensor shape
+- parity across all supported precisions
+- operational reliability at cluster scale
+- equal developer productivity
+
+Independent testing should reproduce the setup and then broaden it.
+
+A useful comparison controls for:
+
+- model and batch size
+- sequence length
+- precision
+- compilation settings
+- memory capacity
+- interconnect
+- power limits
+- software versions
+- warmup and caching
+- cost
+
+The right question is not whether one screenshot shows a larger number.
+
+It is whether the stack delivers predictable value on the workloads a team actually runs.
+
+## What Buyers Should Benchmark
+
+Teams evaluating AI accelerators need more than tokens per second.
+
+| Layer | Questions to test |
+|---|---|
+| Hardware | What compute, memory, bandwidth, power, and interconnect are available? |
+| Kernels | Are critical operators optimized for our shapes and precisions? |
+| Compiler | Are builds fast, reproducible, debuggable, and cacheable? |
+| Runtime | Are allocation, streams, launches, failures, and recovery reliable? |
+| Communication | How does multi-device efficiency change as the cluster grows? |
+| Frameworks | Does our actual model run without unsupported operations or slow fallbacks? |
+| Tools | Can engineers profile bottlenecks and diagnose failures? |
+| Operations | Can we deploy, monitor, patch, and roll back the stack? |
+| People | How much retraining and specialist knowledge does the migration require? |
+| Economics | What is the cost per completed workload, not just the chip price? |
+
+This last point is easy to miss.
+
+A cheaper accelerator can become expensive if engineering time, low utilization, failures, and migration work are ignored.
+
+The real unit is not dollars per chip.
+
+It is dollars per reliable result.
+
+## Portability Is A Strategic Feature
+
+No abstraction makes different accelerators identical.
+
+The fastest paths will remain architecture-specific.
+
+But portable interfaces give teams options.
+
+They can separate application logic from optimized backends, test multiple platforms, and avoid placing every part of the system behind one vendor-specific boundary.
+
+A practical architecture might look like:
+
+```txt
+model and application
+        |
+portable framework interface
+        |
+hardware-aware backend
+        |
+optimized kernels and runtime
+        |
+accelerator
+```
+
+The portable layer protects developer workflow.
+
+The specialized layer protects performance.
+
+Good systems need both.
+
+## The Software Moat Can Move
+
+NVIDIA's software advantage was not built in one release.
+
+It accumulated through sustained investment, hardware-software co-design, library coverage, framework support, developer trust, and millions of hours of real use.
+
+That makes the moat difficult to copy.
+
+It does not make it permanent.
+
+AMD describes [ROCm](https://rocm.docs.amd.com/en/latest/about/what-is-rocm.html) as a complete open stack including runtimes, compilers, math libraries, utilities, and framework integrations. Huawei's Ascend ecosystem and open projects are working on similar layers. Higher-level compiler systems and portable kernel languages are also reducing how much software must be rewritten by hand.
+
+Competition can improve every platform.
+
+It pushes vendors toward better compatibility, clearer tools, stronger open integrations, and less friction for developers.
+
+But the winner will not be decided by a specification sheet alone.
+
+It will be decided by whether real engineers can ship real workloads.
+
+## Final Thought
+
+AI hardware is physical infrastructure.
+
+I have written about how [AI capex becomes a moat](/blog/ai-capex-new-moat) and how [AI chips are becoming collateral](/blog/ai-chips-are-becoming-collateral).
+
+The software layer explains why those expensive assets do not all have equal practical value.
+
+A chip becomes useful through the stack around it.
+
+Through the compiler that understands it.
+
+Through the kernels that keep it busy.
+
+Through the communication library that connects it.
+
+Through the framework that makes it accessible.
+
+Through the profiler that explains why it is slow.
+
+Through the documentation that lets another engineer solve the problem next week.
+
+Silicon creates potential.
+
+Software turns potential into a platform.
+
+And in the AI chip race, the platform is what developers actually have to live with.
