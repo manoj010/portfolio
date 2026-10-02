@@ -1,0 +1,320 @@
+---
+title: When AI Makes Papers Cheap, Review Becomes Scarce
+date: 2026-10-02
+summary: arXiv's new submission limits expose a deeper consequence of generative AI. Producing polished papers is getting cheaper, but evidence, moderation, and expert attention are not scaling with it.
+tags: ai, research, peer-review, science, publishing
+image: /blog/ai-papers-review-scarcity-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# When AI Makes Papers Cheap, Review Becomes Scarce
+
+For most of scientific history, writing a paper was naturally slow.
+
+The work might take months or years.
+
+Drafting, revising, formatting, drawing figures, checking references, and responding to collaborators all added friction. That friction did not guarantee quality, but it placed a practical limit on how many papers one person could produce.
+
+Generative AI is changing that limit.
+
+It can turn notes into paragraphs, rewrite an abstract, generate code, format equations, suggest citations, translate prose, and produce twenty variations of the same explanation before lunch.
+
+That can be genuinely useful.
+
+But it creates an uncomfortable asymmetry:
+
+```txt
+Paper production can scale with software.
+Expert judgment still scales with people.
+```
+
+On October 1, 2026, arXiv made that asymmetry difficult to ignore.
+
+## The New arXiv Limit
+
+In its [updated rate-limit policy](https://blog.arxiv.org/2026/10/01/updated-rate-limit-policy/), arXiv announced that submitters are now limited to:
+
+- two submissions per calendar month
+- three active submissions at any one time
+
+The limit applies across categories. A rejected submission still counts because it still consumes moderation time.
+
+arXiv described the change as a stopgap while it improves its moderation tools and works out better practices for increasingly capable AI tools.
+
+The numbers explain the urgency.
+
+In September 2016, arXiv received 9,869 submissions. In September 2024, it received 20,569. In September 2026, it received 40,363 submissions and generated almost 9,000 support tickets for staff and volunteer moderators.
+
+Submissions doubled in two years.
+
+arXiv also reported an increase in thin papers, narrowly sliced "salami" papers, and dense AI-written submissions that do not meet its standards for original, significant, self-contained research.
+
+This does not mean every recent paper is AI-generated.
+
+It does not mean AI-assisted papers are automatically bad.
+
+And it does not prove that AI alone caused the entire increase.
+
+It does show that an important research platform has reached an operational boundary. The ability to produce plausible academic text is growing faster than the capacity to judge it.
+
+## arXiv Is Not Peer Review
+
+One distinction matters here.
+
+arXiv is a preprint repository, not a peer-reviewed journal or conference. A paper appearing there does not mean experts have validated its methods, evidence, or conclusions.
+
+But arXiv is not an unfiltered file dump either.
+
+Its moderators check whether submissions are relevant to a category and meet baseline scholarly standards. That protects the usefulness of the corpus and prevents researchers from having to search through unlimited noise.
+
+So the bottleneck is not traditional peer review alone.
+
+It begins earlier:
+
+```txt
+submission
+    -> moderation
+        -> discovery
+            -> reading
+                -> replication
+                    -> peer review
+```
+
+Every step consumes scarce human attention.
+
+Making the first step nearly free can overload all the steps after it.
+
+## AI Changed the Cost Curve
+
+AI did not suddenly make scientific discovery effortless.
+
+It made some parts of communicating research much cheaper.
+
+That distinction is crucial.
+
+AI can reduce the cost of:
+
+- drafting prose
+- translating between languages
+- restructuring an argument
+- generating boilerplate code
+- creating initial figures
+- formatting references
+- adapting one manuscript into several variations
+
+But it does not automatically reduce the cost of:
+
+- forming an important question
+- collecting reliable data
+- designing a valid experiment
+- proving a theorem
+- finding hidden confounders
+- reproducing a result
+- deciding whether a contribution is actually novel
+
+The visible artifact becomes cheaper while the invisible work remains expensive.
+
+That gap is dangerous because readers first encounter the artifact.
+
+A weak idea can now arrive with fluent prose, polished diagrams, confident equations, and a long bibliography. Surface quality used to be a rough signal that an author invested time. It is becoming a much weaker signal.
+
+The problem is not that AI makes writing too good.
+
+The problem is that presentation can scale independently of evidence.
+
+## Attention Is the Real Scarce Resource
+
+When content becomes abundant, curation becomes more valuable.
+
+We have already seen this pattern elsewhere.
+
+Cheap publishing created an enormous web, followed by search engines. Cheap posting created endless social feeds, followed by recommendation systems and moderation teams. Cheap code generation is creating more pull requests, followed by greater demand for review, testing, and observability.
+
+Research is entering the same phase.
+
+The scarce resource is no longer access to a text editor.
+
+It is qualified attention.
+
+A moderator must decide whether a submission belongs.
+
+A reviewer must inspect the reasoning.
+
+A researcher must compare the claim with prior work.
+
+A lab may spend weeks trying to reproduce a result.
+
+A reader must decide which papers deserve any of that effort.
+
+An AI system can generate ten papers faster than a human can carefully verify one.
+
+That ratio, not the mere presence of AI, is the structural problem.
+
+## Why a Rate Limit Makes Sense
+
+A rate limit is blunt, but it changes incentives immediately.
+
+If authors can submit only two papers per month, they have a reason to choose their strongest work, combine artificially separated results, and check whether a manuscript is ready before placing it into the moderation queue.
+
+It also distributes volunteer attention more evenly. A small group of high-volume submitters cannot consume a disproportionate share of the system simply because they can generate faster.
+
+That is the same logic behind rate limits in software systems.
+
+They do not determine whether every request is good or bad. They prevent one source from exhausting a shared resource while more precise controls are developed.
+
+In that sense, arXiv is treating expert attention like infrastructure.
+
+Because it is.
+
+## Why a Rate Limit Is Not a Complete Solution
+
+Two submissions per month does not measure scientific quality.
+
+A careful researcher can produce weak work. A large collaboration can produce several excellent papers at once. Different fields have different publication rhythms, and conference deadlines can concentrate legitimate submissions into a short window.
+
+The rule may also create new games.
+
+Because the limit applies to the submitter rather than every co-author, teams can coordinate who uploads each paper. Bad actors can adapt. Low-quality work can remain low-quality at a slower rate.
+
+The limit also treats a dense 80-page manuscript and a thin five-page paper as one submission each, even though their moderation cost may differ.
+
+So rate limiting should be understood for what it is:
+
+```txt
+a queue-protection mechanism,
+not a truth detector
+```
+
+It buys time and reduces overload. It cannot decide whether a result deserves to exist.
+
+## This Is Not an Argument Against AI in Research
+
+AI can make research more accessible.
+
+It can help a non-native English speaker communicate an excellent result. It can explain unfamiliar notation, find mistakes in code, automate repetitive analysis, improve accessibility, and let researchers spend less time fighting formatting tools.
+
+Those benefits matter.
+
+The relevant question is not:
+
+> Was AI used?
+
+It is:
+
+> What did AI do, what evidence supports the claim, and who is accountable for the result?
+
+An author who uses AI to improve grammar but personally verifies every claim presents a different risk from someone who generates an entire paper, trusts invented references, and submits it unread.
+
+Treating both cases as identical would be lazy policy.
+
+The better principle is that assistance can be delegated, but responsibility cannot.
+
+## What Better Research Infrastructure Could Look Like
+
+The long-term answer will need more than a monthly counter.
+
+### 1. Clear AI-use disclosure
+
+Authors should explain where AI contributed: language editing, code, literature discovery, data analysis, figures, or substantive reasoning.
+
+Disclosure is not an automatic confession of poor quality. It gives moderators and readers useful context.
+
+### 2. Stronger evidence artifacts
+
+Claims should be connected to things that are harder to generate superficially: data, executable code, experiment logs, preregistrations, proofs, model checkpoints, and reproducible environments.
+
+The paper should not be the only artifact under review.
+
+### 3. Better overlap detection
+
+Systems can identify unusually similar manuscripts, fragmented versions of one contribution, recycled figures, and suspicious citation patterns. These signals should support human decisions, not silently make them.
+
+### 4. Reciprocal review incentives
+
+Communities may need stronger expectations that submitting work also creates an obligation to help evaluate work. ICLR has already experimented with submission policies tied to reviewing capacity because conferences face the same imbalance.
+
+### 5. Transparent triage and appeals
+
+Automated tools will make mistakes. Researchers need clear reasons for holds or rejections and a practical way to appeal them, especially when a model flags unconventional but legitimate work.
+
+### 6. Measure the queue, not just the output
+
+Platforms should publish moderation delays, reviewer workloads, appeal rates, and the kinds of submissions causing operational pressure. Good policy needs feedback.
+
+## AI Reviewers Are Not an Infinite Escape Hatch
+
+The obvious response is to use AI to review AI-generated papers.
+
+That may help with reference checks, formatting problems, obvious contradictions, duplicated passages, and first-pass triage.
+
+But it does not make judgment free.
+
+Models can miss subtle methodological errors, inherit biases from prior reviews, and converge on the same preferred language or assumptions. As I explored in [AI Reviewers Can Collapse Into Consensus](/blog/ai-reviewers-can-collapse-into-consensus), synthetic review feedback can make future reviewers less diverse in both ratings and reasoning.
+
+Replacing a human bottleneck with an opaque model bottleneck can make the queue move faster while making its failures harder to see.
+
+AI should help reviewers spend attention better.
+
+It should not create the illusion that attention is no longer required.
+
+## The Broader Lesson for the Internet
+
+The arXiv policy is about research, but the underlying pattern is much bigger.
+
+Whenever AI makes an artifact cheap to produce, the value moves downstream.
+
+If articles are cheap, trust becomes valuable.
+
+If code is cheap, verification becomes valuable.
+
+If videos are cheap, provenance becomes valuable.
+
+If research papers are cheap, evidence and review become valuable.
+
+We often talk about generative AI as a productivity multiplier. That is true, but incomplete.
+
+It is also a demand multiplier for every system responsible for checking the output.
+
+More generation requires more evaluation.
+
+More speed requires better brakes.
+
+More plausible content requires stronger ways to establish what is real, novel, and worth our time.
+
+## What Authors and Readers Can Do Now
+
+For authors:
+
+- submit fewer, stronger, self-contained contributions
+- disclose meaningful AI assistance
+- verify every citation, equation, and generated claim
+- publish the evidence needed to reproduce the work
+- treat polished language as the beginning of review, not the end
+
+For readers:
+
+- remember that a preprint is not peer-reviewed
+- inspect methods and evidence before sharing a conclusion
+- look for code, data, limitations, and independent replication
+- be suspicious of polish without specificity
+- reward careful synthesis, not only rapid novelty
+
+For platforms:
+
+- protect human attention as a finite shared resource
+- use automation for assistance and triage, with accountable human oversight
+- make moderation policies measurable and appealable
+- design incentives around contribution quality, not submission volume
+
+## Final Thought
+
+AI is making it easier to produce something that looks like a research paper.
+
+That is not the same as making it easier to produce reliable knowledge.
+
+The new arXiv limit is a small policy response to a much larger transition. We are moving from a world where creating the document was expensive to one where checking the document may be the dominant cost.
+
+The future of research will not be decided by who can generate the most papers.
+
+It will be decided by whether our systems can preserve evidence, accountability, and expert attention when papers are nearly free.
