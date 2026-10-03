@@ -1,0 +1,391 @@
+---
+title: Opaque Tokens Must Stay Opaque
+date: 2026-10-03
+summary: GitHub App installation tokens just grew from roughly 40 characters to about 520. The rollout is a useful reminder that credentials are contracts to transport securely, not data structures for applications to interpret.
+tags: security, github, authentication, api, software-engineering
+image: /blog/opaque-tokens-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# Opaque Tokens Must Stay Opaque
+
+A token changed shape this week.
+
+That sounds like a small implementation detail.
+
+For some systems, it will be.
+
+For others, it will expose years of assumptions hidden inside database columns, regular expressions, gateways, log scrubbers, dashboards, and deployment scripts.
+
+On October 2, 2026, GitHub completed the rollout of a new stateless format for GitHub App installation tokens.
+
+The old tokens were about 40 characters long.
+
+The new tokens are about 520 characters long.
+
+Their purpose did not change. Their prefix still begins with `ghs_`. Their permissions, repository scope, one-hour expiration, and API endpoint remain the same.
+
+Only the representation changed.
+
+And that is exactly why this is such a useful engineering lesson.
+
+```txt
+An opaque token is a value your system carries.
+It is not a format your system owns.
+```
+
+## What GitHub Changed
+
+GitHub began gradually introducing its stateless installation-token format in April 2026. According to the [October 2 rollout announcement](https://github.blog/changelog/2026-10-02-stateless-github-app-installation-tokens-rolled-out/), the migration is now complete.
+
+Newly minted GitHub App installation tokens use the stateless `ghs_APPID_JWT` format by default.
+
+GitHub says the format makes issuance and validation faster and improves API reliability.
+
+From an integration's perspective, the important changes are simpler:
+
+| Property | Previous token | New token |
+| --- | --- | --- |
+| Prefix | `ghs_` | `ghs_` |
+| Approximate length | 40 characters | 520 characters |
+| Expiration | One hour | One hour |
+| Permission model | Installation permissions | Unchanged |
+| Repository scoping | Supported | Unchanged |
+| Issuance endpoint | Installation access token API | Unchanged |
+
+Tokens created before the migration continue working until they expire.
+
+GitHub also plans to stop honoring the temporary `X-GitHub-Stateless-S2S-Token` testing header on November 30, 2026. Integrations that added that header during the rollout should remove it after validating both formats.
+
+The new token may look structured.
+
+That does not make its internals part of your application contract.
+
+## Stateless for Whom?
+
+The word "stateless" can easily create the wrong impression.
+
+It does not mean your GitHub App no longer needs credentials.
+
+An app still authenticates as the GitHub App, obtains an installation access token, protects that token, sends it in an authorization header, and refreshes it when it expires. The app's private-key handling and token lifecycle still matter.
+
+Stateless describes how GitHub can issue and validate the new token format. It is a server-side implementation property.
+
+It does not make the client integration secretless.
+
+It does not make the token safe to log.
+
+It does not make expiration optional.
+
+And it does not mean applications should decode the token and build logic around its contents.
+
+That boundary is worth stating clearly:
+
+```txt
+The issuer may understand the token.
+The consumer should treat it as an opaque credential.
+```
+
+## The Hidden 40-Character Contract
+
+Most brittle systems do not contain a comment saying:
+
+> We intentionally depend on GitHub never changing this token.
+
+The dependency appears indirectly.
+
+Someone creates a database column:
+
+```sql
+installation_token VARCHAR(64)
+```
+
+Someone writes a validator:
+
+```ts
+const githubToken = /^ghs_[A-Za-z0-9]{36}$/;
+```
+
+Someone configures a proxy with a small header limit.
+
+Someone builds a redaction rule that recognizes only the legacy shape.
+
+Someone copies the token into an environment variable system with a quiet size limit.
+
+Each choice looks reasonable in isolation.
+
+Together they turn an undocumented observation into a production contract.
+
+The application is no longer using "a GitHub installation token."
+
+It is using "a 40-character string that resembles the GitHub tokens we saw when this code was written."
+
+Those are not the same contract.
+
+## Opaque Does Not Mean Unvalidated
+
+Treating a value as opaque does not mean accepting arbitrary input everywhere.
+
+You should still validate the properties your system owns.
+
+For example:
+
+- the value exists before an API call
+- it is transported only over an encrypted connection
+- it is never placed in a URL
+- it fits within a deliberately generous operational limit
+- it is stored only where storage is necessary
+- it is refreshed after expiration
+- it is redacted from logs and telemetry
+
+What you should avoid validating are undocumented properties owned by the issuer:
+
+- exact length
+- internal sections
+- character distribution beyond transport requirements
+- embedded identifiers
+- current encoding
+- whether it happens to resemble another token standard
+
+A token parser feels more precise than a string field.
+
+In this case, that precision is fictional.
+
+It makes the integration tightly coupled to a representation it does not control.
+
+## The Database Problem
+
+Fixed-size storage is one of the most obvious failure points.
+
+Depending on the database and configuration, a 520-character token placed into a smaller column may be rejected, truncated, or passed through an ORM error that looks unrelated to authentication.
+
+Truncation is especially unpleasant.
+
+The system successfully receives a credential, stores part of it, later retrieves the damaged value, and gets an authentication failure. The error appears at the API boundary even though the bug occurred earlier in persistence.
+
+But there is a more useful architectural question:
+
+Why is the installation token in a database at all?
+
+GitHub App installation tokens expire after one hour. In many systems, the safer design is to mint them when needed, keep them in memory for a short period, and refresh them through the official SDK or token endpoint.
+
+If persistence is unavoidable, use a field intended for opaque text or encrypted binary data, enforce access controls, and make the storage size comfortably larger than today's value.
+
+Do not turn `520` into the next magic number.
+
+The lesson from a 40-character failure is not to create a 520-character dependency.
+
+## The Header Problem
+
+A token can fit in application memory and still fail on the network path.
+
+An authorization header may pass through:
+
+```txt
+application
+    -> SDK
+        -> HTTP client
+            -> local proxy
+                -> API gateway
+                    -> service mesh
+                        -> egress proxy
+                            -> GitHub API
+```
+
+Any layer may apply limits or transformations.
+
+The new token is not enormous by normal HTTP standards, but the complete request includes the header name, authentication scheme, other headers, cookies in some environments, and infrastructure-specific metadata.
+
+The correct test is not whether a 520-character string fits in a TypeScript variable.
+
+It is whether the real request survives the real production path without truncation, rejection, accidental normalization, or unsafe logging.
+
+## The Redaction Problem
+
+The most dangerous migration bug may not break authentication at all.
+
+It may break secret masking.
+
+Suppose an observability pipeline redacts strings matching the old token pattern:
+
+```txt
+ghs_ + exactly 36 characters
+```
+
+The old token disappears from logs.
+
+The new token does not match.
+
+Requests continue working, but credentials begin appearing in application logs, proxy traces, exception reports, CI output, or support bundles.
+
+That is a security regression disguised as a successful migration.
+
+Redaction rules should prefer stable, documented signals and context:
+
+- redact authorization-header values regardless of token format
+- prevent secrets from entering structured logs
+- mark credential fields as sensitive at the logging boundary
+- scan telemetry for known credential prefixes without requiring an exact length
+- test masking with both legacy and new examples
+
+Security controls that recognize only yesterday's secret format are not durable controls.
+
+## Tokens Are Capabilities
+
+An installation token is not merely an identifier.
+
+It is a short-lived capability.
+
+Anyone who obtains it may exercise the permissions and repository access encoded by its installation scope until it expires or is otherwise invalidated.
+
+That makes three properties more important than the token's visual format:
+
+### Scope
+
+Request only the repositories and permissions needed for the task. GitHub's installation-token API can narrow both within the permissions already granted to the app.
+
+### Lifetime
+
+Use the one-hour expiration as a boundary, not an inconvenience to bypass. Cache responsibly and refresh deliberately.
+
+### Exposure
+
+Keep the token out of URLs, logs, analytics events, crash reports, shell history, and user-facing errors.
+
+The same principle applies to AI agents that interact with repositories. As I wrote in [A Stolen AI Agent Session Is More Than a Login](/blog/stolen-ai-agent-session-more-than-login), a credential attached to an automated actor can authorize actions, not just access. The blast radius depends on what the token can do.
+
+## A Practical Migration Checklist
+
+GitHub recommends checking every system that handles installation tokens. A useful audit should cover the complete path.
+
+### Application code
+
+- remove exact-length checks
+- remove format-dependent parsing
+- keep the token in a string type that supports comfortably larger values
+- rely on the documented API response, expiration, and permissions
+- use an official SDK where it simplifies renewal
+
+### Storage
+
+- search schemas for short `VARCHAR` columns
+- inspect ORM field lengths and generated migrations
+- confirm encryption and access controls
+- question whether the token needs persistence at all
+- verify caches do not silently truncate values
+
+### Network infrastructure
+
+- test the full request through production-like proxies and gateways
+- check authorization-header and total-header limits
+- inspect WAF and service-mesh rules
+- confirm tracing tools do not capture the credential
+
+### Logging and monitoring
+
+- redact authorization headers by field, not exact token length
+- update secret scanners and data-loss-prevention rules
+- test exception paths, retries, and debug logging
+- inspect support bundles and audit exports
+
+### CI and deployment
+
+- verify secret stores accept the longer value
+- check environment-variable and templating limits
+- test shell scripts for quoting or line-wrapping assumptions
+- remove the temporary rollout header before November 30
+
+### Testing
+
+- include both short and long opaque test values
+- test values larger than the current production format
+- assert that logs contain a redaction marker, never a credential
+- exercise expiration and renewal paths
+- include a real end-to-end request through the deployed network path
+
+## Better Types Make Invalid Assumptions Harder
+
+Developers often use a plain `string` for every external value.
+
+That makes it easy to mix up a token, an installation ID, a repository name, and a URL.
+
+A small application-level type can improve safety without claiming to understand the token's internal format:
+
+```ts
+type InstallationToken = string & {
+  readonly __brand: "InstallationToken";
+};
+
+function asInstallationToken(value: string): InstallationToken {
+  if (value.length === 0) {
+    throw new Error("Installation token is missing");
+  }
+
+  return value as InstallationToken;
+}
+```
+
+Notice what the function does not do.
+
+It does not require 40 characters.
+
+It does not split the token.
+
+It does not extract an app ID.
+
+It establishes the application's contract: a token must be present, and code should not accidentally substitute another kind of string.
+
+That is useful validation without pretending the representation belongs to us.
+
+## The Larger API Design Lesson
+
+Opaque values appear everywhere:
+
+- access tokens
+- refresh tokens
+- cursor strings
+- continuation tokens
+- session IDs
+- webhook delivery IDs
+- object version IDs
+- ETags
+- signed URLs
+
+Developers routinely inspect one example, notice a pattern, and encode that pattern into software.
+
+Sometimes the shortcut survives for years.
+
+Then the provider changes its storage system, signing strategy, shard identifier, encoding, or security model, and the hidden dependency finally becomes visible.
+
+Good API clients distinguish between two kinds of information:
+
+```txt
+documented semantics
+and
+observed representation
+```
+
+Build around the first.
+
+Assume the second can change.
+
+## Final Thought
+
+GitHub's new installation token is not mainly a story about a string becoming thirteen times longer.
+
+It is a story about ownership.
+
+GitHub owns the token's representation.
+
+Your application owns how securely it transports, stores, renews, scopes, and redacts that token.
+
+When those boundaries stay clear, a format migration is routine.
+
+When they blur, a harmless-looking string change can break authentication, damage observability, or quietly leak credentials.
+
+Opaque tokens must stay opaque.
+
+Not because their contents are uninteresting.
+
+Because depending on contents you were never promised is not an integration. It is a coincidence waiting to expire.
