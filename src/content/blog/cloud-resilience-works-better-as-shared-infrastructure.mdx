@@ -1,0 +1,350 @@
+---
+title: Cloud Resilience Works Better as Shared Infrastructure
+date: 2026-10-05
+summary: Michigan's MiCloud initiative shows a different way to modernize public-sector technology: pool cloud expertise, backup, recovery, and training across many small organizations instead of asking each one to build the same capability alone.
+tags: cloud, resilience, disaster-recovery, public-sector, infrastructure
+image: /blog/shared-cloud-resilience-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# Cloud Resilience Works Better as Shared Infrastructure
+
+Imagine running technology for a small school district.
+
+You have student systems, payroll, identity, email, file storage, classroom services, backups, network equipment, and years of institutional data.
+
+You may also have aging servers, a limited budget, a small technical team, and no dedicated cloud architect or incident-response group.
+
+Then one morning a storage array fails.
+
+Or ransomware encrypts a server.
+
+Or a licensing change makes the next hardware refresh unaffordable.
+
+The district still has to teach.
+
+That is what makes a recent project in Michigan interesting. It is not merely moving servers to a cloud provider. It is testing a broader idea:
+
+```txt
+Resilience can be shared infrastructure.
+```
+
+Instead of asking hundreds of school districts to independently become excellent at backup, cloud architecture, security, procurement, and recovery, one statewide initiative is pooling those capabilities.
+
+The lesson extends far beyond schools.
+
+## The MiCloud Model
+
+On October 4, 2026, AWS published a [case study about MiCloud](https://aws.amazon.com/blogs/publicsector/enabling-and-building-resilience-for-michigan-k12-schools-through-micloud-and-aws/), a Michigan K-12 cloud initiative operated through Kalamazoo Regional Educational Service Agency, or KRESA.
+
+The program offers three main services:
+
+- backup and disaster recovery
+- migration from aging on-premises infrastructure
+- cloud training and skills development for district staff
+
+The initiative grew from work KRESA had already been doing with cloud infrastructure since 2017. In 2024, KRESA received a Michigan Department of Education consolidation grant to expand the model statewide.
+
+KRESA reports a grant value of [$31,669,361](https://www.kresa.org/news/news-details/~board/test-board-kresa/post/kresa-receives-funding-to-provide-centralized-cloud-hosting-of-school-data). MiCloud says its services are available to more than 800 eligible public school entities through the 2027-28 school year.
+
+The newer AWS case study reports projects across 52 intermediate school district regions and 311 local districts, serving more than 568,000 students as of August 2026.
+
+Those participation figures come from the program and its cloud partner, not an independent audit. They should be read as reported operational progress, not proof that every migration has already delivered the same outcome.
+
+Still, the architecture of the program is worth examining.
+
+## Small Organizations Face a Scale Problem
+
+Cloud resilience is often described as a technical checklist:
+
+```txt
+replication
+encryption
+monitoring
+backups
+identity controls
+recovery plans
+```
+
+But the hard part is usually not knowing that these things exist.
+
+It is sustaining the people, process, and budget needed to operate them well.
+
+A large company can build a platform team, negotiate enterprise contracts, run recovery exercises, staff a security operations center, and spread those costs across many business units.
+
+A small district may need many of the same capabilities for a fraction of the users and budget.
+
+The technology does not become proportionally simpler just because the organization is smaller.
+
+An identity outage can still stop staff from working.
+
+A failed student-information system can still disrupt attendance, schedules, and communication.
+
+A ransomware incident can still require forensic investigation, clean restoration, legal coordination, and public communication.
+
+The result is an unfavorable ratio:
+
+```txt
+enterprise-grade responsibility
+divided by
+small-team capacity
+```
+
+Shared infrastructure changes that ratio.
+
+## Centralization Can Pool Scarce Expertise
+
+The most valuable shared resource may not be compute.
+
+It may be expertise.
+
+Instead of every district separately finding a cloud architect, backup specialist, security engineer, procurement expert, and trainer, a shared platform can maintain a core team and reuse its work.
+
+That team can create repeatable foundations:
+
+- approved account structures
+- baseline identity and access policies
+- encrypted backup patterns
+- network designs
+- monitoring standards
+- migration playbooks
+- incident runbooks
+- cost controls
+- training programs
+
+The local organization still owns its data, priorities, and operational decisions. It does not have to invent the platform underneath them every time.
+
+This resembles an internal platform team, except the customers are separate public institutions rather than departments inside one company.
+
+The platform turns specialist knowledge into a service.
+
+## Migration Is Not the Same as Resilience
+
+Moving a server from a school building into a cloud region does not automatically make it resilient.
+
+It changes the failure modes.
+
+On-premises infrastructure may be exposed to aging hardware, local power problems, physical damage, limited redundancy, and slow replacement cycles.
+
+Cloud infrastructure may introduce configuration mistakes, unexpected costs, identity compromise, regional dependencies, provider outages, and vendor lock-in.
+
+The meaningful question is not:
+
+> Is it in the cloud?
+
+It is:
+
+> Can the service be restored safely, within the time the organization actually needs?
+
+That requires four things.
+
+### A recovery objective
+
+Teams need to know how much data they can afford to lose and how long a service can remain unavailable.
+
+Those are commonly expressed as:
+
+- recovery point objective, or RPO
+- recovery time objective, or RTO
+
+Not every workload needs the same target. Payroll, identity, historical archives, cafeteria systems, and classroom file shares have different consequences when unavailable.
+
+### A recoverable copy
+
+A synchronized copy is not always a safe backup.
+
+If ransomware, accidental deletion, or a malicious administrator can modify both the production data and its replica, replication faithfully reproduces the damage.
+
+Resilient designs need isolated, versioned, and appropriately immutable copies.
+
+### A tested procedure
+
+A backup is a claim.
+
+A successful restore is evidence.
+
+Teams must regularly test whether data can be recovered into a clean environment, whether applications start correctly, whether identities still work, and whether dependencies are documented.
+
+### A decision process
+
+During an incident, someone must decide when to fail over, what to restore first, who can authorize destructive recovery steps, and how users will be informed.
+
+That is operating design, not storage configuration.
+
+## Shared Infrastructure Creates Shared Risk
+
+Centralization solves duplication, but it can concentrate failure.
+
+If hundreds of institutions depend on the same control plane, identity provider, automation, vendor, or operations team, one mistake can affect many organizations at once.
+
+The shared platform therefore needs stronger boundaries than any single district could reasonably build alone.
+
+### Tenant isolation
+
+Each participating organization should have clearly separated accounts, data, encryption boundaries, permissions, and audit trails. Shared management must not become shared access by default.
+
+### Limited administrative reach
+
+Platform operators need enough permission to support districts, but not unlimited standing access to every workload. Time-bound elevation, approval paths, and auditable actions reduce the damage one compromised account can cause.
+
+### Independent recovery paths
+
+The system should avoid a single identity or management service being required to restore itself. Break-glass access, offline procedures, and protected recovery credentials matter when the normal control plane is unavailable.
+
+### Failure-domain awareness
+
+Centralized does not have to mean physically concentrated. Backups, replicas, management systems, and recovery tooling should be distributed according to the failures they are meant to survive.
+
+### Transparent incident ownership
+
+Local and central teams need a clear responsibility map. During an outage, ambiguity about who can act wastes the exact time resilience was meant to protect.
+
+Shared infrastructure is valuable only when shared responsibility is explicit.
+
+## The Grant Cliff Matters
+
+MiCloud is funded through a time-limited public grant.
+
+That makes the sustainability model as important as the migration model.
+
+Cloud services convert some capital expenses into continuing operating expenses. There may be less need for a large server purchase every few years, but compute, storage, network transfer, security tooling, support, and skilled staff still cost money every month.
+
+A program can look free to participants while a grant is paying the bill.
+
+The real test begins before that funding ends.
+
+A durable shared platform needs answers to questions such as:
+
+- How will costs be allocated after the grant?
+- Which services remain centrally funded?
+- Can a small district predict its future bill?
+- What happens if usage grows faster than expected?
+- Can a district leave without losing access to its data?
+- Who owns migration costs if the platform or provider changes?
+- How are long-term staffing and on-call coverage funded?
+
+An exit plan is part of resilience.
+
+If an organization cannot economically retrieve its data, replace a provider, or operate after a grant ends, the architecture has traded one dependency for another.
+
+## Training Is Part of the Infrastructure
+
+MiCloud includes training rather than treating migration as a one-time vendor project.
+
+That choice matters.
+
+Central teams cannot understand every local application, calendar, dependency, and user need. Local staff cannot safely operate a platform they were never taught to inspect.
+
+The strongest model is shared ownership:
+
+```txt
+central team:
+platform, standards, specialist support
+
+local team:
+workload knowledge, priorities, user impact
+```
+
+Training lets local teams detect problems, understand costs, participate in recovery exercises, and challenge central decisions.
+
+Without that knowledge transfer, shared infrastructure becomes outsourcing with a friendly name.
+
+With it, the program can increase the technical capacity of the entire network.
+
+## Measure Restores, Not Migrations
+
+Public technology programs often report easy numbers:
+
+- organizations enrolled
+- servers migrated
+- terabytes stored
+- grant money spent
+- accounts created
+
+Those numbers show activity.
+
+They do not prove resilience.
+
+Better measures include:
+
+- percentage of critical workloads with defined RPO and RTO targets
+- percentage with a successful restore test in the last quarter
+- median time to restore a service
+- restore success rate from isolated backups
+- number of unresolved single points of failure
+- percentage of privileged access that is time-bound and audited
+- cost per protected workload
+- number of local staff able to execute the recovery plan
+- time required to notify affected institutions during an incident
+
+The goal is not to move the most servers.
+
+The goal is to keep essential services available and recoverable.
+
+## A Pattern Beyond Schools
+
+The same model can help other organizations that carry serious responsibility without large engineering teams:
+
+- local governments
+- libraries
+- clinics
+- nonprofit networks
+- community colleges
+- small utilities
+- regional emergency services
+
+Each institution needs secure infrastructure.
+
+Not all of them need to build a unique infrastructure organization.
+
+Regional cooperatives, managed public platforms, and sector-specific shared services can pool expertise while preserving local control.
+
+But the design must resist two extremes.
+
+At one extreme, every organization repeats the same expensive work with uneven results.
+
+At the other, one centralized system accumulates unchecked power and becomes a universal failure point.
+
+Good shared infrastructure sits between them:
+
+```txt
+common foundations
+clear isolation
+local accountability
+portable data
+tested recovery
+```
+
+## What I Would Ask Before Joining
+
+If I were evaluating a shared resilience platform, I would ask:
+
+1. What specific failure scenarios has the service been tested against?
+2. When was the last full restore exercise for a workload like mine?
+3. Which responsibilities belong to the platform and which remain local?
+4. How are tenants isolated from one another?
+5. Who can access my data, and how is that access audited?
+6. Can recovery proceed if the normal identity system is unavailable?
+7. Where are immutable backups stored, and who can delete them?
+8. What will the service cost after temporary funding ends?
+9. How do I export my data and leave the platform?
+10. What skills will my own team gain during the migration?
+
+These questions are more useful than asking whether the provider has a cloud logo on the diagram.
+
+## Final Thought
+
+The interesting part of MiCloud is not that schools are using AWS.
+
+It is that Michigan is treating technical resilience as a capability that can be organized collectively.
+
+Small institutions often face the same security and continuity expectations as large organizations without the same staffing, bargaining power, or capital budget.
+
+Shared infrastructure can close part of that gap.
+
+But centralization is not magic. It must be designed with isolation, recovery testing, sustainable funding, local expertise, and an exit path.
+
+The best outcome is not hundreds of identical cloud accounts.
+
+It is hundreds of organizations that can keep serving people when hardware fails, attackers arrive, budgets tighten, or a normal day becomes an incident.
