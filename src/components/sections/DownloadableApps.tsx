@@ -8,13 +8,13 @@ const apps = [
   {
     title: 'BudgetBuddy',
     category: 'Android app',
-    version: 'v1.0.0',
-    size: '56 MB',
+    version: 'v1.0.2',
+    size: '58 MB',
     description:
-      'A calm, offline-first expense tracker for understanding where your money goes. Track income, expenses, accounts, budgets, savings goals, and recurring transactions from one focused dashboard.',
+      'A calm, offline-first expense tracker for understanding where your money goes. Track income, expenses, account transfers, budgets, savings goals, recurring transactions, and AD/BS calendar-aware reports from one focused dashboard.',
     image: budgetBuddyImage,
     tags: ['Flutter', 'SQLite', 'Material 3'],
-    download: 'https://github.com/manoj010/BudgetBuddy-Flutter/releases/download/v1.0.0/BudgetBuddy.apk',
+    download: 'https://github.com/manoj010/BudgetBuddy-Flutter/releases/download/v1.0.2/BudgetBuddy.apk',
     source: 'https://github.com/manoj010/BudgetBuddy-Flutter',
   },
 ];
