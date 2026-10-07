@@ -1,0 +1,266 @@
+---
+title: AI-Generated Mathematics Needs Machine-Checkable Proofs
+date: 2026-10-07
+summary: AI can now generate mathematical results faster than people can review them. Formal proof systems such as Lean can make correctness easier to check, but verification is only one layer of responsible mathematical research.
+tags: ai, mathematics, formal-verification, lean, research
+image: /blog/ai-math-machine-checkable-proofs-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI-Generated Mathematics Needs Machine-Checkable Proofs
+
+Mathematics has always had an unusual relationship with confidence.
+
+A scientific claim can be strengthened by an experiment. A software change can be tested against expected behavior. A mathematical theorem is supposed to survive something stricter: a proof.
+
+But a proof is still usually communicated as human-written prose.
+
+That prose can be elegant, incomplete, insightful, ambiguous, or simply wrong. Experts read it, reconstruct the missing steps, compare it with known results, and decide whether the argument holds.
+
+Now AI systems can generate mathematical arguments at a scale that makes this traditional review process much harder.
+
+On October 6, 2026, OpenAI published a large collection of mathematical manuscripts and supporting artifacts produced by an internal frontier model. The release is impressive, but its most important lesson may not be the number of results.
+
+It is the infrastructure around them.
+
+The collection includes revision histories, citation guidance, reasoning summaries, compute estimates, and Lean formalizations for many of the proofs. It also explicitly warns that not every result has been formalized and that some unformalized results may contain issues.
+
+That distinction points toward a better standard for AI-assisted research:
+
+```txt
+Do not publish only the conclusion.
+Publish the evidence needed to check it.
+```
+
+## What Was Released
+
+OpenAI's [mathematics release](https://openai.com/index/sharing-ai-progress-in-mathematics/) describes a broad set of results produced by an unreleased internal model.
+
+The accompanying [GitHub repository](https://github.com/openai/math) currently lists:
+
+- 722 manuscripts
+- 372 related result families
+- approximately 4,000 problems attempted during the evaluation
+- 10 abridged reasoning summaries
+- Lean formalizations for many, but not all, manuscripts
+- an average compute estimate equivalent to roughly three hours of ChatGPT Pro thinking per result
+
+Those numbers come from OpenAI and should be understood as a disclosure about its own process, not as independent validation of every manuscript.
+
+The repository itself is careful about that. It says the collection contains results at different stages of verification, acknowledges that unformalized work may have problems, and promises to preserve older versions when corrections are made.
+
+That is a healthier framing than presenting hundreds of polished PDFs as hundreds of settled facts.
+
+## A Mathematical Result Has Several Layers
+
+It is tempting to treat mathematical correctness as a single binary value.
+
+In practice, an AI-generated result has at least four distinct layers.
+
+### 1. Discovery
+
+The system proposes a theorem, proof strategy, counterexample, construction, or connection.
+
+This is the creative layer. It asks whether the system found something new and mathematically interesting.
+
+### 2. Exposition
+
+The result is turned into a paper that people can read.
+
+Definitions must be clear. Prior work must be cited. Hidden assumptions must be exposed. The proof should explain why the idea works, not merely present a wall of locally plausible steps.
+
+### 3. Formal verification
+
+The theorem and proof are encoded in a proof assistant such as Lean.
+
+Lean's kernel checks whether the proof term follows from the declared definitions, assumptions, axioms, and imported results. This is much stronger than asking another language model whether the proof looks convincing.
+
+### 4. Human understanding
+
+Mathematicians decide what the result means, how it connects to the field, whether the formal statement captures the intended claim, and why the argument is valuable.
+
+These layers support one another, but they are not interchangeable.
+
+A readable paper can be wrong.
+
+A formally valid proof can establish an unimportant theorem.
+
+A correct formalization can encode a statement that differs subtly from the informal claim.
+
+And a novel theorem can still be presented so poorly that nobody can build on it.
+
+## What Lean Actually Checks
+
+Lean is an interactive theorem prover based on dependent type theory.
+
+At its center is a relatively small kernel that checks proof terms. Tactics and automation can help construct those terms, but the final artifact is checked against the formal rules of the system.
+
+That changes the trust model.
+
+With an ordinary AI-generated proof, a reader must inspect every argument and decide whether the prose hides a gap. With a valid Lean artifact, a checker can confirm that the formal conclusion follows from the encoded definitions, assumptions, and dependencies.
+
+In simplified form:
+
+```txt
+informal theorem
+    -> formal statement
+        -> generated proof term
+            -> small proof-checking kernel
+                -> accepted or rejected
+```
+
+This is valuable because generation and verification have different failure modes.
+
+An AI system may be unreliable at writing proofs, while a deterministic checker can still reliably reject invalid proof terms. The generator does not get to grade its own work.
+
+## Machine-Checked Does Not Mean Infinitely Trusted
+
+Formal verification narrows the uncertainty. It does not remove every assumption.
+
+The [Lean documentation on proof validation](https://lean-lang.org/doc/reference/latest/ValidatingProofs/) makes an important distinction between proving a formal theorem and knowing what that theorem means.
+
+A successful check still depends on questions such as:
+
+- Does the formal statement match the intended informal claim?
+- Are the imported definitions and libraries appropriate?
+- Does the proof rely on unexpected axioms or unfinished dependencies?
+- Is the build environment safe when the proof comes from an untrusted source?
+- Could the checker or its trusted computing base contain a bug?
+
+For ordinary work, Lean's kernel check offers strong assurance. For untrusted AI-generated artifacts, the documentation recommends stronger isolation and independent checking through tools such as `comparator`.
+
+This is a useful engineering lesson as well as a mathematical one:
+
+```txt
+Verification proves the artifact you encoded.
+It cannot prove that you encoded the right artifact.
+```
+
+The theorem statement therefore deserves as much scrutiny as the proof.
+
+## A Reasoning Summary Is Not a Proof Certificate
+
+OpenAI also released ten abridged summaries of model reasoning.
+
+Those summaries can help researchers understand how a result was approached. They provide useful process information and may reveal recurring techniques or dependencies.
+
+But a reasoning trace and a formal proof serve different purposes.
+
+A reasoning summary is explanatory evidence.
+
+A formal proof is a checkable derivation inside a specified logical system.
+
+One can make a discovery easier to understand. The other can establish that a precise conclusion follows from precise premises.
+
+Confusing the two would recreate the original problem in a more detailed form: a longer piece of generated text can still contain a subtle gap.
+
+## Why Versioning Belongs in Mathematics
+
+Publishing the collection in GitHub is not a perfect replacement for a scholarly repository, but it highlights an increasingly important idea: AI-generated research needs release engineering.
+
+When hundreds of results arrive together, readers need to know:
+
+- which version they reviewed
+- what changed after a correction
+- which proof artifact corresponds to which manuscript
+- what dependencies and toolchain versions were used
+- whether a formalization is complete, partial, or absent
+- how to cite a result without silently pointing at a moving target
+
+The [Advisory Group on Mathematics and Artificial Intelligence](https://agmai.org/general-sep29/) recommends persistent identifiers, recorded modifications, formalization metadata, process disclosure, and community-controlled repositories. It also argues that labs releasing results without immediate human understanding should support the work required to develop that understanding.
+
+This matters because mathematical knowledge is not a feed of isolated answers.
+
+It is a dependency graph. A correction to one lemma can affect later papers, formal libraries, teaching material, and new conjectures.
+
+## The Right Unit Is a Proof Package
+
+For significant AI-generated mathematics, a paper alone is no longer enough.
+
+A responsible release should look more like a proof package:
+
+1. **A precise claim** with definitions and assumptions.
+2. **A human-readable argument** that explains the central idea.
+3. **A formal statement** linked to the informal theorem.
+4. **A machine-checkable proof** where feasible.
+5. **Pinned dependencies and tool versions** so others can reproduce the check.
+6. **A clear formalization status** for every result.
+7. **Process disclosure** covering the model, prompts, attempts, compute, and human edits.
+8. **Version history and citation metadata** for corrections.
+9. **Independent expert review** of novelty, meaning, and relevance.
+
+This does not make research frictionless.
+
+It moves friction to the places where it produces trust.
+
+## Formalization Has Real Costs
+
+It would be easy to finish with "formalize everything."
+
+Reality is less convenient.
+
+Formalization requires expertise. Existing libraries may not contain the definitions a new field needs. Translating a proof can reveal gaps, but it can also require a large amount of supporting work that is mathematically routine and technically demanding.
+
+Generated formal proofs may also become enormous, difficult to maintain, or dependent on brittle automation. A checker can validate them without making them readable.
+
+So the practical goal should not be to pretend that every idea can immediately become a perfect Lean package.
+
+The goal should be transparency:
+
+```txt
+formalized
+partially formalized
+independently checked
+human-reviewed only
+unverified
+```
+
+Readers should never have to guess which category a result belongs to.
+
+## The Review Bottleneck Has Not Disappeared
+
+This release arrives in the same environment I discussed in [When AI Makes Papers Cheap, Review Becomes Scarce](/blog/when-ai-makes-papers-cheap-review-becomes-scarce).
+
+AI can produce plausible research artifacts faster than experts can absorb them. Formal verification can reduce the cost of checking logical validity, but it cannot evaluate all the other things a research community cares about.
+
+It cannot decide whether a theorem is novel.
+
+It cannot explain why a proof matters.
+
+It cannot resolve weak attribution.
+
+It cannot tell whether hundreds of technically valid results are the best use of limited mathematical attention.
+
+The bottleneck shifts from "is this derivation valid?" toward "what should humans understand, trust, cite, and build upon?"
+
+## Better Metrics for AI Mathematics
+
+Counting solved problems or released manuscripts is not enough.
+
+More useful measurements would include:
+
+- the share of claims with complete formalizations
+- independent proof-checking success rates
+- human repair time required before a proof passes
+- the number of corrections after release
+- overlap with prior published work
+- expert judgments of novelty and significance
+- the time required for specialists to understand and explain a result
+- whether other researchers successfully build on it
+
+These metrics are less dramatic than a large headline number.
+
+They are also closer to measuring durable knowledge.
+
+## Final Thought
+
+AI may become extremely good at proposing mathematics.
+
+That should raise the standard for verification, not lower it.
+
+The future should not be a choice between trusting fluent machine-generated arguments and rejecting AI-assisted discovery entirely. We can separate the creative system from the checking system, publish the artifacts that connect them, and keep human understanding at the center.
+
+Machine-checkable proof is not the end of mathematical judgment.
+
+It is the beginning of a better audit trail.
