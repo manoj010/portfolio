@@ -1,0 +1,408 @@
+---
+title: AI-Generated UI Needs a Compiler Boundary
+date: 2026-10-08
+summary: When an AI model generates an interface, its output should be treated as untrusted declarative data. A constrained component language, validation layer, and deterministic renderer make adaptive UI safer, accessible, testable, and supportable.
+tags: ai, frontend, security, accessibility, software-architecture
+image: /blog/ai-generated-ui-compiler-boundary-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI-Generated UI Needs a Compiler Boundary
+
+For most of software history, the interface was decided before the user arrived.
+
+Designers chose the screens.
+
+Developers implemented the components.
+
+QA tested the known states.
+
+Users learned where everything lived.
+
+Generative AI is beginning to change that relationship. Instead of placing every answer into the same chat bubble, a model can choose a chart for a comparison, a calculator for a financial question, a timeline for a plan, or a small interactive diagram for an explanation.
+
+On October 7, 2026, OpenAI introduced [Intelligent UI in ChatGPT](https://openai.com/index/gpt-6-for-everyone/). The public description says GPT-6 can compose responses from text, visuals, buttons, forms, charts, and interactive experiences. It also describes a library of native, streamable components and a compiler that processes the interface while the model generates it.
+
+That compiler detail is more important than it may first appear.
+
+If an AI model can decide what interface to show, its output is no longer only content.
+
+It is also a UI specification.
+
+And a UI specification produced by a probabilistic model should be treated as untrusted input.
+
+```txt
+The model may propose the interface.
+The application must still own what can be rendered and executed.
+```
+
+## This Is The Next Step After Chat Plus Controls
+
+I previously argued in [AI Interfaces Still Need Buttons](/blog/ai-interfaces-still-need-buttons) that natural language is good at expressing intent, while buttons, previews, sliders, approvals, and logs are better at precision and commitment.
+
+Generative UI extends that idea.
+
+The controls do not have to be manually selected for every possible conversation. A model can assemble the right controls for the task in front of it.
+
+Ask for a savings comparison, and it may produce a chart with editable assumptions.
+
+Ask for a dinner plan, and it may produce a guest counter, ingredient quantities, and a timeline.
+
+Ask for help understanding a bicycle, and it may produce an interactive diagram with selectable systems.
+
+That can be much more useful than a long answer.
+
+But it creates a new architecture problem:
+
+```txt
+How do you let a model shape the interface
+without letting it become the application runtime?
+```
+
+The answer is a compiler boundary.
+
+## Do Not Render Raw Model Output As Code
+
+The most dangerous implementation would be the most obvious one:
+
+```txt
+prompt
+  -> model generates HTML, CSS, and JavaScript
+  -> browser executes it
+```
+
+This gives the model enormous freedom.
+
+It also combines several trust failures.
+
+The generated code could:
+
+- create inaccessible controls
+- inject unvalidated URLs
+- hide important information
+- imitate a trusted confirmation dialog
+- trigger actions without a clear approval boundary
+- read data exposed elsewhere on the page
+- make unexpected network requests
+- break the layout on smaller screens
+- trap keyboard focus
+- change behavior between visually similar responses
+
+Even a model that is usually helpful can be influenced by malicious content inside a document, web page, email, or tool result. As I discussed in [AI Agents Must Treat Business Data as Untrusted Input](/blog/ai-agents-must-treat-business-data-as-untrusted-input), retrieved data can contain instructions designed to redirect an agent.
+
+If the same compromised output is allowed to become executable interface code, prompt injection can cross into a browser execution problem.
+
+The [OWASP guidance on cross-site scripting](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet) is direct: untrusted values must remain data rather than being interpreted as code, and dangerous DOM escape hatches require special care.
+
+The safest generative UI is therefore not arbitrary code generation.
+
+It is constrained composition.
+
+## Give The Model A Small UI Language
+
+Instead of generating HTML, the model should produce a limited declarative representation.
+
+For example:
+
+```json
+{
+  "type": "stack",
+  "children": [
+    {
+      "type": "numberInput",
+      "id": "guestCount",
+      "label": "Number of guests",
+      "min": 1,
+      "max": 20
+    },
+    {
+      "type": "quantityTable",
+      "source": "mealPlan.ingredients"
+    },
+    {
+      "type": "actionButton",
+      "action": "copyShoppingList",
+      "label": "Copy shopping list"
+    }
+  ]
+}
+```
+
+This is not executable code.
+
+It is an intermediate representation, or IR: a structured description of the intended interface.
+
+The application can define exactly which component types, properties, data sources, and actions are legal. A technology such as [JSON Schema](https://json-schema.org/docs) can describe and validate the structure, constraints, and data types, although a production system will usually need additional policy checks beyond schema validation.
+
+The model gets composition freedom inside a bounded language.
+
+The product team keeps control of the vocabulary.
+
+## What The Compiler Boundary Should Do
+
+Calling the middle layer a compiler is useful because it should do more than deserialize JSON.
+
+It should transform a loosely generated proposal into a valid product-owned interface.
+
+A practical pipeline might look like this:
+
+```txt
+model output
+    -> incremental parser
+    -> schema validation
+    -> policy validation
+    -> accessibility enrichment
+    -> deterministic component renderer
+    -> product-owned action gateway
+```
+
+Each stage reduces uncertainty.
+
+### 1. Parse Incrementally
+
+If the UI streams while the model is still generating, the parser must handle incomplete input without pretending it is complete.
+
+It needs limits on depth, node count, text size, table size, and nesting. Otherwise a malformed or adversarial response could consume excessive memory, lock the renderer, or produce an unusable interface.
+
+### 2. Validate The Structure
+
+Unknown component types should fail closed.
+
+Required properties should be present.
+
+Values should stay inside known ranges.
+
+Children should only appear where the grammar permits them.
+
+The compiler should return structured diagnostics rather than trying to guess its way through an invalid tree.
+
+### 3. Apply Product Policy
+
+A schema can prove that `actionButton` has an action string.
+
+It cannot decide whether the current user may perform that action.
+
+Policy validation should check:
+
+- whether the action is allowed in this product surface
+- whether the user has permission
+- whether confirmation is required
+- whether a preview must be shown first
+- whether the action is reversible
+- whether external navigation is restricted to approved destinations
+
+The model should select from action identifiers. It should never invent a function body or arbitrary API endpoint.
+
+### 4. Enrich Accessibility
+
+Using a trusted component library gives the system a strong foundation, but it does not make every generated composition accessible automatically.
+
+The compiler can enforce labels, semantic headings, contrast tokens, minimum target sizes, keyboard behavior, and safe focus rules. It can reject an unlabeled form field or a chart with no textual summary.
+
+The [W3C guidance for name, role, and value](https://www.w3.org/WAI/WCAG22/Understanding/name-role-value.html) explicitly includes components generated by scripts. Assistive technologies still need to understand each component's role, state, and value.
+
+Streaming introduces another requirement. Status changes must be announced without constantly stealing focus. A UI that progressively assembles itself may look impressive while being chaotic for a screen-reader or keyboard user.
+
+### 5. Render Owned Components
+
+The final renderer should map approved nodes to components maintained by the application team.
+
+Those components carry the product's styling, security defaults, localization support, telemetry, responsive behavior, and accessibility semantics.
+
+The model chooses:
+
+```txt
+comparisonTable
+```
+
+The application decides what a comparison table actually is.
+
+That separation is the heart of the boundary.
+
+## Streaming UI Needs Patch Semantics
+
+OpenAI describes its components as streamable, allowing the interface to appear progressively before the whole response is finished.
+
+Streaming makes an interface feel faster.
+
+It also creates state problems that plain text does not have.
+
+Suppose the model first emits a retirement calculator with a monthly contribution field. The user starts entering a value. Then the next generated patch replaces the calculator, changes its identifier, or moves focus to a new control.
+
+The interface has technically updated.
+
+The user experience has broken.
+
+A streaming UI protocol needs rules such as:
+
+- stable identifiers for interactive nodes
+- monotonic updates when possible
+- no replacement of a focused control without explicit reason
+- no silent reset of user-entered values
+- no movement of an approval button while the pointer is approaching it
+- no action becoming less restrictive in a later patch
+- atomic updates for related controls
+- a valid fallback if generation stops halfway
+
+The stream should be a sequence of validated patches, not a succession of unrelated guesses.
+
+## Keep State Outside The Generated Tree
+
+The model-generated interface should describe a view.
+
+It should not become the source of truth for important application state.
+
+Account balances, selected files, permissions, order totals, document versions, and pending actions should live in trusted application state. Components may read an approved projection of that state and emit typed events.
+
+For example:
+
+```txt
+generated button
+    -> emits request: purchase(itemId)
+        -> application checks current price and permission
+            -> application shows trusted confirmation
+                -> backend performs transaction
+```
+
+The button does not carry an executable purchase instruction.
+
+It requests a known capability.
+
+The application rechecks everything at execution time.
+
+## Generated UI Expands The Test Surface
+
+Traditional interface testing assumes a mostly known set of screens.
+
+Generative UI introduces a combinatorial surface. The same request may produce different component trees, and small conversational changes may produce different layouts.
+
+Testing therefore has to move down a level.
+
+Teams should test the language and renderer, not only individual screenshots.
+
+Useful test categories include:
+
+- schema fuzzing with malformed and oversized trees
+- property tests for illegal component combinations
+- permission tests for every action identifier
+- keyboard and screen-reader tests for generated compositions
+- responsive tests across allowed layouts
+- stream interruption and reconnection tests
+- preservation of focus and user-entered state across patches
+- hostile text, URL, and document-content tests
+- visual regression tests for the owned component library
+- replay tests using recorded UI manifests
+
+The model can still be evaluated for whether it chooses useful layouts.
+
+But correctness should come from the surrounding system, not from hoping the model always makes a good design decision.
+
+## Support Needs A UI Manifest
+
+Adaptive interfaces create an awkward operational question:
+
+```txt
+What exactly did the user see?
+```
+
+A screenshot helps, but it is not enough.
+
+The system should be able to record a privacy-conscious UI manifest containing:
+
+- the validated component tree
+- compiler and component-library versions
+- rejected nodes or repaired properties
+- data bindings used
+- streamed patch sequence
+- actions shown and actions invoked
+- accessibility diagnostics
+- the final fallback state
+
+This lets support teams reproduce the interface without storing every sensitive conversation verbatim.
+
+It also makes incidents auditable. If a generated button appeared when it should not have, engineers can inspect whether the error came from the model, schema, policy layer, compiler, or renderer.
+
+Without a manifest, a personalized UI can become an unrepeatable event.
+
+## Personalization Must Not Destroy Consistency
+
+The promise of generative UI is software that adapts to the user.
+
+The danger is software that never behaves the same way twice.
+
+People build spatial memory. They learn where controls are. Teams share instructions. Support staff say, "Open settings, choose billing, then select invoices." Documentation assumes stable names and workflows.
+
+If every interface is fully improvised, those social layers break.
+
+Good adaptive systems need anchors:
+
+- stable product navigation
+- consistent component behavior
+- recognizable action language
+- predictable approval patterns
+- fixed locations for critical controls
+- a plain-text or standard-layout fallback
+- shareable state that another user can reproduce
+
+The model should adapt the task surface, not rewrite the entire product identity on every turn.
+
+## When Fixed UI Is Better
+
+Not every response needs an interface.
+
+Not every interface should be generated.
+
+A fixed, carefully designed workflow is usually better when:
+
+- the task is common and well understood
+- mistakes have legal, financial, medical, or security consequences
+- users need muscle memory
+- the flow must be documented precisely
+- regulators or auditors expect consistent controls
+- performance must be extremely predictable
+- accessibility has been deeply optimized for a specific interaction
+
+Generative UI is most valuable where the information shape changes frequently and the cost of choosing the wrong presentation is low.
+
+The ability to generate a calculator does not mean the checkout page should reinvent itself for every customer.
+
+## A Practical Architecture Checklist
+
+Before shipping model-generated interfaces, a team should be able to answer:
+
+1. What exact UI language may the model produce?
+2. Is the output data, or can any part of it become executable code?
+3. Which component properties and URLs are allowlisted?
+4. Where are schema and policy validation performed?
+5. Who owns the real application state?
+6. How are actions authorized again at execution time?
+7. What happens when a stream is incomplete or invalid?
+8. How are focus, labels, status messages, and keyboard navigation preserved?
+9. Can support reproduce the exact interface a user saw?
+10. Is there a stable fallback when generation fails?
+
+If these answers are vague, the product does not yet have a generative UI architecture.
+
+It has a demo.
+
+## Final Thought
+
+AI-generated interfaces can make software feel more direct.
+
+Instead of learning which application contains the right tool, a user can describe the task and receive an interface shaped around it.
+
+That is a meaningful shift.
+
+But the model should not be trusted to invent executable software inside the user's session.
+
+The safer pattern is familiar from compilers and browsers: accept a constrained language, validate it, transform it, and run only the parts the host application understands.
+
+```txt
+Model freedom belongs inside the grammar.
+Product trust belongs outside it.
+```
+
+The future may be software that adapts to people.
+
+The engineering challenge is making sure it still behaves like software we can secure, test, explain, and trust.
