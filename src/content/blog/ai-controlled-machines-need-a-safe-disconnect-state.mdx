@@ -1,0 +1,424 @@
+---
+title: AI-Controlled Machines Need a Safe Disconnect State
+date: 2026-10-09
+summary: When an AI agent can move a robot, change a temperature, or operate laboratory equipment, losing the model connection must not create physical uncertainty. Safety has to remain local, deterministic, observable, and independently stoppable.
+tags: ai, robotics, safety, operational-technology, distributed-systems
+image: /blog/ai-machines-safe-disconnect-state-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI-Controlled Machines Need a Safe Disconnect State
+
+Cloud software usually fails in familiar ways.
+
+A request times out.
+
+A page stops loading.
+
+A background job retries.
+
+A user sees an error and tries again.
+
+Connect that same software to a robotic arm, liquid handler, vehicle, industrial valve, or heating system, and a timeout becomes a physical question:
+
+```txt
+What does the machine do now?
+```
+
+It cannot wait forever for a model response.
+
+It cannot assume silence means approval.
+
+It cannot continue an old command indefinitely because the network disappeared halfway through the task.
+
+And it should not depend on the same AI service that just failed to explain how to become safe.
+
+On October 8, 2026, Anthropic published an [update to its Usage Policy](https://www.anthropic.com/news/2026-usage-policy-update). Among several changes, it added requirements for models connected to hardware capable of causing injury: a qualified operator must be able to observe and stop the equipment, and the equipment must be able to hold a safe state if Claude disconnects.
+
+That is a vendor policy, not a universal engineering standard.
+
+But the principle underneath it is much older and much broader:
+
+```txt
+Physical safety must survive the loss of the intelligent layer.
+```
+
+## A Disconnect Is Not One Failure
+
+When people hear "the AI disconnected," they may imagine an internet cable being unplugged.
+
+Real systems have many different forms of disconnection:
+
+- the model API times out
+- the agent process crashes
+- a network partition blocks commands but not telemetry
+- telemetry disappears while commands still get through
+- the operator console loses its connection
+- an authentication token expires
+- the orchestration service restarts
+- a tool call returns an ambiguous result
+- the model context is reset and loses task state
+- a sensor becomes stale while still reporting its last value
+- clocks drift enough that freshness checks become unreliable
+- power fails in only part of the control stack
+
+These failures are not equivalent.
+
+A system may still receive commands while losing the feedback needed to know whether those commands worked. It may receive duplicate instructions after a retry. Two controllers may each believe the other has authority.
+
+The safe-disconnect design therefore cannot be one generic error handler.
+
+It needs an explicit failure model.
+
+## Safe State Is A Hazard Decision
+
+"Stop the machine" sounds like the obvious answer.
+
+Sometimes it is.
+
+Sometimes an immediate stop creates a larger hazard.
+
+A robotic arm may need to brake and hold its current pose rather than drop a load. A drone may need to return, hover, follow a predetermined route, or land depending on its position and remaining power. A chemical process may need controlled cooling rather than abruptly closing every valve. A laboratory sample may need to be moved to refrigeration before motion ends.
+
+That is why a safe state must be defined through hazard analysis, not improvised after deployment.
+
+The [NIST Guide to Operational Technology Security](https://csrc.nist.gov/pubs/sp/800/82/r3/final) describes fail-to-a-known-state design as placing equipment or a process into a state that prevents injury, property damage, cascading events, and secondary hazards. It also notes that loss of network communications can trigger such fail-safe behavior and that organizations should define thresholds for reduced or disrupted operation.
+
+The important phrase is **known state**.
+
+Safety is not merely the absence of new commands.
+
+It is a deliberate, observable condition with defined entry criteria and verified behavior.
+
+## Put The AI Above The Safety Controller
+
+An AI model can be useful for planning, adaptation, anomaly explanation, and coordinating complex workflows.
+
+It should not be the final authority over physical invariants.
+
+A robust architecture separates at least three layers:
+
+```txt
+AI supervisor
+    -> bounded command interface
+        -> deterministic local controller
+            -> independent safety system
+                -> physical equipment
+```
+
+### The AI supervisor
+
+The model interprets goals, proposes plans, chooses among permitted operations, and reacts to high-level observations.
+
+It is flexible but nondeterministic.
+
+### The local controller
+
+A programmable controller, embedded system, robot controller, or deterministic service turns bounded commands into machine operations. It owns timing, sequencing, device state, and validated limits.
+
+It must continue to operate when the AI service is slow or unavailable.
+
+### The independent safety system
+
+Hard limits, interlocks, emergency stops, collision detection, pressure limits, temperature cutoffs, geofences, and safety-rated controllers can block or stop hazardous motion regardless of what the model requests.
+
+This layer should not need the model's cooperation.
+
+The AI may request an action.
+
+It should not be able to redefine the laws that decide whether the action is physically allowed.
+
+## Commands Need Expiration Dates
+
+In ordinary APIs, a command is often treated as a one-time message.
+
+In physical systems, many commands have duration:
+
+```txt
+move toward this point
+maintain this temperature
+continue dispensing
+keep the conveyor running
+hold this pressure
+```
+
+If connectivity disappears, does the last command remain valid for one second, one minute, or forever?
+
+Forever is rarely a defensible default.
+
+A physical command should usually carry a lease:
+
+```txt
+command_id
+controller_epoch
+issued_at
+not_after
+maximum_duration
+preconditions
+operating_limits
+expected_completion
+safe_expiry_behavior
+```
+
+The local controller accepts the command only if it is current, valid for the present machine state, and issued by the active control epoch.
+
+When the lease expires, the controller transitions according to its local safety policy. It does not ask the disconnected model what to do.
+
+Leases also limit stale replay. A delayed network packet should not restart yesterday's motion after the system has recovered.
+
+## Heartbeats Prove Liveness, Not Safety
+
+Many distributed systems use heartbeats to determine whether another service is alive.
+
+The same pattern is useful here, but it is easy to overestimate what a heartbeat proves.
+
+A heartbeat can show that:
+
+- a process responded recently
+- a communication path was working
+- the responding identity possessed current credentials
+
+It does not prove that:
+
+- sensors are correct
+- the model understands the situation
+- an earlier command completed safely
+- the operator can see the equipment
+- the next command is appropriate
+
+The watchdog should therefore monitor several conditions separately:
+
+```txt
+control-channel liveness
+telemetry freshness
+sensor agreement
+operator availability
+command progress
+safety-controller health
+```
+
+Each condition can have its own timeout and response.
+
+A missing model heartbeat may pause new work. Stale position telemetry may require controlled braking. Loss of the safety controller may require immediate de-energization.
+
+One green "connected" light is not enough.
+
+## Observation And Stop Must Use Independent Paths
+
+The new Anthropic requirement says a qualified operator must be able to observe the equipment and stop it if necessary.
+
+That sounds simple until both capabilities depend on the same network.
+
+If the operator watches a camera stream through the agent service and sends an emergency stop through that service, one outage can remove both awareness and control.
+
+High-consequence systems need independent paths where practical:
+
+- local sensors and status indicators
+- a safety circuit separate from the model's command channel
+- a physical emergency stop
+- a local operator panel
+- direct alerts when telemetry becomes stale
+- a defined degraded mode when remote observation disappears
+
+A human in the loop is not a magic safety feature.
+
+The human needs current information, enough time to react, clear authority, and a stop mechanism that still works during the failure being handled.
+
+## The Machine Should Reject Impossible Sequences
+
+An agent may plan a sensible sequence at a high level:
+
+```txt
+open enclosure
+move arm
+place sample
+start instrument
+```
+
+The physical controller should still enforce state-machine rules such as:
+
+```txt
+arm cannot move unless enclosure is clear
+instrument cannot start unless sample is seated
+door cannot unlock while hazardous motion is active
+heater cannot energize without coolant flow
+```
+
+These are local invariants.
+
+They belong near the equipment, where they can be evaluated from current sensor data with predictable timing.
+
+Natural-language instructions, model reasoning, and cloud policy should never be the only place those constraints exist.
+
+Anthropic's earlier [Model Hardware Standard preview](https://www.anthropic.com/news/model-hardware-standard-research-preview) illustrates both the opportunity and the limits. Its examples describe AI agents coordinating laboratory instruments and recovering from some errors. The same post also describes cases where a model's default retry behavior made bubbles in a liquid-handling process worse until experts supplied better physical guidance.
+
+That is exactly why the model and the safety envelope must be separate.
+
+The model can learn a better strategy.
+
+The machine still needs hard limits before it learns.
+
+## Reconnection Is A New Control Event
+
+The network returns.
+
+The agent process restarts.
+
+The model receives a fresh context.
+
+Work should not automatically continue from wherever a remote service thinks it stopped.
+
+During the disconnect, the equipment may have entered a safe hold, an operator may have moved something manually, a sample may have been removed, or a local controller may have completed a shutdown sequence.
+
+Recovery needs reconciliation:
+
+1. Establish a new controller epoch or session generation.
+2. Read actual machine state from trusted local sources.
+3. Confirm that telemetry is fresh and internally consistent.
+4. Invalidate unacknowledged commands from the old epoch.
+5. Compare expected and observed physical state.
+6. Require operator review when the difference is safety-relevant.
+7. Resume only through an explicit transition permitted by the local controller.
+
+This prevents the classic distributed-systems failure where an old leader returns and continues issuing valid-looking but obsolete commands.
+
+The physical world does not roll back because a process restarted.
+
+## Lost-Link Procedures Are Already A Real Discipline
+
+Aviation provides a useful example of how specific safe-disconnect planning needs to be.
+
+The FAA's [guidance for advanced drone operations](https://www.faa.gov/uas/advanced_operations/instructions-drone-operators-completing-faa-form-7711-2) asks applicants to document:
+
+- the command-and-control link type
+- the lost-link latency threshold in seconds
+- the lost-link procedure
+- navigation failure thresholds
+- contingency behavior such as hover, return, hold, land at a waypoint, or land immediately
+
+The correct response depends on the aircraft and operation.
+
+That is the transferable lesson.
+
+"Handle disconnects safely" is not a procedure. A real procedure names the signal, threshold, transition, destination state, operator role, and recovery path.
+
+## Test The Absence Of Intelligence
+
+Teams naturally test whether the AI can complete the task.
+
+Physical systems also need tests for what happens when the AI contributes nothing useful.
+
+A disconnect test matrix should include:
+
+- command channel lost before motion begins
+- connection lost during motion
+- telemetry lost while commands remain available
+- commands lost while telemetry remains available
+- delayed and reordered messages
+- duplicate commands after retries
+- stale sensor values that look syntactically valid
+- operator console disconnected
+- model timeout during a multi-device handoff
+- local controller restart
+- safety-controller fault
+- reconnection with old commands still in flight
+
+Run these tests at different machine states and loads.
+
+Observe more than whether the machine stops. Check stopping distance, residual pressure, held loads, sample integrity, temperature, alarm delivery, event ordering, and whether the operator can understand what happened.
+
+As I argued in [AI Safety Tests Need Blast-Radius Limits](/blog/ai-safety-tests-need-blast-radius-limits), realistic testing does not mean exposing the full real-world consequence during the first experiment. Use simulation, hardware-in-the-loop tests, restricted work cells, inert materials, reduced power, and staged authority before testing at full capability.
+
+## Safe State And Fail-Operational Are Different Goals
+
+Some systems can stop safely whenever intelligence disappears.
+
+Others provide essential services and must continue operating in a reduced mode.
+
+A water treatment system, hospital device, or transportation system may need to remain available while refusing new optimization commands. The correct design may be **fail-operational** rather than immediately fail-stop.
+
+For example:
+
+```txt
+normal mode
+    -> AI-assisted optimization
+
+degraded mode
+    -> deterministic local control with fixed limits
+
+safe shutdown
+    -> controlled transition if local control cannot continue
+```
+
+The AI layer should improve performance without becoming the only thing keeping the basic process stable.
+
+This is graceful degradation applied to physical systems.
+
+## Log Like A Flight Recorder
+
+After a disconnect, teams need to reconstruct both the software event and the physical sequence.
+
+Useful records include:
+
+- command IDs and leases
+- controller epochs
+- model and agent versions
+- sensor values with freshness metadata
+- safety interlock transitions
+- operator observations and stop actions
+- network health from both directions
+- the exact reason a safe state was entered
+- which subsystem authorized recovery
+
+Use monotonic clocks for local ordering where wall-clock synchronization cannot be trusted. Preserve records in a way that a failed agent cannot rewrite.
+
+The log should answer:
+
+```txt
+What did the machine know?
+What command was active?
+Which safety rule fired?
+What physical state followed?
+Who allowed operation to resume?
+```
+
+Without that evidence, every disconnect becomes an argument between network logs, model transcripts, and operator memory.
+
+## A Practical Design Checklist
+
+Before allowing an AI agent to control physical equipment, a team should be able to answer:
+
+1. What failures count as a disconnect?
+2. How quickly is each failure detected?
+3. What state is safe for each machine and process phase?
+4. Which local controller owns that transition?
+5. Do commands expire automatically?
+6. Can stale commands execute after reconnection?
+7. Are hard safety limits independent of the model?
+8. Can an operator observe and stop through a separate path?
+9. What happens if observation is lost but control still works?
+10. How does the system reconcile actual state before resuming?
+11. Have disconnects been tested under realistic load and timing?
+12. Can the event be reconstructed afterward?
+
+If the answer to "what happens when the model disappears?" is "we retry the API call," the system is not ready to touch the physical world.
+
+## Final Thought
+
+AI agents can make machines more flexible.
+
+They can translate goals into plans, coordinate equipment from different vendors, adapt experiments, and notice patterns that fixed automation misses.
+
+But physical systems should not inherit the cloud's casual relationship with timeouts.
+
+A disconnected model must become an ordinary, rehearsed system condition, not an emergency requiring the missing intelligence to solve itself.
+
+```txt
+Let the AI choose within the operating envelope.
+Let deterministic local systems own the envelope.
+```
+
+The mark of a mature AI-controlled machine will not only be what it can do while the model is available.
+
+It will be how predictably it becomes safe when the model is gone.
