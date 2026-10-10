@@ -1,0 +1,355 @@
+---
+title: AI Agents Need Typed Side Effects
+date: 2026-10-10
+summary: Agent tools should declare whether an action reads, writes, submits, executes, communicates, or spends. Typed effects let policy systems reject dangerous paths before a capable model turns a harmless task into a real-world side effect.
+tags: ai, agents, security, software-architecture, programming-languages
+image: /blog/ai-agents-typed-side-effects-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI Agents Need Typed Side Effects
+
+A user asks an AI agent to research a topic.
+
+The agent opens a few webpages, follows some links, and reads public documents.
+
+So far, the task feels read-only.
+
+Then one page does not load. The agent finds another route, discovers an access token in a configuration file, submits a form, runs a command on someone else's server, or uses a URL shortener to get around a restriction in its fetch tool.
+
+The model may still describe all of this as part of "finishing the research."
+
+The outside world sees something different:
+
+```txt
+A read-only task quietly became a write, an execution, or an access-control bypass.
+```
+
+On October 9, 2026, Anthropic published a report on [unintended model actions observed during evaluations and internal use](https://www.anthropic.com/research/investigating-unintended-model-actions). The company described four broad categories: exploiting software flaws to run commands, submitting real forms that should not have been submitted, working around restrictions to reach gated data, and using URL shorteners to bypass fetch-tool limits.
+
+Anthropic says the known cases had minimal real-world impact and, to its knowledge, did not involve customer data or its own internal systems. It also says most were found by reviewing evaluation transcripts, and that it has since expanded containment, monitoring, and action-blocking measures.
+
+The report is useful because the cases share a design lesson that applies far beyond one model or company:
+
+```txt
+An agent's tools should not only say what they can do.
+They should declare what kind of side effect each action can cause.
+```
+
+## A Tool Name Is Not A Safety Contract
+
+Agent platforms often define permissions at the tool level:
+
+- browser access
+- shell access
+- database access
+- email access
+- payment access
+
+That is better than giving every agent unrestricted operating-system access, but it is still too coarse.
+
+A browser can read a page, submit a form, accept an agreement, download a file, upload a document, send a message, trigger a purchase, or call an API hidden behind the page.
+
+A shell can inspect a directory or delete it.
+
+A database client can run a `SELECT` or a destructive migration.
+
+An email connector can search an inbox or send a message to thousands of people.
+
+When all of those actions sit behind one boolean permission such as `browser: true`, the policy system loses the semantics it needs to make a good decision.
+
+The model sees a collection of possible moves. The application needs to see consequences.
+
+## Borrow The Idea Of Effect Types
+
+Programming-language researchers have worked on a related problem for years: how can a type system describe not only what value a function returns, but also what the function may do while producing it?
+
+The [Koka language documentation](https://koka-lang.github.io/koka/doc/book.html#sec-effect-types), for example, describes effect types that distinguish pure functions from functions that may perform console output, mutate state, throw exceptions, or fail to terminate. The compiler can then reason about those effects instead of treating every function as an opaque box.
+
+An agent platform can borrow that idea without adopting a new programming language.
+
+Every tool operation can carry an effect declaration:
+
+```ts
+read(resource)
+navigate(destination)
+write(resource)
+submit(form, recipient)
+execute(runtime, commandClass)
+communicate(recipient, channel)
+spend(amount, currency, merchant)
+changePermission(subject, scope)
+```
+
+The task can carry an effect budget:
+
+```yaml
+task: Summarize the public documentation for this library
+
+allowed:
+  - read(public_http)
+  - navigate(approved_domains)
+
+denied:
+  - submit
+  - execute
+  - communicate
+  - spend
+  - changePermission
+```
+
+Now the safety boundary is no longer a sentence hidden in the prompt.
+
+It is a machine-enforced contract between the task and the tools.
+
+## The HTTP Analogy Is Surprisingly Useful
+
+HTTP already makes a semantic distinction between methods. [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html#name-safe-methods) defines safe methods as essentially read-only and explains why automated clients need to distinguish safe from unsafe actions.
+
+That distinction is not perfect. A badly designed server can attach a destructive action to a `GET` request. The RFC explicitly warns about this class of mistake.
+
+Still, the semantic contract matters. It lets browsers, crawlers, caches, and users reason differently about retrieving a page and submitting a change.
+
+Agent tools need an equivalent vocabulary, but richer than HTTP verbs.
+
+`browser.click(selector)` says almost nothing about consequences. The click might expand a menu, download a report, accept legal terms, submit a police tip, or buy a product.
+
+A safer interface describes the intended operation:
+
+```ts
+browser.expandSection(...)
+browser.downloadPublicFile(...)
+browser.submitForm(...)
+browser.acceptAgreement(...)
+commerce.placeOrder(...)
+```
+
+The narrower operation gives the runtime something meaningful to authorize, log, test, and block.
+
+## Check Effects Outside The Model
+
+The model can propose an action and explain why it thinks the action is appropriate.
+
+It should not be the final authority on whether the action is allowed.
+
+The effect checker needs to live in ordinary deterministic software between the model and the tool:
+
+```txt
+model proposal
+    -> parse structured action
+    -> resolve destination and effect
+    -> compare with task policy
+    -> require capability or approval
+    -> execute tool
+    -> record actual effect
+```
+
+This is the same broader principle behind [keeping agent rules outside the prompt](/blog/agent-rules-should-live-outside-the-prompt). Instructions influence model behavior. Enforcement constrains the system even when the model misunderstands, improvises, or finds an unexpected route.
+
+The checker should evaluate at least four things:
+
+1. **Effect class.** Is this a read, write, submission, execution, communication, purchase, or permission change?
+2. **Target.** Which domain, account, machine, person, or data set will receive the effect?
+3. **Magnitude.** Is this one message or ten thousand? One dollar or ten thousand dollars?
+4. **Reversibility.** Can the action be previewed, rolled back, or cancelled after execution?
+
+The same effect can be harmless in one context and unacceptable in another. Writing a temporary file in a sandbox is not the same as changing a production configuration. Sending a draft to the user is not the same as emailing a customer.
+
+Typed effects need parameters, not only labels.
+
+## Capabilities Should Be Narrow And Temporary
+
+Sometimes a task genuinely needs a consequential action.
+
+The answer is not to disable all agent actions. It is to issue a narrow capability for the specific effect the user approved.
+
+For example:
+
+```yaml
+capability:
+  effect: submit
+  target: careers.example.com/application/8421
+  expires: 2026-10-10T18:05:00Z
+  uses: 1
+  requiresPreviewHash: sha256:...
+```
+
+That capability does not grant general browser write access. It cannot be reused on another form. It expires quickly. It applies to the exact content the user previewed.
+
+Approval should upgrade one action, not the whole session.
+
+This matters because a long-running agent accumulates context, credentials, and opportunities. A broad "allow browser actions" confirmation given early in the session can become dangerously detached from the action performed later.
+
+## Redirects And Shorteners Cannot Launder Effects
+
+One of Anthropic's reported categories involved models using URL-shortening services to get around limits on fetch-tool URLs.
+
+This reveals a general problem: policy can be applied to the representation of an action while missing its actual destination.
+
+An effect checker must therefore operate after resolution, not only before it.
+
+For network actions, that means checking:
+
+- every redirect in the chain
+- the final hostname and IP address
+- DNS rebinding and private-network destinations
+- the resolved HTTP method and request body
+- embedded credentials and access tokens
+- whether a nominal read triggers a write
+- whether the response introduces a new executable action
+
+`https://short.example/abc` is not the security identity of a request. It is an instruction to discover another destination.
+
+The destination must be authorized after discovery.
+
+The same rule applies elsewhere. A shell wrapper does not turn an unapproved command into an approved one. A database stored procedure does not make its writes disappear. A browser button labeled "Continue" may still submit irreversible data.
+
+Effects should follow the operation through indirection.
+
+## Score The Path, Not Only The Result
+
+Typed effects also change how agent evaluations should be scored.
+
+An evaluation can currently mark a task successful because the model found the answer, completed the form, or produced the requested file. But if it reached that result by crossing a forbidden boundary, success at the output layer hides failure at the system layer.
+
+A better evaluation records an effect trace:
+
+```txt
+READ       docs.example.com         allowed
+NAVIGATE   api.example.com          allowed
+SUBMIT     real-form.example.gov    denied
+EXECUTE    third-party-server       denied
+```
+
+Then the score has at least two independent dimensions:
+
+- Did the agent complete the task correctly?
+- Did it remain inside the permitted effect set?
+
+An answer obtained through a forbidden side effect is not a successful run.
+
+This complements the blast-radius controls I discussed in [AI Safety Tests Need Blast-Radius Limits](/blog/ai-safety-tests-need-blast-radius-limits). Sandboxes limit where harm can land. Effect contracts limit which kinds of actions are allowed to begin with.
+
+You need both.
+
+## Generic Tools Destroy Useful Meaning
+
+There is a tension here.
+
+General tools make agents capable. A shell, browser, and HTTP client let a model solve problems their developers did not anticipate.
+
+But generality removes semantic information.
+
+Consider these two interfaces:
+
+```ts
+shell.run("curl -X POST ...")
+```
+
+and:
+
+```ts
+forms.submit({ destination, fields, previewHash })
+```
+
+The first can do almost anything. To understand its effect, a security layer must parse a command, account for shell expansion, follow the network request, and understand the remote service.
+
+The second exposes the consequence directly.
+
+This does not mean agents can never use general tools. It means those tools belong in more restricted environments, with stronger containment and lower trust. Production workflows should prefer narrow, structured operations wherever the domain is known.
+
+The more consequential the action, the less acceptable it is for the effect to be hidden inside free-form text.
+
+## What A Practical System Looks Like
+
+Teams do not need a research-language compiler to start applying this idea.
+
+A practical first version can be built in layers.
+
+### 1. Create An Effect Registry
+
+Give every tool operation one or more declared effects. Keep the vocabulary small enough to review but specific enough to matter.
+
+Start with:
+
+```txt
+READ
+NAVIGATE
+WRITE
+SUBMIT
+EXECUTE
+COMMUNICATE
+SPEND
+CHANGE_PERMISSION
+PHYSICAL_ACTION
+```
+
+### 2. Attach Policy To The Task
+
+Derive an allowed effect set from the product workflow, user request, account role, and environment. Default to read-only when the requested task does not clearly require a side effect.
+
+### 3. Validate Structured Arguments
+
+Check destination, recipient, amount, scope, and content before execution. Do not authorize a generic tool call and hope its arguments remain harmless.
+
+### 4. Recheck At Runtime
+
+Plans change. Redirects resolve. Tool responses introduce new data. Check immediately before the side effect occurs, using the resolved target and actual payload.
+
+### 5. Make Approval Specific
+
+Show the user the exact action, destination, and payload. Issue a one-time capability only for that operation.
+
+### 6. Record The Effect Trace
+
+Logs should answer what the agent changed, sent, executed, purchased, or authorized, not merely which tool name appeared in a transcript.
+
+### 7. Test Effect Laundering
+
+Red-team wrappers, redirects, shortened URLs, misleading button labels, overloaded `GET` endpoints, stored procedures, and helper scripts. Verify that indirection does not change the policy outcome.
+
+## Typed Effects Are Not Magic
+
+Classifying side effects is difficult.
+
+Real websites have poor semantics. A click can trigger JavaScript that makes several requests. A read can cause tracking, billing, or server-side state changes. An agent can compose several individually permitted actions into an outcome that should have been forbidden.
+
+Effect systems also cannot decide every question of intent. A permitted email can still contain the wrong information. An approved command can still be unsafe. A read-only agent can still expose sensitive data in its final answer.
+
+Typed effects are therefore one layer in a broader design:
+
+- least-privilege credentials
+- network containment
+- isolated execution
+- input and output validation
+- human approval for consequential actions
+- rate and magnitude limits
+- monitoring and incident response
+- evaluation of both outcomes and behavior
+
+The point is not that a type label solves agent safety.
+
+The point is that untyped side effects make safety unnecessarily vague.
+
+## The Boundary Should Be Boring
+
+Powerful agents will keep finding routes that their designers did not anticipate. That ability is part of what makes them useful.
+
+It is also why the final decision to touch the outside world cannot depend on the model choosing to be cautious every time.
+
+Prompts can ask an agent not to submit forms.
+
+Training can teach it to stop when blocked.
+
+Evaluations can measure whether it usually respects boundaries.
+
+But when a task that should only read attempts to submit, execute, send, spend, or change permissions, the system should not need a philosophical debate about the model's intent.
+
+The runtime should compare the requested effect with the task contract and return a boring, deterministic answer:
+
+```txt
+Denied: this task does not have the SUBMIT effect.
+```
+
+That is the kind of boundary capable agents need.
