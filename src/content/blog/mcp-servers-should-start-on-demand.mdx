@@ -1,0 +1,398 @@
+---
+title: MCP Servers Should Start on Demand
+date: 2026-10-11
+summary: An AI coding tool should not activate every configured MCP server when the IDE opens. Tools should move from configured to running to authorized only when a task needs them, then lose credentials and shut down when the work is done.
+tags: ai, mcp, developer-tools, security, software-architecture
+image: /blog/mcp-servers-on-demand-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# MCP Servers Should Start on Demand
+
+Open an IDE.
+
+Load a repository.
+
+Before you ask the AI assistant a single question, several tool servers may already be running.
+
+One can read local files.
+
+One can query a database.
+
+One can open browser pages.
+
+One can call your issue tracker.
+
+One can interact with cloud infrastructure.
+
+The developer has not requested any of those capabilities yet. They are simply awake because they were configured.
+
+That default deserves more attention.
+
+On October 10, 2026, GitHub released [new controls and chat improvements for Copilot in JetBrains IDEs](https://github.blog/changelog/2026-10-10-new-controls-and-chat-improvements-in-copilot-for-jetbrains/). Among the larger user-interface changes was a small MCP setting: users can disable automatic server startup for Copilot and Claude.
+
+It sounds like a convenience toggle.
+
+It points to a better architecture:
+
+```txt
+Configured does not have to mean running.
+Running does not have to mean authorized.
+```
+
+## Standing Capability Is Still Standing Risk
+
+An MCP server is not merely a menu item inside an AI interface.
+
+A local server can be a real process on the developer's machine. Depending on how it is built and launched, it may inherit access to:
+
+- project files
+- environment variables
+- network connections
+- local credentials
+- browser state
+- package managers
+- databases
+- cloud command-line tools
+
+A remote server may hold its own service credentials or offer a path into business systems.
+
+The [OWASP MCP Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/MCP_Security_Cheat_Sheet.html) warns that local MCP servers can run with broad host access, and recommends least privilege per server and per tool, scoped credentials, isolation, and explicit confirmation for sensitive actions.
+
+Those protections matter when a tool is used.
+
+Activation on demand adds another useful question:
+
+```txt
+Why should this capability exist in the active session before the task needs it?
+```
+
+If a database server is only needed for one debugging task, keeping it active for every chat creates standing capability without corresponding value.
+
+## Four States, Not One Checkbox
+
+Most tool interfaces flatten lifecycle into one setting:
+
+```txt
+enabled: true
+```
+
+That is too vague for a capable agent.
+
+A safer system distinguishes at least four states.
+
+### 1. Configured
+
+The host knows that a server exists. It has a command, package, remote URL, publisher identity, and expected tool manifest.
+
+Nothing is running. No credential has been issued. No tool description has entered the model context.
+
+### 2. Discoverable
+
+The host can show the server in a trusted catalog and reason about when it might be useful.
+
+Discovery metadata should be minimal and reviewable. The model does not need every server's full instructions and schemas in every conversation.
+
+### 3. Running
+
+The local process has started or the remote connection has been established. The host has verified server identity, negotiated the protocol, and checked the current tool definitions.
+
+Running still should not imply unlimited authority.
+
+### 4. Authorized
+
+The server has narrow credentials and the specific tools required for this task can be called under an explicit policy.
+
+Authorization should expire. The process or connection should be torn down when its reason for existing is gone.
+
+These states produce a more honest lifecycle:
+
+```txt
+configured
+  -> selected for this task
+  -> identity and schema verified
+  -> started in isolation
+  -> temporary access issued
+  -> tool calls enforced and logged
+  -> credentials revoked
+  -> server stopped or disconnected
+```
+
+## This Is Zero Standing Access For Agent Tools
+
+Security teams already use a related idea for privileged human access.
+
+Microsoft describes [Zero Standing Access](https://learn.microsoft.com/en-us/compliance/assurance/assurance-microsoft-365-service-engineer-access-control) as a model where service personnel do not permanently hold production access. When access is needed, a broker provides just-in-time and just-enough privileges for a limited purpose.
+
+MCP hosts can apply the same shape to tools.
+
+The server configuration can remain available without its sensitive authority remaining active.
+
+A coding task might receive:
+
+```yaml
+server: production-observability
+reason: investigate incident INC-8421
+tools:
+  - logs.search
+  - traces.read
+scope:
+  service: checkout-api
+  environment: production
+access: read-only
+expiresIn: 15m
+```
+
+The credential does not exist when the IDE opens.
+
+It is minted when the task reaches the approved investigation step, and it expires even if the agent forgets to clean up.
+
+## Local And Remote Servers Need Different Mechanics
+
+"Start on demand" is literal for a local MCP server using `stdio`.
+
+The host can launch a child process when needed, communicate through its standard input and output, and terminate it after the task. It can place that process in a sandbox with a limited filesystem view, restricted network access, and a clean environment.
+
+This is not a new systems idea. [Socket activation in systemd](https://www.freedesktop.org/software/systemd/man/252/systemd-socket-activate.html) has long allowed services to launch when a connection arrives instead of remaining fully active at all times.
+
+Remote HTTP servers are different.
+
+An IDE usually cannot decide whether a vendor's remote service process is running. But it can still avoid:
+
+- opening a connection before use
+- sending credentials before use
+- injecting tool descriptions into the model context before use
+- keeping authorization alive after use
+- accepting changed schemas without review
+
+For remote tools, "on demand" means connection and authority lifecycle, not necessarily server process lifecycle.
+
+That distinction matters. Otherwise, teams may claim to have lazy activation while a long-lived token remains available to every session.
+
+## Stateless MCP Does Not Mean No Lifecycle
+
+The current MCP architecture also needs careful language here.
+
+The official [MCP 2026-07-28 release](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/) moved the protocol core toward stateless requests. Protocol version, client identity, and capabilities can travel with each request instead of depending on one sticky protocol session.
+
+That improves scaling and removes some session infrastructure.
+
+It does not mean:
+
+- the server process has no memory
+- the tool has no credentials
+- the application holds no state
+- the client can skip identity checks
+- a configured server should run continuously
+
+Protocol state and operational lifecycle are different things.
+
+A stateless request can still invoke a process with broad filesystem access. A sessionless remote call can still use an over-scoped token. A server can still return instructions or tool schemas that affect the model.
+
+The host must manage activation and authority even when the wire protocol does not require a long-lived session.
+
+## Idle Tools Pollute Context Too
+
+The security argument is the most important, but it is not the only one.
+
+Every active server may contribute tool names, descriptions, input schemas, server instructions, and other metadata to the agent's working context.
+
+That creates three practical costs.
+
+### More Tokens
+
+Large tool catalogs consume context before the user has supplied the actual problem. Repeating unused schemas across turns increases latency and cost.
+
+### Worse Selection
+
+The more similar tools a model sees, the easier it is to choose the wrong one. A narrowly selected tool set gives the model a simpler decision surface.
+
+### Cross-Server Influence
+
+OWASP notes risks such as tool poisoning and tool shadowing, where one server's descriptions influence how the model treats another server. Keeping unrelated servers out of the session reduces that interaction surface.
+
+On-demand activation is therefore also context hygiene:
+
+```txt
+Only show the model the tools relevant to the current task.
+```
+
+## Discovery Must Not Become Execution
+
+There is one dangerous shortcut to avoid.
+
+An agent should not be allowed to search the public web for a tool, install it, start it, and grant it credentials as one uninterrupted action.
+
+I covered that supply-chain problem in [AgentBaiting: When AI Agents Install Trouble](/blog/agentbaiting-ai-agents-install-trouble). Tool discovery is useful, but discovery is not trust.
+
+An on-demand design needs a reviewed catalog containing:
+
+- verified publisher identity
+- pinned package or image digest
+- expected launch command
+- expected network destinations
+- requested filesystem paths
+- required credential scopes
+- approved tool-schema hash
+- resource limits
+- allowed projects or environments
+
+The model can select from approved capabilities. It should not silently create new trusted capabilities because a README looked convincing.
+
+## Activation Needs A Policy, Not A Guess
+
+How does the host decide which server to start?
+
+The model can propose a server based on the task, but deterministic policy should approve the activation.
+
+For example:
+
+```yaml
+taskClass: inspect-local-tests
+
+allowServers:
+  - repository-readonly
+  - test-runner-sandbox
+
+denyServers:
+  - production-database
+  - cloud-admin
+  - customer-email
+```
+
+The host can combine several signals:
+
+- the user's explicit request
+- repository policy
+- organization policy
+- data classification
+- current environment
+- server trust status
+- requested credential scope
+- action reversibility
+
+If activation introduces a sensitive capability, the system should explain what will start and why:
+
+```txt
+This task requests the production-observability server.
+It will receive read-only access to checkout-api logs for 15 minutes.
+Start server?
+```
+
+That is far more meaningful than asking the user to approve a server once during installation and treating the approval as permanent.
+
+## Credentials Should Arrive After Startup
+
+A common implementation mistake is to place long-lived secrets directly in an MCP server configuration:
+
+```json
+{
+  "env": {
+    "API_TOKEN": "long-lived-production-token"
+  }
+}
+```
+
+Now every startup creates an opportunity to expose that token. The secret may be inherited by child processes, captured in diagnostics, or accessible to a compromised dependency.
+
+A better sequence is:
+
+1. Start the server in a restricted environment.
+2. Verify its identity and current schema.
+3. Request a task-scoped credential from a broker.
+4. Bind the credential to narrow tools, resources, and duration.
+5. Deliver it through a secure channel.
+6. Revoke it when the task ends.
+
+The server should be able to start without receiving its maximum authority.
+
+That makes startup a verification stage rather than an instant privilege grant.
+
+## Teardown Is Part Of Correctness
+
+Starting on demand is only half the lifecycle.
+
+A system also needs a reliable answer to: when does the server stop?
+
+Useful teardown triggers include:
+
+- the task completes
+- the user closes the conversation
+- the IDE changes workspace
+- the agent becomes idle for a defined period
+- the credential expires
+- the server schema changes
+- policy is updated
+- suspicious behavior is detected
+
+Teardown should revoke credentials first, then stop the process or connection, then verify that child processes and temporary resources are gone.
+
+A graceful shutdown timeout is useful, but security-sensitive tools also need a forced termination path.
+
+For long-running work, the task can renew access explicitly. Silent indefinite renewal recreates standing access under another name.
+
+## Warm Performance Without Warm Authority
+
+The strongest argument for automatic startup is latency.
+
+Developers do not want to wait several seconds every time an agent needs a common tool.
+
+There are ways to preserve responsiveness without leaving every capability fully authorized:
+
+- cache reviewed discovery metadata
+- prefetch signed packages without executing them
+- keep an isolated process warm without credentials
+- maintain a small pool for low-risk read-only tools
+- activate likely tools after the user chooses a task mode
+- use short idle timers for frequently reused servers
+
+The important separation is:
+
+```txt
+Warm process != warm privilege
+```
+
+A server can be ready to answer without holding a production token. A tool schema can be cached without being injected into every conversation. Performance optimization should not erase lifecycle boundaries.
+
+## A Practical Checklist
+
+For teams building an MCP host, coding assistant, or internal agent platform:
+
+- Keep configured servers stopped or disconnected by default.
+- Maintain a trusted catalog with pinned identities and schemas.
+- Select only the servers relevant to the current task.
+- Start local servers inside a restricted execution boundary.
+- Connect to remote servers only when needed.
+- Issue short-lived, task-scoped credentials after verification.
+- Expose only approved tools to the model.
+- Require specific confirmation for sensitive activation.
+- Log server start, schema, credential scope, calls, and teardown.
+- Revoke authority before stopping the server.
+- Kill orphaned child processes and clear temporary data.
+- Re-review any server whose code or tool definitions change.
+
+This lifecycle works well with the typed action controls in [AI Agents Need Typed Side Effects](/blog/ai-agents-need-typed-side-effects). On-demand activation answers which capability should be present. Typed effects answer which operations that capability may perform.
+
+They solve different layers of the same problem.
+
+## Tools Should Sleep Until Needed
+
+MCP makes AI systems useful because it turns a model into a participant in real software environments.
+
+That power should not become background noise.
+
+An IDE does not need every database, browser, cloud account, ticket system, and local utility awake simply because a configuration file lists them.
+
+The safer default is straightforward:
+
+```txt
+Know which tools are available.
+Start only the one the task needs.
+Give it only the authority the task needs.
+Take that authority away when the task ends.
+```
+
+The best tool lifecycle is not permanently on.
+
+It is deliberately temporary.
