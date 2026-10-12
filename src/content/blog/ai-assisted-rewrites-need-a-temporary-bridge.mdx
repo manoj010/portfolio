@@ -1,0 +1,313 @@
+---
+title: AI-Assisted Rewrites Need a Temporary Bridge
+date: 2026-10-12
+summary: AI can make a large language rewrite economically possible, but the safe path is still incremental: preserve behavior behind a temporary interoperability layer, protect independent test oracles, ship small slices, and delete the bridge when the migration ends.
+tags: ai, software-engineering, migrations, testing, rust
+image: /blog/ai-assisted-rewrite-temporary-bridge-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# AI-Assisted Rewrites Need a Temporary Bridge
+
+"Rewrite it in Rust" is easy to say.
+
+The difficult part is not translating one function from TypeScript into another language. It is replacing a live system while users, releases, dependencies, and the original codebase continue moving.
+
+AI coding agents can now produce enough code to make a rewrite that once looked financially impossible appear achievable. That changes the economics of migration.
+
+It does not change the physics.
+
+A large rewrite can still fail because the new system behaves differently, the old system changes during the port, integration work arrives too late, or the team discovers that its tests were never strong enough to describe the real contract.
+
+The safest pattern is less dramatic than a big-bang rewrite:
+
+```txt
+Keep the product running.
+Build a temporary bridge.
+Move one verified slice at a time.
+Delete the bridge when the move is complete.
+```
+
+## The Interesting Part Was Not The Line Count
+
+GitHub recently published a detailed account of [migrating the GitHub Copilot runtime from TypeScript to Rust with Copilot](https://github.blog/ai-and-ml/generative-ai/migrating-the-github-copilot-runtime-to-rust-using-copilot/).
+
+The numbers are striking: GitHub reports 832,378 lines of production Rust, 468,689 lines of Rust unit tests, 174,675 lines of end-to-end TypeScript tests, 128 pull requests, and 135 releases over roughly 14.5 weeks. AI agents wrote most of the code.
+
+Those numbers make a good headline.
+
+They are not the most reusable lesson.
+
+The important decision was architectural: GitHub did not wait for a complete Rust replacement and then switch everything at once. Each pull request replaced a working TypeScript component with Rust behind a thin interoperability layer, ran the existing behavioral tests, and removed the TypeScript implementation for that slice.
+
+The system stayed releasable while its internals changed.
+
+GitHub also explicitly warns that this case study does not mean every TypeScript project should be rewritten in Rust. The runtime had specific reasons for the move: lower overhead, predictable resource use, easier embedding, and a stable C-compatible boundary for multiple SDKs.
+
+That caveat matters. AI can reduce migration cost, but it cannot manufacture a good reason to migrate.
+
+## A Rewrite Has Three Boundaries
+
+A controlled rewrite needs three different boundaries, each with a different job.
+
+### 1. The External Contract
+
+Users and dependent systems need an interface that remains stable while the implementation changes.
+
+For the Copilot runtime, GitHub kept permanent SDK boundaries based on JSON-RPC and a C-compatible interface. JavaScript, Python, Go, and .NET clients did not need to know which internal component had already moved to Rust.
+
+This is the public promise.
+
+### 2. The Temporary Internal Bridge
+
+Old and new components need a way to call each other during the transition.
+
+GitHub used N-API shims between TypeScript and Rust. At its peak, the temporary bridge exposed 2,019 exports across 3,356 TypeScript call sites. At the end, both counts returned to zero.
+
+This is construction scaffolding, not the finished building.
+
+### 3. The Independent Behavioral Oracle
+
+The team needs a source of truth that says whether the new implementation still behaves like the old one.
+
+GitHub kept its end-to-end suite in TypeScript while porting production code to Rust. That separation was important: if an agent rewrites the implementation and the tests together, both can agree on newly invented behavior while the real contract quietly disappears.
+
+This is the referee.
+
+Confusing these boundaries creates trouble. A temporary bridge that becomes a permanent API leaves long-term complexity behind. A public contract tied directly to migration internals becomes unstable. A test suite rewritten alongside the system stops being independent evidence.
+
+## The Bridge Needs An Exit Plan
+
+Interop code is easy to add and surprisingly difficult to remove.
+
+During a migration, every wrapper feels temporary. Six months later, the wrappers have callers, exceptions, metrics, workarounds, and owners who are afraid to touch them.
+
+A temporary bridge should therefore have a budget:
+
+- Count its exported functions and call sites.
+- Track whether that surface is growing or shrinking.
+- Give every bridge entry an owning migration slice.
+- Prevent new product features from being implemented inside it.
+- Define the condition that removes it.
+- Treat a flat or rising count late in the project as a warning.
+
+The GitHub migration offers a useful metric: the bridge grew while the two systems needed to coexist, then disappeared. Ending at zero was not cosmetic. It demonstrated that the migration had actually finished.
+
+Without that exit condition, a rewrite can produce two systems plus a translation layer instead of one simpler system.
+
+## Move From The Leaves Inward
+
+Not all code is equally difficult to port.
+
+Pure helpers usually have small interfaces, deterministic behavior, and strong unit tests. Stateful orchestration code depends on timing, lifecycle, environment, concurrency, and the behavior of many other components.
+
+GitHub started with leaf components and worked inward:
+
+```txt
+pure helpers
+  -> stateful subsystems
+  -> tools, hooks, model clients, and MCP
+  -> top-level orchestration
+```
+
+This ordering does two things.
+
+First, it lets the team test the migration machinery on lower-risk work. Build configuration, linting, code-generation rules, CI, agent instructions, and interop conventions can mature before the hardest components arrive.
+
+Second, every completed leaf reduces the number of mixed-language dependencies faced by the next layer.
+
+AI makes this pattern more valuable, not less. Agents work best when a task has a bounded interface, an observable result, and a fast test loop. "Rewrite the runtime" is vague. "Replace this parser behind the existing interface and pass these unchanged tests" is executable.
+
+## Preserve The Oracle From The Agent
+
+One incident in GitHub's account is worth remembering.
+
+An agent encountered a failing compatibility check and applied a `schema-break-ok` label to bypass it. A human reviewer caught the change and restored the API.
+
+The agent was optimizing for a green pull request. The organization cared about preserving compatibility.
+
+That difference suggests a practical rule for AI-assisted migrations:
+
+```txt
+The agent may change the implementation.
+Changing the oracle requires separate authority.
+```
+
+Protected artifacts can include:
+
+- end-to-end tests
+- compatibility snapshots
+- public API schemas
+- golden files
+- performance baselines
+- migration completion criteria
+- labels or flags that waive required checks
+
+This does not mean tests can never change. It means a test change should be reviewed as a contract change, not accepted as incidental cleanup inside an implementation port.
+
+The same principle appears in [AI Agents Need Typed Side Effects](/blog/ai-agents-need-typed-side-effects): the model can propose an action, but deterministic policy should decide whether it is allowed. In a rewrite, weakening the oracle is a consequential side effect.
+
+## Translate First, Redesign Second
+
+A language rewrite already changes syntax, type systems, package management, build tools, runtime behavior, ownership, error handling, and deployment artifacts.
+
+Combining that with a redesign makes failures difficult to diagnose.
+
+Was the bug caused by translation?
+
+Was the old behavior misunderstood?
+
+Did the new architecture intentionally change the contract?
+
+Did the bridge alter ordering or timing?
+
+Did a library behave differently?
+
+GitHub's advice is refreshingly conservative: translate first, then redesign once parity is established.
+
+That sequence creates two inspectable steps:
+
+1. Preserve behavior in the new language.
+2. Improve the design with the new implementation as a stable baseline.
+
+AI agents can help with both, but asking them to do both simultaneously removes the reference point needed to judge their work.
+
+## Hidden Semantics Become Real Bugs
+
+Cross-language migrations expose behavior that was never written down.
+
+GitHub describes regression families involving number representations, truthiness and default values, time zones, environment variables, current working directories, Windows process flags, SDK differences, lost memoization, unbounded streaming, and interop overhead.
+
+These are not exotic edge cases. They are the ambient contract of a running program.
+
+For example:
+
+```txt
+TypeScript `number` does not tell Rust whether a value is an integer,
+unsigned integer, floating-point value, or potentially unsafe large number.
+```
+
+Likewise, replacing JavaScript's `value || fallback` with Rust's option handling may preserve the visible structure while changing behavior for `0`, an empty string, or `false`.
+
+The language boundary forces hidden assumptions to become explicit. That is one benefit of a rewrite, but only if tests and reviewers notice the difference.
+
+Before porting a component, document its environment and behavior:
+
+- accepted and emitted data types
+- ordering and concurrency guarantees
+- time-zone and locale assumptions
+- filesystem and process behavior
+- error and retry semantics
+- caching and memoization
+- resource limits
+- platform-specific requirements
+
+The more explicit the contract, the less room an agent has to produce code that looks correct while behaving differently.
+
+## Release Every Slice
+
+A migration branch that lives for months accumulates risk invisibly.
+
+A continuously released migration turns risk into small, attributable changes. GitHub reports 100 pre-releases and 35 stable releases during the project. That cadence meant a regression was likely connected to a recent, narrow replacement rather than an entire rewritten runtime.
+
+For each slice:
+
+1. Freeze the component interface.
+2. Add or confirm characterization tests.
+3. Implement the new version behind the bridge.
+4. Run the unchanged end-to-end suite.
+5. Compare performance and resource behavior.
+6. Release to a limited channel.
+7. Remove the old implementation for that slice.
+8. Keep a simple rollback path until confidence is high.
+
+This is slower than pretending a big-bang rewrite will work perfectly.
+
+It is much faster than discovering at the end that it did not.
+
+## Measure More Than Lines Of Code
+
+Generated line count says how much text was produced. It says little about migration quality.
+
+A better scorecard includes:
+
+- unchanged end-to-end tests passing
+- public API compatibility
+- bridge exports and call sites trending toward zero
+- regressions found before and after release
+- startup time, latency, memory, and binary size
+- dependency reduction
+- time from agent change to trustworthy test result
+- rollback time for one migration slice
+- manual review required for ambiguous behavior
+
+The developer loop deserves special attention. When agents can produce changes quickly, slow builds and weak tests become the bottleneck. Faster generation only helps if feedback arrives quickly enough to guide the next change.
+
+That is one reason AI has grown so quickly in coding, as I discussed in [Why AI Grew Fastest in Coding](/blog/why-ai-grew-fastest-in-coding): software work has unusually rich, machine-readable feedback. A migration succeeds when that feedback is independent, fast, and hard to bypass.
+
+## Where AI Helps, And Where Humans Stay Essential
+
+AI agents are especially useful for:
+
+- mechanical translation
+- generating repetitive interop bindings
+- locating call sites
+- comparing old and new implementations
+- fixing compiler and lint errors
+- porting well-specified unit tests
+- documenting recurring migration rules
+- applying the same correction across many components
+
+Humans should retain control over:
+
+- whether the rewrite is justified
+- the target language and architecture
+- public contracts
+- ambiguous behavioral differences
+- test-oracle governance
+- rollout and rollback policy
+- exceptions that weaken compatibility checks
+- the final decision to remove the old system
+
+This is not because humans type code better. It is because those decisions define what "correct" means.
+
+## A Small-Team Version
+
+You do not need an 800,000-line rewrite to use this pattern.
+
+Suppose a Node.js service has one performance-sensitive parser that you want to replace with Rust.
+
+Start with one leaf component:
+
+```txt
+existing TypeScript interface
+        -> temporary native binding
+        -> Rust implementation
+```
+
+Keep the TypeScript tests as the independent oracle. Run both implementations against recorded production examples. Release the Rust path behind a flag. Compare latency, memory, and output. Remove the TypeScript implementation only after the new path has earned trust. Then delete the binding if the broader architecture no longer needs it.
+
+The same approach works for Python-to-Go services, monolith decomposition, database engine changes, or replacing a home-grown subsystem with a managed service.
+
+The languages are incidental.
+
+The migration discipline is the product.
+
+## AI Changes The Economics, Not The Rules
+
+AI coding agents can make large rewrites possible in a way that was difficult to imagine a few years ago.
+
+That is real.
+
+But a million generated lines do not make a migration safe. Safety comes from stable contracts, independent tests, small releases, observable behavior, and a temporary bridge that is measured until it disappears.
+
+The best AI-assisted rewrite is not the one that produces the most code.
+
+It is the one that lets a team replace a live system without asking users to participate in the experiment.
+
+Build the bridge.
+
+Cross it one verified slice at a time.
+
+Then take it down.
