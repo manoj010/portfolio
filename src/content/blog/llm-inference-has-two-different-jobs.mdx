@@ -1,0 +1,449 @@
+---
+title: LLM Inference Has Two Different Jobs
+date: 2026-10-14
+summary: A language-model request hides two different workloads: prefill processes the prompt and builds the KV cache, while decode generates tokens one at a time. Separating them can reduce interference and scale each phase independently, but only when cache transfer is fast enough.
+tags: ai, llm, inference, distributed-systems, performance
+image: /blog/llm-prefill-decode-disaggregation-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+# LLM Inference Has Two Different Jobs
+
+Send a prompt to a language model and the API makes the work look simple:
+
+```txt
+request in
+response out
+```
+
+Inside the inference system, however, one request creates two very different jobs.
+
+The first job reads the prompt, processes many input tokens, and builds the state needed to continue.
+
+The second job produces the answer one token at a time.
+
+They use the same model weights.
+
+They do not stress the hardware in the same way.
+
+That difference is becoming important enough that large serving systems increasingly separate them onto different workers:
+
+```txt
+PREFILL -> transfer KV cache -> DECODE
+```
+
+To the application, it can remain one familiar chat-completions endpoint.
+
+To the infrastructure, it becomes a distributed pipeline.
+
+## The Fresh Signal
+
+On October 12, 2026, AWS published a practical guide to [running multi-node LLM inference with separate prefill and decode workers](https://aws.amazon.com/blogs/machine-learning/run-multi-node-inference-workloads-using-ray-llm-deep-learning-containers/).
+
+Its example runs one model across two GPU nodes on Amazon EKS. A Ray Serve endpoint receives an ordinary OpenAI-compatible request, routes the prompt to a prefill worker, transfers the resulting key-value cache over a high-bandwidth connection, and continues generation on a decode worker.
+
+AWS presents the setup as a deployable pattern, not as proof that every model should be split across two machines. The example also makes the central tradeoff clear: moving the KV cache between workers must be fast enough that network transfer does not erase the benefit of separation.
+
+That is the interesting engineering problem.
+
+Disaggregation can remove one kind of interference by introducing a new distributed-systems boundary.
+
+## Job One: Prefill Understands The Prompt
+
+When a model receives a prompt, it does not immediately begin emitting the answer.
+
+It first runs the input tokens through the transformer layers. This phase is called **prefill**.
+
+During prefill, the model can process many prompt tokens in parallel. It performs large matrix operations and creates attention state for each layer.
+
+That state becomes the key-value cache, usually shortened to **KV cache**.
+
+The KV cache lets later tokens attend to the conversation history without recomputing the entire prompt from the beginning after every generated token.
+
+A rough mental model is:
+
+```txt
+prompt tokens
+    -> parallel model computation
+    -> KV cache
+```
+
+Longer prompts create more prefill work.
+
+A short chat message may be cheap. A retrieval-augmented request containing many documents, a large codebase context, or a long agent history can create a substantial burst of computation before the user sees the first output token.
+
+That is why prefill has a strong effect on **time to first token**.
+
+## Job Two: Decode Writes The Answer
+
+After prefill, the model begins **decode**.
+
+Decode generates one token, appends its new keys and values to the cache, then generates the next token.
+
+```txt
+KV cache + latest token
+    -> next token
+    -> extended KV cache
+    -> next token
+    -> ...
+```
+
+The work is sequential along the token dimension. Token 103 depends on the state produced through token 102.
+
+At common interactive batch sizes, decode often spends much of its time reading model weights and KV-cache data from memory for a relatively small amount of arithmetic per step. That makes memory bandwidth and efficient batching especially important.
+
+Decode strongly affects:
+
+- inter-token latency
+- tokens per second
+- streaming smoothness
+- the number of concurrent responses a worker can sustain
+
+Users experience prefill as waiting for the answer to start.
+
+They experience decode as how quickly the answer continues.
+
+Those are different latency objectives.
+
+## One GPU Has To Switch Personalities
+
+In a conventional deployment, the same GPU handles both phases.
+
+That is simple and often completely reasonable.
+
+The problem appears under mixed load.
+
+Imagine one worker is steadily decoding responses for several users. Then a new request arrives with a 100,000-token prompt. Its prefill phase creates a large burst of parallel computation.
+
+The scheduler now has two competing goals:
+
+```txt
+finish the heavy new prompt quickly
+keep existing token streams responsive
+```
+
+If prefill occupies the worker for too long, active decodes can stall. If the scheduler repeatedly interrupts prefill to protect decode latency, the new request waits longer for its first token.
+
+Continuous batching and chunked prefill can reduce the conflict. They do not make the phases identical.
+
+The serving engine is still mixing bursty prompt ingestion with steady token generation on the same resources.
+
+## Disaggregation Separates The Interference
+
+Prefill/decode disaggregation assigns the phases to different worker pools.
+
+```txt
+                 +----------------+
+request -------->| prefill worker |
+                 +----------------+
+                          |
+                          | KV cache
+                          v
+                 +----------------+
+stream <---------| decode worker  |
+                 +----------------+
+```
+
+The prefill pool can be optimized for prompt throughput and time to first token.
+
+The decode pool can be optimized for memory bandwidth, batching, and smooth token streaming.
+
+More importantly, the pools can scale independently.
+
+If traffic shifts toward long prompts, add prefill capacity.
+
+If traffic shifts toward long answers or many simultaneous users, add decode capacity.
+
+That is more precise than scaling identical replicas that each carry enough capacity for both jobs.
+
+## The KV Cache Becomes A Network Payload
+
+Separation creates a handoff.
+
+The prefill worker must send the KV cache to the decode worker before generation can continue.
+
+This is not a tiny request identifier. The cache can be large, especially for:
+
+- long contexts
+- many transformer layers
+- large attention dimensions
+- models with many key-value heads
+- higher-precision cache formats
+- larger batches
+
+Its size is architecture-dependent, but it generally grows with sequence length and the model's retained attention state.
+
+That produces a simple inequality:
+
+```txt
+benefit from specialization and reduced interference
+must exceed
+cache-transfer latency and coordination overhead
+```
+
+If the link is slow, decode sits idle while the cache crosses the network.
+
+If the link is unreliable, one logical inference request now spans a partial-failure boundary.
+
+If routing sends the request to a distant decode worker, topology can dominate the result.
+
+The network is no longer background plumbing. It is part of the token path.
+
+## Fast Hardware Is Not Enough
+
+AWS's example uses NIXL to move the KV cache and Elastic Fabric Adapter with a `libfabric` backend for high-bandwidth node-to-node communication.
+
+One operational detail in the guide is particularly revealing: NIXL can fall back to a slower TCP path without raising an obvious application error. The endpoint still works, but the transport may no longer deliver the performance the architecture assumes.
+
+That is a classic systems failure mode:
+
+```txt
+correct result
+wrong data path
+quietly bad performance
+```
+
+Production systems need to verify the actual transport, not merely the intended configuration.
+
+Useful checks include:
+
+- negotiated transfer backend
+- cache bytes transferred per request
+- transfer latency and throughput
+- sender and receiver queue time
+- node and availability-zone placement
+- retries and failed handoffs
+- time the decode worker waits for cache arrival
+
+A green health endpoint cannot prove the fast path is active.
+
+## Different Phases Can Use Different Hardware
+
+Once prefill and decode are separate services, they do not necessarily need identical machines.
+
+Prefill may benefit from hardware with strong compute throughput for large matrix operations.
+
+Decode may benefit more from memory capacity, memory bandwidth, efficient low-batch kernels, and cache management.
+
+That opens the door to heterogeneous serving:
+
+```txt
+compute-oriented prefill pool
+memory-oriented decode pool
+```
+
+The idea is attractive, but hardware specialization increases operational complexity:
+
+- model weights must be available in both pools
+- numerical behavior must remain compatible
+- cache formats must match
+- kernels and runtimes need compatible versions
+- capacity planning must account for two bottlenecks
+- failures require cross-pool recovery
+
+Saving accelerator cost on paper does not help if the system becomes fragile or keeps one pool idle.
+
+Measure utilization for the pipeline, not only each machine.
+
+## Long Context Makes The Split More Interesting
+
+Disaggregation is especially relevant for workloads with large or highly variable prompts:
+
+- retrieval-augmented generation
+- document summarization
+- codebase analysis
+- long-running agents
+- multi-document research
+- conversations with large tool histories
+
+These workloads can create substantial prefill bursts while their generated answers remain moderate in length.
+
+An interactive chatbot with short prompts and short responses may see little benefit. A research agent that repeatedly sends large context windows can create a very different traffic shape.
+
+This connects to [Prompt Caching Is Part of AI Architecture](/blog/prompt-caching-is-part-of-ai-architecture). Caching can avoid repeating some prefill work when prefixes are stable. Disaggregation changes where the remaining prefill work runs. The techniques can complement each other, but neither removes the need to understand the actual prompt distribution.
+
+## One Endpoint Hides A Distributed System
+
+AWS's example keeps an OpenAI-compatible API in front of the two workers.
+
+That is useful for application developers. Existing clients do not need a separate prefill endpoint and decode endpoint.
+
+The stable interface also hides new failure modes:
+
+- prefill succeeds but cache transfer fails
+- decode worker disappears after accepting the cache
+- a retry repeats expensive prefill work
+- the client disconnects while two workers remain occupied
+- backpressure builds in only one phase
+- a model rollout changes cache compatibility
+- one pool scales faster than the other
+
+The gateway or scheduler needs an inference-level state machine:
+
+```txt
+accepted
+  -> prefill queued
+  -> prefill complete
+  -> cache transferring
+  -> decode assigned
+  -> streaming
+  -> complete
+```
+
+That state should be observable even though the public API remains simple.
+
+## Scale The Bottleneck, Not The Endpoint
+
+Traditional autoscaling often watches request count, CPU, or GPU utilization for a single service.
+
+A disaggregated system needs phase-specific signals.
+
+For the prefill pool:
+
+- queued prompt tokens
+- time to first token
+- prompt tokens processed per second
+- prefill batch efficiency
+- cache bytes produced
+
+For the decode pool:
+
+- active sequences
+- output tokens per second
+- inter-token latency
+- KV-cache occupancy
+- memory bandwidth utilization
+
+For the handoff:
+
+- transfer queue depth
+- bytes per second
+- transfer latency percentiles
+- failed or retried transfers
+- locality between paired workers
+
+Scaling on total requests can miss the real pressure. Ten long-context requests may overload prefill while a hundred short conversations overload decode.
+
+The unit of demand is not always a request.
+
+Sometimes it is prompt tokens, output tokens, cache bytes, or active sequences.
+
+## Capacity Ratios Matter
+
+Suppose a deployment has too much prefill capacity and too little decode capacity.
+
+Prompts are processed quickly, then completed caches queue for a decode worker. Time to first token may still rise because the pipeline stalls after prefill.
+
+Reverse the ratio and decode workers sit idle while prompts wait upstream.
+
+The correct balance depends on workload shape:
+
+```txt
+average and tail prompt length
+average and tail output length
+arrival pattern
+latency objective
+batching behavior
+model architecture
+hardware characteristics
+```
+
+Agent workloads make this less predictable. One step may send a tiny tool result and request a short decision. The next may attach a large repository snapshot and ask for a long implementation.
+
+Capacity planning therefore needs distributions, not one average request.
+
+## Disaggregation Is Not Automatically Faster
+
+The phrase "separate the phases" can sound like a free optimization.
+
+It is not.
+
+Disaggregation adds:
+
+- another network transfer
+- more model replicas and weight memory
+- routing and placement logic
+- cross-worker failure handling
+- more complicated rollouts
+- more metrics and queues
+- stricter runtime compatibility
+- possible security exposure for cache data in transit
+
+For small models, modest traffic, short prompts, or slow interconnects, a well-tuned single-worker deployment may be faster, cheaper, and easier to operate.
+
+Even the common shorthand needs care. Prefill is often described as compute-bound and decode as memory-bandwidth-bound, but the exact bottleneck changes with batch size, context length, model architecture, quantization, kernels, and hardware.
+
+Treat the distinction as a strong starting model, then benchmark the real system.
+
+## What Teams Should Benchmark
+
+Do not evaluate only aggregate tokens per second.
+
+Measure the user-visible and phase-level behavior separately:
+
+| Metric | What It Reveals |
+| --- | --- |
+| Time to first token | Prompt ingestion and queueing experience |
+| Inter-token latency | Streaming smoothness during decode |
+| Prompt tokens per second | Prefill throughput |
+| Output tokens per second | Decode throughput |
+| KV transfer time | Cost of the new network boundary |
+| Cache bytes per request | Pressure created by context length |
+| Queue time by phase | Which worker pool is undersized |
+| Goodput at latency SLO | Useful capacity, not benchmark peak |
+| Cost per completed request | Whether specialization pays financially |
+| Failure and retry rate | Reliability cost of the split |
+
+Test multiple traffic mixes:
+
+- short prompt, short answer
+- long prompt, short answer
+- short prompt, long answer
+- long prompt, long answer
+- bursty arrivals
+- many concurrent streams
+- realistic retrieval and agent traces
+
+A single synthetic prompt cannot tell you whether disaggregation fits production.
+
+## A Practical Adoption Path
+
+Teams do not need to begin with separate clusters and exotic hardware.
+
+A cautious path is:
+
+1. Instrument prefill, decode, and queue time in the current serving stack.
+2. Capture real prompt and output length distributions.
+3. Identify whether prefill bursts are damaging active decode latency.
+4. Enable chunked prefill and tune continuous batching first.
+5. Benchmark KV-cache transfer on the actual interconnect.
+6. Run a disaggregated canary with the same model and traffic trace.
+7. Compare latency SLO goodput and cost, not only peak throughput.
+8. Add phase-specific autoscaling and failure telemetry.
+9. Verify the fast transfer backend continuously.
+10. Keep a simpler colocated path for fallback where practical.
+
+This avoids adopting a complicated architecture before proving that phase interference is the bottleneck.
+
+## The API Is Simple Because The Infrastructure Is Not
+
+LLM APIs hide extraordinary machinery behind a small JSON request.
+
+Prefill/decode disaggregation is another example of that abstraction becoming more sophisticated.
+
+The client still sends a prompt and receives a stream.
+
+Behind the endpoint, one worker may process the context, another may generate the answer, a high-speed fabric may move gigabytes of cache state, and a scheduler may continuously rebalance two different forms of demand.
+
+That complexity is justified only when it improves the metric users actually feel.
+
+Not peak FLOPS.
+
+Not a diagram with more boxes.
+
+But faster first tokens, smoother generation, better throughput under mixed load, and lower cost per useful response.
+
+One inference request looks like one job.
+
+At scale, it is often two.
