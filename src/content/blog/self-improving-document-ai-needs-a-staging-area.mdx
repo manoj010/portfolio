@@ -1,0 +1,247 @@
+---
+title: Self-Improving Document AI Needs a Staging Area
+date: 2026-10-15
+summary: A document AI system should not turn one successful correction into production behavior. New extraction instructions need representative tests, shadow traffic, canary promotion, versioning, and rollback before they become shared memory.
+tags: ai, document-processing, agents, testing, software-architecture
+image: /blog/self-improving-document-ai-staging-social.png
+imageWidth: 1672
+imageHeight: 941
+---
+
+Imagine a document-processing agent receives an invoice from a new supplier.
+
+The layout is unfamiliar. The purchase order number appears inside a sentence. The SKU has a vendor-specific prefix. The total is split between two tables.
+
+The agent extracts the fields, fails validation, studies the mistake, writes a better instruction, retries the document, and succeeds.
+
+Then it saves that instruction for every future invoice.
+
+That looks like learning.
+
+It may also be one successful overfit promoted directly to production.
+
+## The Interesting Part Is Not the Correction
+
+On October 14, AWS published a reference architecture for [self-improving document processing with Amazon Bedrock AgentCore](https://aws.amazon.com/blogs/machine-learning/build-self-improving-document-processing-using-amazon-bedrock-agentcore/). Its agents can identify a new document format, generate extraction instructions, validate the result, refine failed instructions, and save successful ones for later documents.
+
+That is a useful pattern because document extraction is rarely static. Suppliers redesign invoices, institutions change forms, and fields move between tables, headers, and free text.
+
+The architecture also makes an important distinction. When a known format produces a bad result, the troubleshooting path repairs the extracted data for that document. It does not automatically rewrite the shared instruction. A new format, meanwhile, can enter a separate instruction-building workflow.
+
+That separation points to a larger engineering rule:
+
+> Fixing one output and changing future behavior are different operations.
+
+A correction repairs the current record. Learning creates a candidate change. Deployment decides whether that change should affect everyone else.
+
+Those steps should not collapse into one button.
+
+## A Learned Rule Is Executable Configuration
+
+An extraction instruction may look like ordinary prose:
+
+```text
+If the SKU appears without a prefix, add "AB-" before validation.
+```
+
+But inside an agentic system, this sentence behaves like code. It changes how future inputs are interpreted. It can improve thousands of documents, corrupt thousands of documents, or silently work for one supplier while damaging another.
+
+The risk is easy to miss because the artifact is natural language rather than TypeScript or Python.
+
+Operationally, however, it has the same properties as a software release:
+
+- It has a previous version.
+- It was created in response to a failure.
+- It depends on a model and a prompt.
+- It has an intended scope.
+- It needs tests.
+- It can regress.
+- It must be reversible.
+
+So a self-improving document system needs more than memory. It needs a staging area.
+
+## One Passing Document Proves Almost Nothing
+
+The most dangerous test set contains exactly one document: the document that caused the rule to be written.
+
+If an agent sees an invoice, invents a rule from that invoice, and validates the rule on the same invoice, the result is not strong evidence of generalization. It is the document-processing equivalent of writing a function and testing only the input used while debugging it.
+
+For a candidate instruction, a better progression is:
+
+```text
+observed failure
+    -> candidate instruction vN+1
+    -> isolated replay
+    -> representative holdout set
+    -> shadow traffic
+    -> canary release
+    -> production
+    -> monitoring and rollback
+```
+
+AWS recommends starting with roughly 5-10 representative documents for each type, including edge cases. The exact number is not universal, but the principle matters: test the format, not merely the example.
+
+A useful evaluation set might include:
+
+- Several documents from the same sender across different dates
+- Optional and missing fields
+- Multi-page and single-page versions
+- Scanned images and digital PDFs
+- Different currencies, tax structures, and date formats
+- Rows that wrap across lines or pages
+- Similar documents that should *not* use the new instruction
+- Historical examples that passed under the previous version
+
+The last two categories catch the failures that a happy-path replay cannot.
+
+## Validation Needs More Than Model Confidence
+
+An LLM saying "this extraction looks correct" is not enough.
+
+Document workflows often contain deterministic facts that can act as partial oracles:
+
+- Required fields must exist.
+- Invoice totals must reconcile with line items and tax.
+- Dates must be valid and occur in a reasonable order.
+- Purchase order numbers must exist in the purchasing system.
+- SKUs must match a catalog.
+- Currency must agree with the supplier contract.
+- Bank account changes may require manual approval.
+
+These checks are valuable precisely because they do not share the model's reasoning process.
+
+But validators are not truth machines either. A catalog may be stale. A supplier may introduce a legitimate new SKU. A tax rule may have changed. A schema can confirm that a field is shaped correctly while the value is still wrong.
+
+The right conclusion is not "validation solved it." It is "multiple independent checks reduce the space of silent failure."
+
+## The Staging Record
+
+Every generated instruction should become a versioned candidate with enough context to explain where it came from.
+
+At minimum, record:
+
+- Document type and sender or tenant scope
+- Parent instruction version
+- Candidate instruction text
+- Triggering failure and corrected output
+- Model, prompt, and tool versions used to create it
+- Training examples and holdout examples
+- Validator versions and pass/fail results
+- Field-level accuracy and business-rule metrics
+- Creator, reviewer, status, and timestamps
+- Promotion and rollback history
+
+This turns "the agent learned something" into an inspectable event.
+
+Without that record, a future failure becomes archaeology. The team can see that behavior changed, but not which document taught the system, which model authored the rule, or why it was approved.
+
+## Similar Is Not the Same
+
+Many adaptive document systems retrieve instructions by comparing a new document with previously seen layouts. That is efficient, but similarity introduces a subtle failure mode.
+
+Two invoices can look nearly identical while using different meanings for the same field position. Two subsidiaries may share a template but use different account codes. A malicious document may imitate a trusted format closely enough to retrieve privileged instructions.
+
+The matcher therefore needs more than a nearest neighbor:
+
+- A minimum confidence threshold
+- Sender and tenant boundaries
+- Document-type constraints
+- An explicit unknown-format outcome
+- A margin between the best and second-best match
+- Monitoring for false matches after deployment
+
+Abstaining is a feature. If the system cannot confidently identify the format, it should enter the new-format path or request review instead of borrowing the closest rule and hoping.
+
+## Shadow Mode Before Authority
+
+Once a candidate passes offline tests, it can process live documents in shadow mode.
+
+The production instruction still controls the actual output. The candidate runs beside it, and the system compares:
+
+- Field-level differences
+- Validator results
+- Manual corrections
+- Processing time and cost
+- Unknown or low-confidence rates
+
+Shadow mode reveals real distribution changes without allowing the candidate to change business data.
+
+If the candidate remains healthy, promote it to a canary: perhaps one supplier, one tenant, or a small percentage of matching documents. Expand only after the results remain stable.
+
+This is slower than immediately saving every successful instruction. It is also much faster than finding a systematic extraction error after payments, claims, or inventory records have already moved downstream.
+
+## Rollback Must Be Boring
+
+A self-improving system should never overwrite its only working instruction.
+
+Promotion should create a new immutable version and keep the previous version ready. If validator failures, correction rates, or business exceptions increase, rollback should be a routine operation rather than an emergency prompt-engineering session.
+
+The same applies when the underlying model changes. An instruction tuned around one model's behavior may behave differently with another model, even when the words are identical. Model upgrades should trigger reevaluation of the instruction set before broad deployment.
+
+Version the whole behavior bundle:
+
+```text
+document classifier
++ similarity matcher
++ extraction instruction
++ model version
++ validation rules
++ tool configuration
+= releasable document-processing behavior
+```
+
+Changing any component can change the result.
+
+## Documents Are Also Untrusted Input
+
+There is a second reason to isolate learning.
+
+Business documents contain text supplied by outside parties. If that text can influence the instructions later stored as system memory, the learning loop can become a persistence mechanism for prompt injection.
+
+An invoice line that says "ignore prior rules" should remain invoice data. It must not gain authority merely because an agent was asked to study why extraction failed.
+
+The candidate-generation step should use structured observations, constrained tools, scoped permissions, and clear separation between document content and system instructions. I explored this boundary more directly in [AI Agents Must Treat Business Data as Untrusted Input](/blog/ai-agents-must-treat-business-data-as-untrusted-input).
+
+The broader lesson also connects to [Agent Rules Should Live Outside the Prompt](/blog/agent-rules-should-live-outside-the-prompt): durable behavior needs versioning, ownership, and review outside a growing block of prompt text.
+
+## What to Measure
+
+A system that claims to improve should be able to show improvement.
+
+Useful metrics include:
+
+- Exact field accuracy by document type
+- Amount-weighted error for financial fields
+- Business-validator pass rate
+- Manual correction rate
+- Unknown-format rate
+- False format-match rate
+- Straight-through processing rate
+- Cost and latency per document
+- Candidate rejection rate
+- Canary rollback count
+- Performance by instruction and model version
+
+Aggregate accuracy can hide expensive mistakes. Misreading a description is not equivalent to misreading a bank account or a six-figure total. Metrics should reflect business consequence, not only field count.
+
+Human review should follow the same principle. Low-risk catalog metadata may tolerate automated promotion after strong tests. Payment instructions, insurance claims, identity records, and compliance documents deserve a higher gate.
+
+## Self-Improvement Is a Release Pipeline
+
+The attractive story is that an agent encounters a new format, learns it, and becomes smarter forever.
+
+The reliable story is less magical:
+
+1. The system observes a failure.
+2. It proposes a narrowly scoped candidate instruction.
+3. Independent validators test the result.
+4. A representative holdout set checks generalization.
+5. Shadow traffic exposes real-world differences.
+6. A canary limits the blast radius.
+7. Monitoring decides whether to expand or roll back.
+
+That is still self-improvement. It is simply self-improvement with evidence.
+
+The most capable document AI will not be the system that rewrites itself fastest. It will be the system that can learn continuously without confusing one corrected example for a universal rule.
+
+Before new memory becomes production behavior, give it somewhere safe to be wrong.
