@@ -1,0 +1,117 @@
+---
+title: Robots Sharing a Floor Need More Than a Common API
+date: 2026-10-16
+summary: Robot interoperability is more than making devices speak the same protocol. Mixed fleets also need task coordination, facility integrations, safety boundaries, and a practical plan for legacy systems and vendor lock-in.
+tags: robotics, physical-ai, interoperability, software-architecture, automation
+image: /blog/robots-sharing-floor-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# Robots Sharing a Floor Need More Than a Common API
+
+Picture a warehouse with three mobile robots from three vendors. One carries a pallet. One is heading to a charging station. The third has been sent to the same narrow aisle.
+
+Each robot can navigate. Each has a fleet manager. Each can report its own status.
+
+But who decides which one gets the aisle, whether the elevator is available, or what happens when the warehouse system changes the priority of the pallet?
+
+That is the difference between robots that can communicate and a facility that can coordinate them.
+
+![Three different robot fleets connected through an orchestration layer to warehouse systems, doors, and elevators](/blog/robots-sharing-floor-social.png)
+
+## The New Conversation Around Physical AI
+
+Recent reporting on physical AI has brought robot interoperability back into focus. Experts interviewed by TechTarget describe integration between vendors as difficult and time-consuming, while also disagreeing about whether interoperability standards are the main obstacle to wider adoption. Legacy infrastructure, available expertise, and the cost of changing workplace layouts may matter just as much for some organizations. That disagreement is useful: there is no single bottleneck for every site. ([TechTarget's report](https://www.techtarget.com/ai/news/366652129/Robots-cant-talk-to-each-other-yet-thats-a-big-AI-bottleneck))
+
+The engineering problem is real even when the headline varies. A robot is not deployed into an empty benchmark environment. It enters a building full of other machines, people, doors, elevators, software systems, and operating rules.
+
+## A Protocol Is One Layer
+
+Standards help make vendor systems less isolated. VDA 5050, for example, defines an interface for exchanging orders and status information between mobile robots and a fleet control system. Version 3.0.0 was published in March 2026. It provides a shared contract for a defined class of logistics robots and control software; it does not turn every robot into an interchangeable device. ([VDA 5050 Version 3.0](https://www.vda.de/dam/jcr:09f03b91-13e2-4db3-bf30-4f221710071b/VDA5050_EN.pdf))
+
+The MassRobotics AMR Interoperability Standard focuses on sharing information such as location, speed, direction, health, and availability. Its own description is explicit that the standard is not a navigation, fleet-management, or safety system. ([MassRobotics AMR Interoperability Standard](https://www.massrobotics.org/what-is-the-massrobotics-amr-interoperability-standard/))
+
+That boundary matters. A common message format can tell a system that a robot is waiting near an elevator. It does not, by itself, decide who should use the elevator next, reserve the space, coordinate the doors, or prove that the robot can safely carry out the assigned task.
+
+It helps to think in layers:
+
+1. **Communication:** Can systems exchange a shared set of messages and understand their fields?
+2. **Coordination:** Can a system assign work and manage shared routes, stations, and time windows?
+3. **Facility integration:** Can robots interact with doors, elevators, warehouse software, access controls, and people?
+4. **Safety and operations:** Are there independent safety mechanisms, clear procedures, and a recovery plan when communication or equipment fails?
+
+Each layer can work while the layer above it still fails.
+
+## Coordination Needs a View of the Whole Site
+
+Suppose a robot reports that it is at the entrance to an elevator. The building-management system knows the elevator is reserved for a human passenger. A second fleet manager has already assigned another robot to that lift. The warehouse-management system has just changed which pallet is urgent.
+
+No individual robot has all of that context.
+
+An orchestration layer can connect fleet managers to one another and to shared infrastructure. Open-RMF is one example: it describes a framework for interoperability across multiple robot fleets and physical infrastructure such as doors, elevators, and building-management systems. ([Open-RMF](https://www.open-rmf.org/))
+
+This layer is where a site can express rules that are bigger than one manufacturer's fleet: which jobs have priority, which resources need reservations, which areas are restricted, and how conflicts should be resolved. The exact capabilities depend on the software and integrations in use; adopting a middleware framework does not automatically configure a safe or efficient operation.
+
+The architecture often looks more like this than a direct robot-to-robot conversation:
+
+```text
+Vendor fleet A -- adapter --+
+Vendor fleet B -- adapter --+--> orchestration --> doors, elevators, WMS, site rules
+Vendor fleet C -- adapter --+
+```
+
+Adapters translate each vendor's interface. The orchestration service makes site-level decisions. Facility systems expose resources and constraints. Safety systems remain an explicit part of the design, rather than a side effect of connecting the APIs.
+
+## Shared Maps Are Not Shared Meaning
+
+Even when two systems exchange valid messages, they may disagree about what those messages mean.
+
+- Is a location the robot's center, its front edge, or a map waypoint?
+- Are distances expressed in meters or another unit?
+- Does "available" mean ready for a job, or merely powered on?
+- Can this model use a lift, carry a certain load, or pass through a narrow zone?
+- Does a route describe an exact path or a destination the robot may navigate toward itself?
+
+Standards reduce ambiguity by defining fields and expected behavior, but implementations still need conformance testing and site-specific mapping. The VDA 5050 specification, for example, includes explicit robot capabilities and error behavior. A fleet controller can use those details to avoid sending an unsupported action, but it still needs to handle the error and choose what the operation should do next.
+
+This is why integration is often measured in site-specific work, not just API calls. Teams need to test real floor plans, traffic patterns, payloads, map versions, access rules, and failure conditions.
+
+## Interoperability Does Not Replace Safety
+
+A software coordinator may prevent two fleets from intentionally booking the same resource. It cannot be treated as the only protection against a collision or unsafe movement.
+
+The system still needs the appropriate onboard sensing, stop behavior, safety-rated controls, human procedures, and operational monitoring for its environment. The standard's scope must be understood before anyone assumes a successful connection means the robots are safe to operate together.
+
+This distinction echoes a broader lesson from [AI-Controlled Machines Need a Safe Disconnect State](/blog/ai-controlled-machines-need-a-safe-disconnect-state): an AI or orchestration layer can make decisions, but essential safety behavior needs its own defined boundary and response when that layer is unavailable.
+
+## The Vendor Choice Can Become Sticky
+
+An orchestration layer can make it easier to mix vendors, but the layer itself can become the new dependency. Integrations accumulate. Site maps and business rules get encoded. Operators train around its workflows. Replacing it may become harder than replacing an individual robot.
+
+That is not a reason to avoid orchestration. It is a reason to ask how portable the configuration and data are, who owns the adapters, and what happens if the orchestration product is replaced or goes offline.
+
+Before a pilot expands, teams should ask:
+
+- Which exact standards and versions does each robot support?
+- Can we inspect and test the adapter behavior?
+- Who owns map conversion, task priorities, and shared-resource rules?
+- What continues locally if the central coordinator or network is unavailable?
+- How do robots yield to people and manual operations?
+- Can the system replay incidents and explain why a task was assigned?
+- How can we export configurations and migrate away from a vendor?
+- Does the pilot account for site redesign, training, and ongoing support?
+
+These questions also connect to [Robotaxi Safety Is Fleet Operations](/blog/robotaxi-safety-is-fleet-operations), where safe behavior depends on the operation around autonomous vehicles as well as the vehicle itself. A factory or warehouse has different machines and constraints, but the systems view is similar.
+
+## Start With One Workflow, Not a Robot Count
+
+The value of a mixed fleet is not the number of models in the building. It is whether the site can complete a useful workflow reliably.
+
+Choose one path: move a tote from receiving to inspection, bring a pallet to a packing line, or restock a shelf. Map every system involved, including people and facility equipment. Then measure completion time, blocked routes, manual interventions, recovery behavior, and the cost of maintaining the integration.
+
+That pilot will show whether the real obstacle is a missing protocol, poor facility integration, an outdated warehouse system, insufficient staff expertise, or a workflow that should be redesigned first.
+
+Physical AI will bring more autonomous machines into shared environments. The hard part will be making them participate in one operation, with clear responsibilities when plans collide or systems fail.
+
+A common API is a good beginning. The facility still needs a traffic controller, a map of its own rules, and a safe way to keep working when the connection goes quiet.
