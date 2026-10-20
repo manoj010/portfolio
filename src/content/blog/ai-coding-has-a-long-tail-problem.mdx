@@ -1,0 +1,90 @@
+---
+title: AI Coding Has a Long-Tail Problem
+date: 2026-10-20
+summary: Coding models are getting better, but their strengths still cluster around popular languages. A new evaluation focused on COBOL, Fortran, and other less-represented languages raises a deeper question: can AI help modernize old software without changing what it means?
+tags: ai, software-engineering, cobol, programming-languages, legacy-systems
+image: /blog/ai-coding-long-tail-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# AI Coding Has a Long-Tail Problem
+
+Ask an AI coding assistant for a Python function and you are standing on a very well-lit path.
+
+There are tutorials, libraries, examples, questions, answers, and millions of public repositories nearby. The model has seen a lot of the neighborhood.
+
+Ask it to modify a decades-old COBOL batch program, an established Fortran simulation, or a Visual Basic application with sparse documentation, and the path gets much darker.
+
+That difference matters because software does not disappear just because its language stops trending. Some of the systems that keep banks, public services, scientific workloads, and businesses running were written in languages that are not fashionable, but remain economically important.
+
+On October 19, OpenAI published new results focused on coding in less-represented programming languages. The announcement is interesting not because AI has suddenly solved legacy modernization, but because it puts a spotlight on a blind spot in the usual story about AI coding: progress is not evenly distributed across the software people still depend on.
+
+![A diagram showing AI coding tools extending beyond popular languages to the long tail of legacy software, with behavior tests guarding a COBOL-to-modern-language migration](/blog/ai-coding-long-tail-social.png)
+
+## What “Low-Resource” Means Here
+
+In this context, low-resource does not mean a language is inherently obscure, poorly designed, or unimportant. It means there is less material available for a model to learn from compared with languages such as Python or JavaScript: fewer public code examples, tutorials, discussions, and up-to-date documentation.
+
+That scarcity creates a practical gap. A model may know the syntax and still misunderstand a project’s conventions, a rarely used library, or a behavior that exists only because an old system has accumulated years of exceptions.
+
+The harder challenge is often not writing a new line of code. It is making a change without disturbing everything the existing program already does.
+
+## Two Different Tests
+
+OpenAI described two evaluations, each probing a different coding capability.
+
+Its [MultiLangBench evaluation](https://github.com/openai/MultiLangBench) asks a model to build a SQLite-compatible database engine in one of 20 languages. Tests check whether the resulting database has the expected contents. That makes the task more demanding than producing a short code snippet: the model has to create a working program, manage state and errors, and keep functionality intact across an extended task.
+
+The second evaluation focuses on migrating COBOL programs into languages such as Java, Python, or Rust. Here, a translation that looks reasonable is not enough. The model has to preserve observable behavior, including details that might look odd to a modern developer but encode a real business rule.
+
+Consider arithmetic. COBOL fixed-point operations can discard excess decimal digits unless rounding is explicitly requested. If a migration silently rounds instead, the new program may compile, pass ordinary smoke tests, and still produce different financial results.
+
+This is the central lesson of legacy migration: **the specification is not just the documentation. It is also the behavior people have come to rely on.**
+
+## The Numbers Need Their Footnotes
+
+OpenAI reports large improvements on both evaluations, including stronger pass rates across its 20-language benchmark and high accuracy on its COBOL migration test. These are results from the company’s own models and its own evaluation setup, not independent proof that an arbitrary production system can now be migrated automatically.
+
+That distinction is not a reason to dismiss the work. It is a reason to read the numbers at the right scale.
+
+The MultiLangBench repository makes its test design inspectable and explains that the benchmark is based on a converted subset of SQLite’s Tcl test suite. That is useful evidence about the tasks being measured. But one benchmark, even a demanding one, cannot represent every codebase, compiler, dependency, data format, operational constraint, or undocumented business rule in the wild.
+
+Likewise, a high score on a migration evaluation means the model performed well on that evaluation’s programs and tests. It does not mean a team should point an agent at a core banking system and accept its rewrite without review. The announcement itself notes that real deployments still require expert review and testing against business rules and dependencies.
+
+## What A Safer Modernization Workflow Looks Like
+
+AI can still make this work meaningfully less painful. A disciplined workflow might use it to map unfamiliar code, explain data flows, identify edge cases, draft a translation, and propose tests. Then the team can compare the old and new programs against the same inputs, preserve observable outputs, and bring domain experts in where the behavior is unclear.
+
+The valuable artifact is not just the translated code. It is the evidence around the translation:
+
+```txt
+legacy program
+  -> behavior inventory
+  -> characterization tests
+  -> proposed migration
+  -> differential testing
+  -> domain-expert review
+  -> controlled rollout
+```
+
+Differential testing is especially helpful: run both implementations against the same representative inputs and compare results. It does not prove that the old system is correct, but it can reveal when the migration has changed behavior. Teams can then decide whether a strange edge case is an accidental bug to fix or a rule the business still depends on.
+
+## Progress Should Include The Languages We Inherited
+
+AI coding has often been discussed through the languages and repositories where models already perform well. That can make the future of software look newer and cleaner than it really is.
+
+The real world is full of systems with long histories, mixed documentation, scarce specialists, and behavior that is difficult to reconstruct. Better support for less-represented languages could help engineers understand and maintain those systems, and could widen who benefits from AI coding tools.
+
+But capability claims should be paired with reproducible tasks, clear tests, migration evidence, and human responsibility for the result. A benchmark can show a direction of progress. It cannot certify your payroll run, your bank’s ledger, or your weather model.
+
+The goal should not be to replace every old system with shiny new code. It should be to give the people who maintain those systems better tools, while making sure the new version still means what the old one meant.
+
+That is a less glamorous promise than “AI writes all software.” It is also much closer to the work software teams actually need done.
+
+For a broader look at why coding became such fertile ground for AI tools, see [Why AI Grew So Fast in Coding](/blog/why-ai-grew-fastest-in-coding).
+
+## Sources
+
+- [OpenAI: Advancing Coding in Low-Resource Programming Languages](https://openai.com/index/low-resource-programming-languages/)
+- [OpenAI’s MultiLangBench evaluation repository](https://github.com/openai/MultiLangBench)
