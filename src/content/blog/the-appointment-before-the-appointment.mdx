@@ -1,0 +1,98 @@
+---
+title: The Appointment Before the Appointment
+date: 2026-10-21
+summary: A recent study of Google’s AMIE explored a narrow but promising role for clinical AI: gathering a patient’s story before a visit, then handing a concise summary to a physician. The results are early, supervised, and useful precisely because they do not claim to replace the clinician.
+tags: ai, healthcare, clinical-ai, patient-care, human-ai-collaboration
+image: /blog/appointment-before-appointment-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# The Appointment Before the Appointment
+
+The loudest question about AI in healthcare is usually: *Can it diagnose better than a doctor?*
+
+There is another question that may be more useful in the near term:
+
+**Can it help a doctor arrive at the conversation better prepared?**
+
+That is the idea behind a recent study of AMIE, Google’s conversational medical AI. Instead of handing the system the final decision, researchers tested it in the space before an appointment: a patient describes what is going on, the AI asks follow-up questions, and the clinician receives a summary to review before meeting them.
+
+On October 20, Google published an interview about this workflow. The underlying feasibility study, conducted with Beth Israel Deaconess Medical Center, was published in *The Lancet* on October 8. It offers a glimpse of a practical role for clinical AI, but not proof that AI can safely practice medicine on its own.
+
+![A clinical AI pre-visit workflow: a patient shares their story, AI prepares a reviewable summary, and a clinician uses it to begin a more informed conversation](/blog/appointment-before-appointment-social.png)
+
+## Start With The Part That Steals Conversation Time
+
+A medical visit has limited time. Before a doctor and patient can discuss options, the clinician often needs to gather the basic story: what hurts, when it started, what makes it better or worse, and what else may be relevant.
+
+That information-gathering is important. But it can consume time that might otherwise go toward explaining uncertainty, understanding a patient’s concerns, and making a plan together.
+
+AMIE was tested as a pre-visit conversation. It asked patients about their symptoms and history, followed up on details, and created a summary and a set of possible diagnoses for the clinician to consider. Patients could complete the text interaction before their scheduled appointment, and the clinician could review the transcript and summary.
+
+That design is meaningfully different from a chatbot that tells someone what condition they have and what to do next. The AI contributes a draft of the story; the clinician still has the patient, the medical record, and responsibility for the encounter.
+
+```txt
+Patient describes the problem
+          ↓
+AI asks follow-up questions and organizes details
+          ↓
+Clinician reviews the summary and checks it with the patient
+          ↓
+Patient and clinician discuss what happens next
+```
+
+## What The Study Found
+
+The prospective study took place at one academic primary-care practice in Boston. One hundred adults completed an AMIE text conversation before an urgent-care appointment; 98 completed both the AI interaction and the subsequent physician visit. A physician supervised every AI conversation in real time, and no conversation had to be stopped under the study’s predefined safety criteria.
+
+The research team also compared AMIE’s possible diagnoses with diagnoses established through later chart review. The final diagnosis appeared somewhere in AMIE’s list of seven possibilities in 90% of cases, and in its top three in 75%.
+
+Those figures can sound like a diagnostic contest result. They are not. The study was designed to examine feasibility, safety, conversation quality, and experience in a real clinic workflow. It was not a randomized trial showing that AI improves health outcomes, replaces a physician, or reduces the total time or cost of care.
+
+Google’s October 20 interview says clinicians reported that the summaries helped them prepare in many cases and influenced their approach to care. That is a useful signal about workflow fit, but it is based on clinicians’ assessments in this study, not a controlled estimate of how much better patients did because of the tool.
+
+## The Handoff Is The Product
+
+For a workflow like this, the most important output may not be the model’s diagnosis list. It may be the handoff.
+
+A useful summary should help a clinician see what the patient said, what the AI inferred, and what still needs checking. It should make uncertainty visible rather than smoothing it away. And the patient should be able to correct the record before a tentative interpretation becomes part of the conversation.
+
+That suggests a better design target than “AI gets the diagnosis right”:
+
+```txt
+good clinical handoff
+  = faithful patient story
+  + clear separation of facts and inference
+  + visible uncertainty
+  + easy correction
+  + clinician review
+```
+
+If a system compresses a patient’s story but drops a crucial detail, the polished summary can make the mistake harder to notice. If it adds a plausible but unspoken assumption, a busy clinician may treat that assumption as history. A safe workflow therefore needs traceability back to what the patient actually said, not only a fluent paragraph.
+
+There is also a human question: patients must know they are speaking with AI, understand how their health information is handled, and have a usable alternative. A text-first system may work well for some people and poorly for others. Language, disability, age, internet access, comfort sharing sensitive details, and the ability to describe symptoms in writing all affect who benefits.
+
+## Why “No Safety Stops” Is Encouraging, Not The Finish Line
+
+The study’s live physician supervision is part of the result. Researchers had an established escalation path and a person watching for predefined safety concerns. The absence of a safety stop in that setup does not show that an unsupervised version would be equally safe.
+
+The study was also conducted at one site with a limited group of patients and a specific kind of visit. Larger and more diverse studies are needed to understand how the workflow performs across clinics, languages, conditions, and patients with more complex needs. Most importantly, researchers need to measure outcomes that matter to patients: whether the handoff improves understanding, reduces missed information, changes care appropriately, and avoids introducing new errors or burdens.
+
+The researchers themselves describe this as early feasibility work. That restraint is worth keeping. A successful pilot can show that a workflow is possible and acceptable enough to study further. It cannot settle how the workflow will behave at scale.
+
+## A More Grounded Vision For Clinical AI
+
+AI does not have to replace a clinician to make a meaningful difference. It may help collect information, structure a conversation, and give a care team a head start. The human value is not simply “more minutes.” It is using those minutes for listening, context, judgment, and shared decisions.
+
+The right boundary is clear: AI can help prepare the visit, but it should not silently become the visit. Its account of a patient is a draft, not the patient. Its suggestions are inputs, not orders. And its usefulness should be measured by what happens to care, not only by how convincing its answers sound.
+
+That is a less dramatic promise than an AI doctor. It may also be a much better place to begin.
+
+For more on the operational safeguards healthcare AI needs, see [A BAA Is Not a Security Architecture](/blog/baa-is-not-a-security-architecture).
+
+## Sources
+
+- [Google: How AI can help doctors spend more time on collaborative care](https://blog.google/innovation-and-ai/models-and-research/google-research/amie-clinical-study/)
+- [The Lancet: Conversational diagnostic AI in an ambulatory primary-care clinic](https://www.sciencedirect.com/science/article/pii/S0140673626015357)
+- [Study preprint and methods](https://arxiv.org/abs/2603.08448)
