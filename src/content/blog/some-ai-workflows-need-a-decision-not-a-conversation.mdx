@@ -1,0 +1,132 @@
+---
+title: Some AI Workflows Need A Decision, Not A Conversation
+date: 2026-10-23
+summary: OpenAI's Decisions API turns bounded questions into typed answers an application can act on. The interesting shift is not simply faster inference; it is designing AI around a small, testable decision instead of asking a general model to narrate every step.
+tags: ai, api-design, software-engineering, llm, product-development
+image: /blog/ai-decisions-api-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# Some AI Workflows Need A Decision, Not A Conversation
+
+Many applications do not need an AI to write an essay.
+
+They need it to answer one narrow question:
+
+```text
+Does this support ticket need a billing specialist?
+Which queue should receive this request?
+Should this borderline case go to a human reviewer?
+```
+
+For years, developers often sent those jobs through a general-purpose text-generation endpoint, asked for a constrained response, then parsed the answer and hoped the format held.
+
+OpenAI's Decisions API, which became generally available on October 22, is designed specifically for that category. It accepts context and developer-defined questions, then returns a probability, a choice from a fixed set, or a score against an ordered rubric.
+
+The change is subtle but useful: the model is no longer being asked to keep a conversation going. It is being asked to produce a small, typed result for the surrounding software to evaluate.
+
+![Diagram showing text, image, and JSON context flowing into predicate, choice, or score outputs, then to an application action with a human-review gate](/blog/ai-decisions-api-social.png)
+
+## The Fresh Signal
+
+OpenAI says the Decisions API is built with GPT-6 Luna and focuses the model on questions with bounded answers. The company claims responses can be up to 10 times faster than GPT-6 Luna through the Responses API. That is a vendor comparison, not a guarantee for every workload; your own latency will depend on request size, region, network, caching, and what you compare.
+
+The API currently supports three answer types:
+
+| Type | What it returns | Example |
+| --- | --- | --- |
+| Predicate | A probability that a condition is true | Is this receipt visibly damaged? |
+| Choice | One option from a predefined set | Route this message to billing, support, or sales |
+| Score | A rating against ordered levels | Rate urgency from low to high using a rubric |
+
+The [official guide](https://developers.openai.com/api/docs/guides/decisions) documents text, image, and structured JSON inputs, as well as the dedicated `POST /v1/decisions` endpoint. As of launch, GPT-6 Luna is the only supported model. This is a specialized API surface, not a model-agnostic standard.
+
+## Why A Dedicated Decision Shape Helps
+
+Imagine a support system that receives a customer message and must decide where it goes next.
+
+A free-form prompt might ask a model to explain the issue and recommend a team. The application then has to extract the team name from prose. The model may return "Billing," "Accounts," or a paragraph that mentions both.
+
+A bounded choice instead defines the allowed outcomes up front:
+
+```text
+Choose exactly one:
+- billing
+- technical_support
+- sales
+- human_review
+```
+
+The application receives a value it can validate against its own options. That does not make the model's judgment correct. It does make the interface clearer: the application knows what shape to expect, and the model has fewer ways to answer outside the task.
+
+The same structure fits visual inspection, moderation queues, document routing, prioritization, and agent control flow. Instead of generating a plan in every case, the model can answer a bounded question such as "continue, retry, or ask for clarification?" The software still decides what those outputs are allowed to trigger.
+
+## Typed Output Is Not Trusted Output
+
+The word *decision* can sound more authoritative than it should.
+
+A structured result is easier to consume. It is not proof that the judgment is right, fair, or calibrated. A probability of 0.9 is not automatically a 90% success rate on your production traffic. A fixed choice can still be the wrong choice. A score can inherit bias from a poorly written rubric.
+
+OpenAI's guide recommends evaluating with labeled examples and setting thresholds according to the cost of false positives and false negatives. That is the right mental model. Collect representative cases, measure where the API is wrong, and decide when uncertainty should send work to a person.
+
+For example:
+
+```text
+high-confidence routine request -> route automatically
+ambiguous request              -> ask a follow-up question
+high-impact or low-confidence  -> send for human review
+```
+
+The thresholds should come from your own evaluation, not from a confidence field that merely looks precise.
+
+## Separate The Decision From The Action
+
+The API returns an answer. Your application performs the action.
+
+That separation is important. A classification should not quietly become permission to refund an order, close an account, or change a medical record. Give the model a narrow question, validate its output, apply deterministic policy, and require confirmation where the consequence warrants it.
+
+This is close to the principle in [AI Agents Need Typed Side Effects](/blog/ai-agents-need-typed-side-effects): define what an automated system may change, and keep consequential effects behind explicit boundaries. A typed answer can make the boundary easier to implement, but it does not replace the boundary.
+
+## When It Fits
+
+The Decisions API is most interesting when all of these are true:
+
+- The task repeats frequently.
+- The acceptable answers are limited or can be described in a clear rubric.
+- The result drives a concrete next step in software.
+- Speed or predictable output shape matters.
+- You can test the decision against examples from the real workflow.
+
+It is less appropriate when the task needs a nuanced explanation, open-ended synthesis, a long-form response, or a tool call with complex arguments. OpenAI's documentation distinguishes Decisions from the Responses API with Structured Outputs: use the former for a predicate, fixed choice, or rubric score; use the latter when you need a richer generated object or explanation.
+
+That distinction is useful even if you use another provider. Choose the interface that matches the job, rather than making every AI feature pretend to be a chat.
+
+## A Small Evaluation Loop
+
+Before wiring a decision into production:
+
+1. Write the question so two engineers would interpret it the same way.
+2. Define allowed answers and what each one means.
+3. Build a labeled test set with ordinary, ambiguous, and adversarial examples.
+4. Measure errors by category, not only one overall accuracy number.
+5. Set a human-review threshold based on the cost of mistakes.
+6. Log the input reference, decision, model/version, and action taken, while minimizing sensitive data retention.
+7. Re-test after changing the question, rubric, model, or workflow.
+
+Keep the first task narrow. OpenAI recommends beginning with one recurring decision and checking it on examples from the application before expanding to more questions or more actions.
+
+## The Takeaway
+
+The Decisions API is a sign that AI infrastructure is making room for something between a classifier and a conversational model: a general model asked to make a constrained judgment, exposed through an application-friendly contract.
+
+That can make common workflow decisions faster to integrate and easier to validate. It does not remove the need for calibration, testing, policy, or human review.
+
+```text
+Constrain the question.
+Measure the answer.
+Keep control of the action.
+```
+
+Not every AI feature needs a conversation. Sometimes the better interface is simply a decision your software can inspect.
+
