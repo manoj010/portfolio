@@ -1,0 +1,84 @@
+---
+title: AI Subscriptions Need Usage Receipts
+date: 2026-10-26
+summary: Moonshot apologized after Kimi K3.1 Pro subscribers reported rate limits and unexpectedly fast quota use. The episode points to a basic product rule for agentic AI: if one request can trigger many hidden model calls, customers need a clear account of what used their allowance.
+tags: ai, subscriptions, agents, product-design, transparency
+image: /blog/ai-subscriptions-need-usage-receipts-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# AI Subscriptions Need Usage Receipts
+
+An AI subscription can say “monthly usage included.” The hard question is what, exactly, counts as usage.
+
+That question became concrete after the launch of Moonshot AI's Kimi K3.1 Pro. On October 26, Moonshot apologized for rate limits and unnecessary quota consumption affecting subscribers. It offered active subscribers a one-time reset of 25% of their monthly allowance, which the company described as about a week of use, and said it was reducing unnecessary subagent calls and output length. ([Reuters reported the announcement](https://www.reuters.com/world/asia-pacific/moonshot-resets-subscriber-quotas-after-kimi-k31-pro-launch-issues-2026-10-26/); [Kimi's post](https://x.com/Kimi_Moonshot/status/2114450610724708492))
+
+The reset is a useful short-term remedy. The deeper product issue is visibility: the user may send one request, while an agentic system plans, delegates subtasks, retries, and produces intermediate work behind the scenes. If those internal steps consume a shared quota, the customer should not have to guess where the allowance went.
+
+## One Prompt Can Hide A Lot Of Work
+
+For a simple chatbot, the relationship can feel direct:
+
+```text
+Your question → one answer
+```
+
+An agent can be more like:
+
+```text
+Your request
+  → planning
+  → one or more subagents
+  → tool calls and retries
+  → intermediate summaries
+  → final answer
+```
+
+That architecture can be useful. Delegating independent subtasks may help a system work through a complicated request. But it also means a single visible prompt does not necessarily correspond to a single unit of computation. Moonshot's own explanation specifically linked its fix to reducing unnecessary subagent calls and output length.
+
+This is not evidence that every Kimi request fanned out into a particular number of agents, or that the same pattern explains every subscriber's experience. The public explanation is narrower: the company acknowledged quota consumption and rate-limiting problems, and said it was changing configuration to reduce avoidable work.
+
+## Quota And Rate Limits Are Different
+
+Two problems can feel similar from the user's side:
+
+- **Rate limiting** means requests are restricted over a short period, often because service capacity is constrained.
+- **Quota consumption** means an account's allowance is being used up over its billing period.
+
+When both happen together, the user can be blocked now and still lose allowance for work that felt incomplete or inefficient. A clear service should explain both: what is unavailable at this moment, and what has been deducted from the longer-term balance.
+
+An across-the-board quota reset is a tangible response. It restores some value without requiring every user to prove their individual case. But a reset is a one-time correction, not a replacement for making the meter understandable.
+
+## What A Usage Receipt Should Show
+
+AI products do not need to expose private reasoning traces or every internal model detail to be transparent about billing. They can still give users a useful, privacy-conscious receipt:
+
+- The task or session that consumed the allowance.
+- The amount charged, in a unit that the plan defines clearly.
+- Whether tool use, retries, or delegated work contributed to the total.
+- Whether the task completed, failed, or was interrupted by a service limit.
+- The remaining balance and when it resets.
+- A way to report a disputed or obviously abnormal charge.
+
+For a multi-agent system, a simple category breakdown may be enough: main model, delegated work, tools, and retries. The goal is not to turn every subscription into an accounting dashboard. It is to let a customer distinguish “I used the service heavily” from “the system did extra work I could not see.”
+
+Providers should also set internal guardrails. A task budget can limit how much an agent spends on delegation and retries. A stop condition can prevent repeated calls that are no longer helping. A service can return a useful partial result when a budget is reached instead of failing silently. These controls make quota a product boundary the system understands, not just a number displayed after the fact.
+
+## Fair Plans Need Plain-Language Units
+
+“Unlimited” is often a poor fit for a service whose compute demand varies with task length and system design. A bounded plan can be fair, provided its limits are described in terms customers can understand and its usage meter behaves predictably.
+
+If a plan is based on credits, the product should explain what changes the credit cost. If it uses message or task caps, it should clarify how long tasks, retries, or agent delegation are counted. If capacity varies by time, the service should distinguish temporary throttling from the monthly allowance.
+
+These are not demands for a fixed price regardless of how much work a customer asks an AI to do. They are requests for a legible exchange: what the plan includes, how the system uses it, and what happens when the service cannot deliver.
+
+This is related to the engineering question in [AI Cost Is Per Task, Not Per Token](/blog/ai-cost-is-per-task-not-per-token), but the customer-facing lesson is different. A provider may optimize cost per completed task internally; subscribers still need to know why their own allowance changed and whether the task actually completed.
+
+## Trust Is Part Of The Meter
+
+Moonshot's apology and partial quota restoration acknowledge a simple reality: people judge an AI product by the service they receive, not just by the model's benchmark score. If the interface promises useful work but the quota disappears into hidden overhead, even a capable model can feel unreliable.
+
+Agentic AI makes that gap easier to create because more of the work happens out of view. It also gives providers a clear opportunity: make the usage boundary visible, set sensible limits on delegated work, and give customers a fair remedy when the service falls short.
+
+The best AI subscription is not necessarily the one with the biggest number of credits. It is the one where the customer can tell what they paid for, what they received, and what happened when something went wrong.
