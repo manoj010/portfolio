@@ -1,0 +1,67 @@
+---
+title: AI Safety Needs a Public Scorecard
+date: 2026-10-31
+summary: New safeguards matter, but a policy announcement is not evidence that a deployed AI system prevents harm. OpenAI's planned Community Safety Report is a chance to make safety claims easier to inspect, compare, and improve.
+tags: ai, safety, transparency, product-design, teens
+image: /blog/ai-safety-public-scorecard-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# AI Safety Needs a Public Scorecard
+
+An AI company can announce a new safety rule in a day. Showing that the rule works in real conversations takes longer.
+
+On October 30, OpenAI announced additional violence-prevention measures for ChatGPT. They include less detail about past mass attacks for all users, more conservative responses when recent chats raise warning signs, the ability to end conversations that appear to fixate on violence, and tighter limits on practical weapons information for users it estimates are under 18. OpenAI said the measures would begin rolling out in the following weeks. It also committed to a Community Safety Report, with the first edition planned for early 2027 and updates every six months. ([OpenAI's announcement](https://openai.com/index/community-safety-report-and-new-protections-for-teens/); [Reuters' report](https://www.investing.com/news/stock-market-news/openai-to-limit-weapons-information-for-teens-on-chatgpt-in-violenceprevention-push-4988471))
+
+Those are concrete product and policy changes. They are not yet evidence that the safeguards reduce harm, work consistently, or avoid unacceptable mistakes. The distinction is important: a policy describes intended behavior; an evaluation measures behavior under specified conditions; an outcome study asks whether the intervention made a real-world difference.
+
+## Safety Is More Than a Refusal
+
+The announcement describes several different kinds of control:
+
+- **Content boundaries:** limiting specific details that could facilitate harm.
+- **Conversation context:** treating a new question differently when earlier messages raise concern.
+- **Intervention:** ending a conversation or temporarily pausing an account after repeated warning signs.
+- **Age-related rules:** applying stronger restrictions when a user is estimated to be a teen.
+- **Public reporting:** explaining how the system identifies, reviews, and responds to safety issues.
+
+Each layer has different failure modes. A content rule can block benign historical or educational questions. Context analysis can miss a pattern or misread one. An account intervention can interrupt a dangerous interaction, or it can wrongly shut out someone who needs help. Age estimation can fail in both directions. A report can make activity more visible without proving the intervention worked.
+
+That is why “we added safeguards” is a starting point for questions, not the final answer.
+
+## A Report Should Make Claims Testable
+
+OpenAI says its first report will cover the second half of 2026 and include anonymized examples, policy changes, and relevant data. The company also said it made more than 200 law-enforcement referrals in the third quarter. That number is a company-reported count. By itself, it does not show how many concerning interactions were detected overall, how many referrals were appropriate, or what happened after a referral. ([OpenAI's announcement](https://openai.com/index/community-safety-report-and-new-protections-for-teens/))
+
+A useful public scorecard could help readers answer more specific questions:
+
+1. **What is being measured?** Define the types of interactions, interventions, and outcomes covered, without publishing details that could help people evade safeguards.
+2. **What is the denominator?** Counts need context, such as rates across relevant interactions and how those rates change over time.
+3. **How often are decisions wrong?** Report false alarms, missed cases, appeals, and reversals where they can be measured responsibly.
+4. **What happens after an intervention?** Separate an automated action from a reviewed case, a referral, and a verified real-world outcome.
+5. **Who checks the method?** Explain testing procedures and invite qualified independent evaluation, with privacy protections for users.
+
+These are proposals for what strong reporting could contain, not details OpenAI has already promised. Its announcement says the report will include relevant data, but does not yet publish a methodology, specific metrics, or an independent-audit commitment.
+
+## Outside Testing Is Part of the Picture
+
+Public reports should not be the only source of evidence. In an October 7 assessment, Common Sense Media's Youth AI Safety Institute said it tested more than 4,000 prompts on teen-registered accounts and found that some protections worked while others did not meet its expectations. OpenAI disputed the assessment's methodology, according to reporting at the time. The exercise is not a complete measure of every user experience, and the disagreement itself is a reason to publish test methods clearly enough for others to scrutinize and reproduce them. ([Common Sense Media's assessment](https://www.commonsensemedia.org/press-releases/chatgpt-for-teens-poses-unacceptable-risk-to-kids-common-sense-media-finds); [Education Week's report on the dispute](https://www.edweek.org/technology/chatgpts-teen-mode-is-unsafe-for-students-report-concludes/2026/10))
+
+The new measures announced this week are not proof that earlier concerns have been resolved. They are changes that can now be tested as they roll out. Independent testing can probe how a feature behaves in controlled scenarios; the company's report can add operational information at scale. Neither should be treated as a substitute for the other.
+
+## Transparency Has to Protect Users, Too
+
+More disclosure is not automatically better if it exposes private conversations, reveals operational thresholds that invite evasion, or makes families feel that surveillance is the only path to safety. Good reporting can use anonymized examples, aggregate metrics, clear retention limits, and outside review without publishing sensitive user data or a playbook for bypassing controls.
+
+There is also a practical balance to strike with age estimation. Applying additional protections to likely teen users may reduce some risks, but the system can misclassify people. A product should explain how someone can challenge a mistaken classification, what information verification requires, and how that information is handled. OpenAI says adults placed in the teen experience can verify their age through its partner Persona; the quality and privacy of that process are separate questions that deserve clear answers. ([OpenAI's announcement](https://openai.com/index/community-safety-report-and-new-protections-for-teens/))
+
+## The Next Step Is Evidence
+
+The strongest part of OpenAI's announcement may be its commitment to report regularly on safety work. That creates an opportunity to move the conversation from broad assurances toward observable changes over time.
+
+The first report will matter less for how many pages it contains than for whether readers can understand what was measured, what remains uncertain, and how the system changed in response. A responsible safety report should be allowed to say that a control did not work as intended, that a result is inconclusive, or that a trade-off needs more study.
+
+AI safety is not a badge a product earns once. It is an ongoing claim about how a system behaves, how people are affected, and what its builders do when evidence shows a gap. New protections are a meaningful start. A public scorecard is how users can begin to tell whether they are making a difference.
+
+For another look at how responsibility changes when AI takes action, see [Why AI Agents Need Observability, Not Just Better Prompts](/blog/why-ai-agents-need-observability).
