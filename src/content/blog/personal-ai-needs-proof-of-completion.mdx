@@ -1,0 +1,63 @@
+---
+title: Personal AI Needs Proof of Completion
+date: 2026-11-03
+summary: OpenAI's new LifeVal evaluation shifts attention from AI answers to everyday tasks. The harder question is how an assistant proves it completed the right task, handled uncertainty, and left consequential choices with the person.
+tags: ai, agents, evaluation, product-design, human-ai-collaboration
+image: /blog/personal-ai-proof-of-completion-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# Personal AI Needs Proof of Completion
+
+An assistant can give you a polished answer and still leave all the work to you.
+
+Finding a school, comparing a home, planning care for a family member, or arranging groceries involves more than producing plausible text. The details have to fit your constraints. Some facts need checking. Some decisions belong to you. And if the assistant says it finished, you need to know what actually happened.
+
+That is why a new evaluation from OpenAI caught my attention. [LifeVal](https://openai.com/index/lifeval/) is designed around everyday tasks people say they would like help with: caregiving, health, education, household administration, personal finances, shopping, and government services. OpenAI says it drew on time-use studies and a survey of 3,995 respondents to identify those tasks, and that it has used the evaluation over the past year to track and improve model performance.
+
+The useful shift is from asking whether a model can answer a question to asking whether an assistant can move a real task forward. But “done” is a much more demanding word than “answered.”
+
+## An Answer Is Not an Outcome
+
+Imagine asking an assistant to find childcare after a move. A chat response could list three nearby providers. A useful assistant might compare opening hours, availability, distance, fees, and the preferences you gave it, then return a shortlist with the sources it checked.
+
+Those are different levels of help. The first is information retrieval. The second is a workflow with constraints, research, and a handoff. It may still be the right outcome to stop before enrollment: a parent may need to choose between tradeoffs that the system cannot infer.
+
+LifeVal’s published examples make this distinction visible. In one, the assistant compares kindergartens and says two preferences still need the user’s decision. In another, it prepares a care and meal plan for a parent with a recent diabetes diagnosis, then asks the user to review it before sharing. These are not just answer-shaped outputs. They show a system reaching a boundary and making that boundary part of the result.
+
+That matters because personal tasks are full of implicit conditions. “Find a home that fits my budget” may also mean a manageable commute, a safe neighborhood, an accessible layout, and no surprise costs. A system can satisfy the literal wording while missing the reason the task mattered.
+
+## What Should a Completion Receipt Show?
+
+If an AI assistant is going to take on work, its result should be inspectable. A useful completion receipt could show:
+
+1. **The requested goal and constraints.** What did the assistant understand “good” to mean? Which preferences were treated as requirements, and which were treated as flexible?
+2. **The evidence it used.** Which pages, records, or tools support the shortlist or recommendation? When were they checked, and what could not be verified?
+3. **The actions it actually took.** Did it only search and prepare, or did it submit a form, send a message, book something, or spend money? “Prepared” should not be presented as “completed.”
+4. **The unresolved choices.** Which decisions still need a person, and why? A clear question is better than quietly guessing at a preference with real consequences.
+5. **A recovery path.** If an option is unavailable or the assistant misunderstood, can the user inspect, correct, undo, or continue from the current state?
+
+This receipt is not bureaucracy for its own sake. It lets the user quickly see whether the system solved the right problem, whether it crossed a boundary, and where human judgment still matters.
+
+## Read the Score in Context
+
+LifeVal’s public page gives examples such as 93.1% for a kindergarten-shortlisting workflow and 90.4% for a meal-planning task involving a parent with a new diabetes diagnosis. It also lists several “best recorded” tasks at 100%. Those numbers are worth noticing, but they are not a universal guarantee that a model will perform those tasks perfectly for every family.
+
+The page describes an evaluation OpenAI built and used to track its own model progress. It does not, on the public page, provide a complete scoring protocol, an independent replication, or a comparison across providers. That does not make the evaluation useless; it means readers should treat the numbers as the company’s reported results and ask what success means for each task.
+
+That is a familiar rule for any benchmark: the number only means as much as its task definition, grader, and test conditions. I covered the basics in [a plain-English guide to AI benchmarks](/blog/what-ai-benchmarks-mean); LifeVal raises the next question of whether the test reflects the messy handoffs in a real person’s day.
+
+For example, a 100% result for finding a home and adding a deed to a cart does not mean a property was purchased or that the choice was right for a particular family. The published example explicitly leaves the deed for the user to review. The boundary between preparation and commitment is part of good assistance, not a failure to finish.
+
+The most meaningful tests should include realistic constraints, stale or conflicting information, and moments where the safest action is to ask. They should report whether the assistant showed its evidence, respected consent, avoided irreversible actions without approval, and recovered cleanly when a step failed. One headline score cannot tell that whole story.
+
+## The Human Is Still Part of the Workflow
+
+AI products often celebrate removing steps. For everyday responsibilities, the better design may be to remove tedious steps while making the important ones easier to review.
+
+An assistant can gather options, organize paperwork, draft a message, or prepare a plan. The person should be able to see what is known, what is uncertain, and what is waiting for their approval. For health, finances, caregiving, and public services, that is not a cosmetic detail. It is how the product keeps the user’s intent in charge.
+
+LifeVal is an interesting sign that AI evaluation is moving toward the work people actually want done. The next step is making completion legible: not merely a score, but a traceable result with evidence, boundaries, and a clear handoff.
+
+The best personal assistant will not be the one that says “Done” most confidently. It will be the one that can show what “done” means, what it really did, and where you still get to decide.
