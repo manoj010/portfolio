@@ -1,0 +1,60 @@
+---
+title: Can You Prove Which AI Model Answered You?
+date: 2026-11-04
+summary: Anthropic's FlashProve prototype explores a cryptographic receipt for AI inference: evidence that a response came from a specific committed set of model weights, without revealing those weights. It is promising research, not a production guarantee or a verdict on whether an answer is good.
+tags: ai, cryptography, model-provenance, security, inference
+image: /blog/ai-model-identity-proof-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# Can You Prove Which AI Model Answered You?
+
+When an AI service tells you it used a particular model, you usually have to take its word for it.
+
+That may be fine for a casual question. It matters more when a company routes prompts through several models, when an evaluator is comparing systems, or when a developer claims that a security review was performed by a specific model. A fluent answer is not evidence of which model produced it. Different systems can sound alike, and a service operator controls the machinery between your request and the response.
+
+Anthropic's new research prototype, [FlashProve](https://www.anthropic.com/research/provable-inference), takes a run at this problem. It uses zero-knowledge cryptographic proofs to let a provider demonstrate that a checked output token follows from a particular prompt and a particular committed set of model weights, without publishing the weights themselves. The idea is a little like a tamper-evident receipt for part of an inference request.
+
+The announcement is research, not a deployed feature. But it raises a useful question for the whole AI industry: can model identity become something a user verifies instead of something a product badge merely claims?
+
+## How the Proof Works
+
+FlashProve has two main steps. First, a provider publishes a cryptographic commitment to one exact set of model weights. Think of it as a fingerprint: it identifies the weights without disclosing them. Later, for a prompt and a response, the provider generates a proof that the committed model, under the specified computation, produced the checked output tokens.
+
+The verifier does not need the model weights or a GPU to check that proof. Anthropic describes FlashProve as using zkSNARKs, a family of cryptographic systems that can prove a computation was performed correctly while revealing little beyond the claim being checked. The public code release includes a fast C++ verifier and a Lean formalization of key security statements. ([Technical overview](https://www.anthropic.com/research/provable-inference); [FlashProve code](https://github.com/anthropics/FlashProve))
+
+In its reported test, Anthropic used publicly available 4-bit weights for the 400-billion-parameter Llama 4 Maverick. The 1,024 tokens describe the request context window; each proof checks one output token under the prototype's specific computation. On a batch of 24 requests, the authors report proof generation at about 110 tokens per second and a proof size of 18.78 MB. A CPU verifier checked a proof in 17 seconds using 24 threads. The proof-generation setup took substantially more compute than ordinary inference: Anthropic reports roughly 72 times the per-GPU time in its vLLM comparison, rising to about 94 times at the highest tested load. These are the authors' measurements on a research setup, not independent production benchmarks.
+
+That overhead is the heart of the engineering tradeoff. Verification can be comparatively cheap for the recipient, while creating the proof is expensive for the provider. Whether that balance is acceptable depends on how valuable the assurance is and how much latency and compute a service can afford.
+
+## What It Could Make Verifiable
+
+If model commitments were published and distributed in a trustworthy way, inference proofs could help answer questions that are difficult to settle from text alone:
+
+- Did this API response come from the model version selected by the customer, rather than an undisclosed substitute?
+- Did a benchmark run actually use the model whose result is being reported?
+- Can an auditor check that a regulated service used an approved model for a particular request?
+- Was the response token stream altered between inference and delivery?
+
+This connects to an earlier point I made about [model routers](/blog/ai-stack-router): routing can choose a model based on cost, latency, or task fit, but the choice is only useful if the product makes it clear what was selected. A proof could add a technical way to check that claim. It would not decide whether the selected model was the right choice.
+
+## A Proof Is Not a Trust Shortcut
+
+There is an important bootstrapping question: how do you know that a commitment corresponds to the model name on the product screen?
+
+The proof binds a checked token to a commitment. The mapping between that commitment and a label such as “Model X, version Y” still needs a trusted source. The FlashProve project instructions make this practical point directly: get the commitment ID from a party you trust, not from the server being checked. If the service can invent both the model label and the fingerprint, a mathematically valid proof may still be attached to a misleading name.
+
+And the proof answers a narrow question. It does not prove that the model's answer is true, safe, unbiased, or useful. It does not establish that the prompt was appropriate, that private data was handled correctly, or that every step around the model was honest. It verifies a specified computation against committed weights; it is not a general certificate of trustworthy AI.
+
+That distinction is easy to lose in the word “proof.” Cryptography can provide strong assurance about the exact statement encoded in a protocol. It cannot silently expand that statement to cover product behavior, data governance, or answer quality.
+
+## From Research Artifact to Useful Infrastructure
+
+FlashProve is an open-source prototype, and Anthropic describes the work as intermediate research. The repository is marked as a research artifact and not maintained. The current proof checks an integer version of the weights under greedy decoding; it does not certify arbitrary sampled output from a floating-point serving stack. Its demonstration is also limited to 1,024-token contexts, with a separate proof for each checked token. Those constraints, plus the substantial proving cost, matter before anyone treats the numbers as a ready-made service feature.
+
+The larger direction is still compelling. As AI becomes infrastructure for software, research, and business processes, provenance becomes a practical need: not just “what did the model say?” but “which system produced this output, under what declared conditions, and can anyone check?”
+
+Model cards and API labels can describe a service. Logs can record what an operator says happened. Cryptographic inference proofs offer a path toward something stronger: evidence tied to the computation itself, while keeping proprietary weights private.
+
+We are not at universal, low-cost verification yet. FlashProve does not solve every trust problem, and its current overhead is substantial. But it makes model identity a technical property that can be investigated rather than a branding promise users must accept. That is a meaningful step toward AI systems that can show their work about where an answer came from.
