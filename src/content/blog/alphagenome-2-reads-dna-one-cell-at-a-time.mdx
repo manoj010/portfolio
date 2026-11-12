@@ -1,0 +1,88 @@
+---
+title: AlphaGenome 2 Reads DNA One Cell Type at a Time
+date: 2026-11-12
+summary: Google DeepMind’s AlphaGenome 2 conditions DNA predictions on a specific cell type or state, aiming to reveal variant effects hidden by tissue averages. It is a research model for prioritizing questions, not a clinical test or proof of causation.
+tags: ai, genomics, biology, research, healthcare
+image: /blog/alphagenome-2-cell-types-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# AlphaGenome 2 Reads DNA One Cell Type at a Time
+
+Almost every cell in your body carries the same DNA. But a heart cell, a blood cell, and an immune cell do not use that instruction book in the same way. They turn different genes up or down, and even a small change in the surrounding biology can alter what a genetic variant does.
+
+That context is the focus of **AlphaGenome 2**, a new DNA sequence model Google DeepMind announced on November 11. Rather than predict across broad tissue averages all at once, the updated model takes a particular cell type or state as context and estimates how a DNA sequence or variant may affect molecular activity there.
+
+The shift matters because a signal averaged across an entire tissue can hide an effect that appears only in one specialized cell population. But these are computational predictions for research. They can help scientists decide what to investigate; they do not diagnose disease or establish that a variant causes it.
+
+![AlphaGenome 2 conditions DNA sequence predictions on cell type and state to estimate gene activity and other molecular readouts](/blog/alphagenome-2-cell-types-social.png)
+
+## The Same DNA, Different Cellular Jobs
+
+DNA is not simply a list of genes that every cell reads in the same way. Regulatory regions help control when and where genes are active. A genetic change in one of those regions may have a measurable effect in one cell type and little visible effect in another.
+
+That creates an interpretation problem. A study may link a stretch of DNA to a disease, but the association alone does not tell researchers which specific variant matters, which gene it affects, or in which cells the effect occurs. If measurements are averaged across many cell types, a strong but narrow effect can disappear into the mean.
+
+The original AlphaGenome model predicted a range of molecular signals from long DNA sequences across multiple tissues. AlphaGenome 2 changes how the context enters the prediction: it conditions on a particular biological state while analyzing the sequence. That state can come from a reference catalog or from a scientist’s own single-cell experiment.
+
+In simplified form:
+
+```text
+DNA sequence + cell type or state
+              |
+              v
+     predicted molecular effects
+              |
+              v
+  candidate variants and experiments
+```
+
+The output is not a clinical conclusion. It is a way to narrow a large search space toward testable hypotheses.
+
+## Why Condition On The Cell?
+
+DeepMind describes AlphaGenome 2 as a conditional model: it predicts one selected tissue, cell type, or state at a time. The team says it trained the model on more than 107 million individual cell profiles spanning 68 tissues. The model predicts gene expression and other readouts, including chromatin accessibility and DNA methylation.
+
+The release also describes a route for working with new cell states. A researcher can provide a single-cell RNA-sequencing snapshot, and the model can use that profile as conditioning information without retraining the sequence model. It can also estimate some unmeasured molecular properties from observed ones, a process called cross-modality imputation.
+
+That is useful as a research workflow because experiments are incomplete by nature. A lab may have one kind of measurement for a cell state but not another. A model can suggest where to look next or which variant-cell combinations deserve closer study. The suggestion still needs to be checked against biological evidence.
+
+## What The First Results Say
+
+On the TenK10K dataset, which covers 28 primary immune cell types, DeepMind reports that AlphaGenome 2 identified 30% of causal variants in its evaluation, compared with 16% for the original AlphaGenome fine-tuned on single-cell data. It also reports that the model more often predicted the direction of a gene-expression effect correctly: 43% versus 23% in that comparison.
+
+Those numbers are useful, but they are not universal accuracy rates. They describe one named dataset and evaluation setup, and they come from the model developer’s release. They should not be read as meaning the model identifies the cause of nearly one-third of all genetic diseases, or that every prediction is experimentally confirmed.
+
+DeepMind also describes a computational analysis of a known inflammatory bowel disease example involving the ETS2 gene and gut macrophages. The model reproduced the reported cell-specific pattern in its predictions. That is a promising demonstration of the model’s intended use: connect a variant to a possible regulatory effect in a relevant cell. It is not a new clinical finding, nor a replacement for the experiments that established the underlying biology.
+
+## A Better Filter For Experiments, Not A Shortcut Around Them
+
+Predictive models can make it cheaper to generate candidate explanations. They cannot make the experiments needed to distinguish a useful hypothesis from a convincing-looking false lead disappear.
+
+For a scientist, a careful workflow might look like this:
+
+1. Start with a disease-associated region or candidate variant from existing genetic evidence.
+2. Ask which cell types or states could plausibly matter to the biology.
+3. Use the model to compare predicted effects across those contexts.
+4. Treat the result as a prioritization signal, including uncertainty and alternative explanations.
+5. Test the most useful candidates with suitable experiments and independent evidence.
+
+The model could help with steps two through four. It cannot determine by itself whether a predicted change is large enough to matter in a living person, whether other mechanisms dominate, or whether a treatment based on the hypothesis would work.
+
+DeepMind explicitly says AlphaGenome 2 is for research use and has not been validated or approved for clinical or diagnostic purposes. Availability is also limited: the company says it is accessible for non-commercial research through its API, while commercial research is in private preview.
+
+## The Important Question Is What The Model Helps Us Test
+
+The interesting part of AlphaGenome 2 is not simply that it predicts more outputs. It is that the model makes cellular context a first-class input. A DNA variant is no longer assessed only against a broad tissue label; researchers can ask how the prediction changes for a particular cell population or state.
+
+That could help connect statistical associations to specific biological mechanisms, and guide experiments toward the cells where a signal is most likely to appear. Whether that leads to better disease understanding will depend on external validation, the quality and coverage of single-cell data, and how well the model handles states beyond its training examples.
+
+I wrote about a related boundary in [the gap between AI drug-discovery predictions and tested medicines](/blog/ai-drug-discovery-reality-gap): a computational result can prioritize what to investigate, but it is not the same thing as an experimentally validated treatment.
+
+AlphaGenome 2 does not read DNA and announce what disease someone will get. It offers researchers a more cell-aware way to form and rank hypotheses about how genetic variation may influence gene regulation. That is a useful step, as long as we keep the word “prediction” attached to the result until experiments justify something stronger.
+
+## Sources
+
+- [Google DeepMind: AlphaGenome 2: Deciphering how cells read DNA to better understand disease](https://deepmind.google/blog/alphagenome-2-deciphering-how-cells-read-dna-to-better-understand-disease/)
+- [AlphaGenome documentation: AlphaGenome 2 API and model reference](https://www.alphagenomedocs.com/)
