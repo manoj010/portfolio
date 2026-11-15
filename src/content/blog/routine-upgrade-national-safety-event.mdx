@@ -1,0 +1,74 @@
+---
+title: A Routine Upgrade Can Become a National Safety Event
+date: 2026-11-15
+summary: The FAA ground stop followed a reported communications-network upgrade from copper to fiber. The root cause remains under investigation, but the incident shows why critical infrastructure changes need narrow blast radiuses, tested rollback paths, and clear ownership.
+tags: infrastructure, reliability, aviation, networks, technology
+image: /blog/routine-upgrade-national-safety-event-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# A Routine Upgrade Can Become a National Safety Event
+
+“Routine maintenance” sounds small. A contractor changes a communications link at one remote site, moves an old copper connection to fiber, replaces a router, and expects the network to keep working.
+
+On November 13, the U.S. Federal Aviation Administration issued a nationwide ground stop after communications problems affected multiple air traffic control centers. In an update the next day, the Department of Transportation described a preliminary explanation: work at a remote location was moving a telecommunications line from copper to fiber, and a router began sending repeated connection attempts that affected communications and some radar feeds. Officials had not yet determined whether the trigger was an installation error or faulty equipment.
+
+The ground stop was the safety response. The engineering question is how a change at one site could have such a wide impact, and how to make the next necessary upgrade less likely to surprise the system around it.
+
+![A telecommunications upgrade at one site can have a much wider impact if a fault crosses its intended boundary](/blog/routine-upgrade-national-safety-event-social.png)
+
+## What We Know, And What Is Still Open
+
+The FAA’s initial statement said communications issues were affecting multiple Air Route Traffic Control Centers. On November 14, Transportation Secretary Sean Duffy described what officials believed had happened: a contractor was switching a remote FAA telecommunications line from copper to fiber. During that work, a router began generating more than 1,000 connection attempts every four to five seconds, according to his account, contributing to communications problems and some disruption to radar feeds.
+
+That is a preliminary explanation, not a completed root-cause report. Officials said they were still investigating whether the issue came from a faulty router, an installation error, or another problem. It would be premature to announce a definitive technical cause from the public statements alone.
+
+DOT reported that controllers and pilots safely brought more than 3,500 aircraft down, then resumed thousands of flight operations after the stop was lifted. The incident caused widespread disruption, but a precautionary shutdown is not evidence that aircraft were unsafe in the air.
+
+## The AI Connection Was A Distraction
+
+The FAA had recently expanded a separate air-traffic decision-support system called SMART, and that timing prompted online claims that the AI system caused the ground stop. The public account from officials instead described a telecommunications issue during network work. Transportation officials said SMART was disconnected from the equipment that suffered problems; the company behind SMART also denied a link.
+
+This distinction matters. When a visible new AI rollout happens near a serious outage, it is easy to blame the new system. But a plausible story is not a verified incident analysis. The evidence available so far does not establish a causal link between SMART and the ground stop; timing alone is not proof.
+
+That restraint is useful far beyond aviation. In complex systems, engineers should map dependencies and evidence before deciding which recent change caused an incident.
+
+## Modernization Is A Series Of Changes, Not One Big Launch
+
+It is tempting to describe this as “the modernization program failed.” FAA Administrator Bryan Bedford made a more specific distinction in the DOT briefing: the copper-to-fiber work at that location was ordinary maintenance on the existing telecommunications network, not part of the larger, separately funded modernization effort.
+
+That distinction is important because large infrastructure programs contain many kinds of change. A new national system, replacing an old component, routine maintenance, and a contractor’s local configuration change have different owners, plans, and risk profiles. Putting them all under “modernization” obscures which controls actually need to improve.
+
+The same pattern appears in any organization that cannot simply take a critical service offline. Legacy equipment must keep operating while new links, routers, software, and providers are introduced around it. A component that appears isolated on a diagram may still share routing, management traffic, timing, identity, or fallback paths with systems far away.
+
+## How To Reduce The Blast Radius
+
+The public reporting does not establish which specific safeguard failed, so the following are questions for the investigation and general engineering practices, not claims about what the FAA did or did not do.
+
+**Make the change boundary real.** A replacement at one site should not be able to create unlimited traffic or unexpected state changes elsewhere. Rate limits, filtering, segmentation, and conservative defaults can help keep a local fault local.
+
+**Test the interaction, not only the new component.** A router can pass its own checks and still behave badly when connected to older equipment or unusual network conditions. Test the whole path, including the legacy devices that will remain in service after the change.
+
+**Keep rollback practical.** A migration plan needs a known-good configuration, a clear decision point, and a way to restore the previous path without improvising during an incident. “We can roll back” is not a control unless the team has rehearsed how.
+
+**Use staged rollout and independent monitoring.** Where the architecture permits, move one limited segment first, observe the system from outside the component being changed, and expand only when the wider service remains healthy. For systems that cannot be paused, change windows alone are not a substitute for containment and rollback.
+
+**Bring operations staff into the review.** The union representing FAA technicians told the Associated Press that the agency normally consults its technicians on upgrade or repair risk, and that this did not happen in this case. That is an allegation about process that deserves investigation, not a settled finding. But it points to a general lesson: the people who maintain the live system often know which undocumented dependencies make a “simple” change risky.
+
+## The Hard Part Is Changing A System That Cannot Stop
+
+Older infrastructure should not be preserved forever. In this case, the copper line was being replaced because it was old and being discontinued. The upgrade was necessary; the goal is not to avoid change, but to make the transition controlled enough that a necessary improvement does not create a wider failure.
+
+I have written before about [resilience as shared infrastructure](/blog/cloud-resilience-works-better-as-shared-infrastructure) and [planning for technology outages](/blog/ai-workflows-need-downtime-plans). This incident is a more specific reminder: resilience is tested not only when a service fails, but while we change the service that keeps everything else running.
+
+For the FAA, the root-cause investigation should clarify what happened at the router, what dependencies allowed the impact to spread, and what protections will change before similar work continues. Until those findings are public, the strongest conclusion is also the most practical one: routine upgrades in critical systems deserve the same seriousness as new deployments.
+
+## Sources
+
+- [U.S. Department of Transportation: November 14 update on the nationwide ground stop](https://www.transportation.gov/briefing-room/icymi-us-transportation-secretary-sean-p-duffy-provides-update-restoration-airspace)
+- [FAA: Statement on the nationwide ground stop](https://www.faa.gov/newsroom/faa-statement-nationwide-ground-stop)
+- [Associated Press: What to know about flights after the U.S. nationwide ground stop](https://apnews.com/article/7dce2343ceb56332aa7946a27fcae562)
+- [Associated Press: Air travel recovery and technician-union concerns](https://apnews.com/article/1fbf4992f0ddaa4c463b0e4990b6e291)
+- [Associated Press: The ground stop, Microsoft outage, and AI rumors](https://apnews.com/article/ea5f7a1f95a38f65dd57e58cfc17672b)
+- [GAO: Air traffic control modernization needs cost and schedule planning](https://files.gao.gov/reports/GAO-26-107992/index.html?pubDate=20260922)
