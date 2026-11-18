@@ -1,0 +1,62 @@
+---
+title: A Third-Party Script Is Code Inside Your Website
+date: 2026-11-18
+summary: The Optimizely Web compromise showed how attackers can turn a trusted experimentation script into a browser-side supply-chain incident. Here is what happened, what the exposure figures do and do not mean, and how teams can reduce the blast radius of vendor JavaScript.
+tags: cybersecurity, web-security, javascript, software-supply-chain, infrastructure
+image: /blog/third-party-javascript-is-code-inside-your-site-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# A Third-Party Script Is Code Inside Your Website
+
+A website can have clean servers, uncompromised application code, and still run an attacker’s JavaScript in a visitor’s browser.
+
+That is the uncomfortable lesson from the Optimizely Web Experimentation incident disclosed this week. An attacker exploited a flaw in the product’s account signup flow, impersonated users, and inserted JavaScript into some customer projects. Those projects were then served to visitors through the same experimentation snippets the sites already trusted. The vendor says it fixed the vulnerability and removed the injected code; the investigation and customer-specific review are separate questions from whether the code is still being served. ([Optimizely incident report](https://pages.optimizely.com/rs/947-RKE-048/images/Security%20Incident%20Report%20-%20Optimizely%20Web%20Experimentation%20-%20Nov%2017%202026.pdf); [Reuters coverage](https://www.reuters.com/legal/government/popular-websites-subverted-bid-steal-crypto-target-iphone-users-2026-11-17/))
+
+![Diagram showing how a trusted vendor script can carry attacker code into visitors' browsers](/blog/third-party-javascript-is-code-inside-your-site-social.png)
+
+## What Happened In The Browser
+
+Optimizely Web customers can include a JavaScript snippet from the vendor’s content delivery network. That snippet can include customer-specific experiment configuration and optional custom JavaScript. According to Optimizely’s report, the attacker used a flaw in the signup flow to impersonate users and write code into some projects. This was **not** described as stolen customer passwords or a compromised administrator account.
+
+Report URI’s researcher Scott Helme examined 1,611 snippets and found malicious code in 188 of them, associated with 178 organizations. Those are counts from the researcher’s observed sample, not a count of affected visitors or proof that every page on every named organization’s site was compromised. The injected code attempted to load additional code and, depending on the behavior, target cryptocurrency transfers, payment-card fields, cookies, screenshots, and Apple devices. Optimizely’s later report narrowed some claims: for example, it said hosted payment iframes were not accessible to the injected script and that the script’s purpose was to obtain payment information and cryptocurrency activity. ([Report URI’s technical analysis](https://blog.report-uri.com/worlds-largest-brands-infected-with-malware-via-optimizely/); [Optimizely’s customer report](https://pages.optimizely.com/rs/947-RKE-048/images/Security%20Incident%20Report%20-%20Optimizely%20Web%20Experimentation%20-%20Nov%2017%202026.pdf))
+
+The key detail is where the script ran. When a page includes a script, that code generally executes in the page’s context. It can interact with the document, read form fields available to page scripts, and make network requests allowed by the browser’s policies. The browser does not treat it as a harmless picture from a vendor’s server. It treats it as executable code the site has chosen to trust.
+
+That is why this is more than a vendor-side incident. The vendor’s project-management controls became a path to modify code delivered into other organizations’ pages. The organizations did not need to have their own web servers breached for visitors to receive the altered script.
+
+## Why “We Trust This Domain” Is Not Enough
+
+A common Content Security Policy (CSP) allows scripts from a list of trusted domains. That can prevent a page from loading code from a completely unfamiliar attacker domain. But if a trusted vendor’s allowed script dynamically adds another script, a policy using `strict-dynamic` can intentionally extend trust to scripts loaded by that trusted script. That behavior is useful for legitimate systems, and it means a domain allowlist alone is not a complete boundary.
+
+Content Security Policy remains valuable. A carefully designed, enforced policy can block unexpected scripts or outbound connections and reduce what injected code can do. Optimizely reported that sites with a strong CSP were protected, while its report also told customers to check their own CSP violation reports and outbound requests. “We have CSP” is not enough by itself: teams need to know whether it is enforced, what it permits, and whether vendor scripts can delegate trust too broadly. ([MDN’s CSP guide](https://developer.mozilla.org/en-US/docs/Web/Security/Practical_implementation_guides/CSP))
+
+Subresource Integrity (SRI) can make a browser verify a fetched file against a cryptographic hash. It is useful for stable, versioned assets. But a customer-specific experimentation snippet that changes as experiments and custom code change is a poor fit for a fixed hash unless the deployment process can reliably update and review that hash. SRI is a control to apply where content is immutable and versioned, not a magic attribute that makes every live vendor script safe. ([MDN’s SRI guide](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Subresource_Integrity))
+
+## Reduce The Amount Of Trust You Hand Over
+
+The practical response is not “remove every external script tomorrow.” Analytics, support widgets, payment integrations, experimentation tools, and other vendors can be important. The response is to treat each one as production code with an owner, a purpose, and a failure plan.
+
+- **Inventory every script.** Include tags injected through tag managers, CMS plugins, and vendor dashboards, not only files in the application repository.
+- **Limit where it runs.** Avoid loading experimentation or analytics code on payment, account-recovery, and other sensitive pages unless the feature is needed there.
+- **Use least privilege.** Prefer vendor configurations that do not allow broad custom JavaScript or cross-customer administrative access. Restrict outbound connections through CSP where practical.
+- **Keep evidence.** Retain CSP reports, CDN and application logs, page-level script inventories, and payment-fraud signals long enough to investigate a short exposure window.
+- **Have a kill switch.** Teams should be able to disable a vendor integration centrally without waiting for a full application deployment.
+- **Review incident details, not only headlines.** A script appearing on a site does not by itself prove that every visitor’s data was stolen. Determine whether the specific project was affected, which pages loaded it, what controls blocked it, and what data those pages exposed.
+
+The vendor’s report said the vulnerability was closed and malicious code removed from affected projects by November 16. That is an important containment milestone, but it does not automatically answer each customer’s questions about exposure, investigation, or notification. Organizations still need their own page inventory and logs to determine what happened in their environment.
+
+## A Script Tag Is A Security Decision
+
+Third-party JavaScript is often treated as a small product decision: add a tag, get a feature. In reality, that tag delegates some of the site’s browser authority to another system. If the vendor’s configuration or delivery path is abused, the code can affect visitors under the site’s identity even when the site’s own application was not changed.
+
+This is the browser-side version of software supply-chain risk. The defense is not simply to trust fewer brands; it is to make trust narrow, observable, and reversible. Know which code runs, on which pages, with which permissions, and how quickly it can be stopped. A line of HTML can be a dependency, an operational control, and a security boundary all at once.
+
+## Sources
+
+- [Optimizely: Security Incident Report for Web Experimentation customers](https://pages.optimizely.com/rs/947-RKE-048/images/Security%20Incident%20Report%20-%20Optimizely%20Web%20Experimentation%20-%20Nov%2017%202026.pdf)
+- [Report URI: World's Largest Brands Infected With Malware Via Optimizely](https://blog.report-uri.com/worlds-largest-brands-infected-with-malware-via-optimizely/)
+- [Reuters: Popular websites subverted in bid to steal crypto, target iPhone users](https://www.reuters.com/legal/government/popular-websites-subverted-bid-steal-crypto-target-iphone-users-2026-11-17/)
+- [MDN: Content Security Policy implementation](https://developer.mozilla.org/en-US/docs/Web/Security/Practical_implementation_guides/CSP)
+- [MDN: Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Subresource_Integrity)
