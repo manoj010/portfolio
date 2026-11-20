@@ -1,0 +1,91 @@
+---
+title: The 30-Minute Lambda Is Not a 30-Minute Request
+date: 2026-11-20
+summary: AWS has doubled the maximum runtime for on-demand Lambda Event Functions to 30 minutes. That opens useful doors for batch and AI work, but it does not remove caller timeouts, retries, duplicate side effects, or the need for checkpoints.
+tags: aws, serverless, lambda, software-architecture, cloud-computing
+image: /blog/the-30-minute-lambda-is-not-a-30-minute-request-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# The 30-Minute Lambda Is Not a 30-Minute Request
+
+For years, AWS Lambda's familiar limit was 15 minutes per invocation. On November 19, AWS announced that on-demand Lambda Event Functions can now run for up to 30 minutes. That is a meaningful change for work that has always been a little too long for a function: large file conversions, data exports, intensive calculations, and some AI inference or agent workflows. ([AWS announcement](https://aws.amazon.com/blogs/compute/announcing-30-minute-timeout-for-on-demand-aws-lambda-event-functions/))
+
+But there is a trap in the headline. A function that is allowed to run for 30 minutes does not mean every request path can wait 30 minutes. The new limit expands what the compute can do; it does not make the network, browser, API gateway, queue, or client wait indefinitely.
+
+![A queued job can run for 30 minutes in Lambda even though a synchronous API caller may time out much sooner](/blog/the-30-minute-lambda-is-not-a-30-minute-request-social.png)
+
+## What Actually Changed
+
+AWS says on-demand Event Functions can now be configured for up to 1,800 seconds for synchronous, asynchronous, and event source mapping invocations. On Lambda Managed Instances, synchronous invocations also get up to 30 minutes; asynchronous and event source mapping invocations there have a 90-minute maximum. The announcement applies to Lambda's Event Functions, and the existing handler and runtime model remain in place. ([AWS Compute Blog](https://aws.amazon.com/blogs/compute/announcing-30-minute-timeout-for-on-demand-aws-lambda-event-functions/))
+
+This is a doubling of the per-invocation ceiling, not a promise that every task should be one long invocation. AWS itself describes workloads such as large media conversions, AI requests that chain model calls and tools, financial calculations, report generation, and ETL steps as cases where the previous ceiling could be inconvenient.
+
+## The Caller Still Has Its Own Clock
+
+Imagine a web app starts a report-generation function and waits for the result. Lambda may be configured to keep working for 30 minutes, but the caller's connection is a separate system with its own deadline. An API Gateway HTTP API, for example, documents a maximum integration timeout of 30 seconds; REST API integrations have a 29-second default, with some Regional or private API configurations allowing an increase. A browser, mobile app, reverse proxy, or SDK may time out even earlier. ([API Gateway HTTP API quotas](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-quotas.html); [API Gateway integration reference](https://docs.aws.amazon.com/apigateway/latest/api/API_Integration.html))
+
+That mismatch can produce a particularly confusing failure: the user sees a timeout, but the work may still be running. The caller may retry, create a second job, or tell the user that nothing happened even though the first invocation eventually completes.
+
+For jobs that can outlive a request, a more robust shape is usually:
+
+1. Accept the request and validate it quickly.
+2. Put a job message on a queue or start an asynchronous workflow.
+3. Return a job ID instead of holding the HTTP connection open.
+4. Let the worker process the job and save progress or its result.
+5. Let the client check status, receive a callback, or fetch the completed output.
+
+The user experience becomes “Your export is processing” instead of a spinner that quietly expires. It also separates the availability of the front end from the duration of the work.
+
+## More Time Makes Retry Design More Important
+
+A longer timeout can make a task more likely to finish in one attempt. It also makes the cost of a late failure larger. If a 25-minute operation fails at minute 22 and the system retries it from the beginning, those 22 minutes of work may be repeated. If the operation wrote to a database, sent a payment, or triggered an external action before failing, a retry can repeat those side effects too.
+
+This is not unique to Lambda. Event-driven systems commonly provide at-least-once processing rather than exactly-once effects. AWS warns that Lambda's SQS event source mapping can process an event more than once and recommends writing idempotent handlers. In other words, the same message should be safe to handle again without charging twice, duplicating a report, or creating a second record. ([Using Lambda with SQS](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html))
+
+Queue settings matter as well. AWS recommends configuring an SQS queue's visibility timeout to at least six times the function timeout when it triggers Lambda. Otherwise, a message can become visible to another worker while the original invocation is still working, creating duplicate concurrent processing. ([Configuring an SQS queue to trigger Lambda](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html))
+
+For long jobs, a production design should therefore include an idempotency key, bounded retries, a dead-letter path for repeated failures, and metrics that distinguish “still running” from “stuck” and “failed.” Raising a timeout without revisiting those controls can turn a quick retry problem into an expensive one.
+
+## A Longer Invocation Is Not the Same as a Durable Workflow
+
+If a task is made of several expensive stages, simply letting one function run longer may still be the wrong recovery strategy. A function that downloads data, transforms it, calls a model, and writes results can lose all its in-memory progress if it crashes near the end.
+
+Lambda durable functions add checkpointing and replay for multi-step workflows. AWS distinguishes the timeout of an individual invocation from the total lifetime of a durable execution: a durable execution can span much longer, while each invocation remains subject to its own maximum. For an asynchronous durable execution, AWS says the overall lifecycle can run for up to a year; completed steps can be skipped on replay when the function resumes from a checkpoint. ([Lambda durable functions](https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html); [AWS announcement](https://aws.amazon.com/blogs/compute/announcing-30-minute-timeout-for-on-demand-aws-lambda-event-functions/))
+
+That distinction gives teams a practical choice:
+
+- Use a longer ordinary invocation when the work is a single bounded operation and restarting it is acceptable.
+- Use checkpoints when the work has costly stages and should resume rather than start over.
+- Use a queue or workflow when the caller should not wait, or when work needs scheduling, status, retries, and a clear failure path.
+
+These approaches can be combined. The important question is not “Can this function run for 30 minutes?” It is “If it stops at minute 29, what state is safe, what will retry, and what will the user see?”
+
+## When the New Limit Helps
+
+The limit is most useful when the task has variable, bursty demand and a bounded run time. A large upload might need a longer conversion only occasionally. A report may run slowly at month end. An inference pipeline might need time for several model and tool calls, but not run continuously throughout the day. In those cases, extending the function can remove workarounds such as splitting a single task into awkward chunks solely to fit the old limit.
+
+It is less compelling for steady, always-busy workloads, tasks that need specialized accelerators unavailable in the chosen environment, or processes that are fundamentally unbounded. A timeout is still a ceiling, not an orchestration plan. Teams should also account for execution duration, memory, concurrency, retries, and any downstream service limits when estimating cost and capacity.
+
+## A Small Decision Checklist
+
+Before changing a function to 1,800 seconds, ask:
+
+- Is the caller synchronous, and can every hop on its path wait that long?
+- If a retry happens, can the work safely run again?
+- For queue-triggered work, is the visibility timeout appropriate for the longer runtime?
+- Should the job save checkpoints so a late failure does not repeat completed stages?
+- Can the user see a job ID, progress, and a final status instead of an open connection?
+- Do logs and metrics show duration, retries, timeout rate, and duplicate work clearly?
+- Is this still a good fit for a function, or does the workload need a continuously running service or a dedicated workflow engine?
+
+The 30-minute limit is useful because it makes serverless compute fit a wider range of real workloads. The best outcome will not come from using all 30 minutes by default. It will come from pairing that extra room with an execution model that knows how to wait, retry, recover, and tell the caller what happened.
+
+## Sources
+
+- [AWS Compute Blog: Announcing 30-minute timeout for on-demand AWS Lambda Event Functions](https://aws.amazon.com/blogs/compute/announcing-30-minute-timeout-for-on-demand-aws-lambda-event-functions/)
+- [AWS Lambda: Using Lambda with Amazon SQS](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html)
+- [Amazon SQS: Configuring a queue to trigger Lambda](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html)
+- [Amazon API Gateway: HTTP API quotas](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-quotas.html)
+- [AWS Lambda: Durable functions](https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html)
