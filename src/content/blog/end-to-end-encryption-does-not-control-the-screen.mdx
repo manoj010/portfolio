@@ -1,0 +1,83 @@
+---
+title: End-to-End Encryption Does Not Control the Screen
+date: 2026-11-21
+summary: Signal's new protections against operating-system AI agents reveal a boundary encryption cannot solve by itself: once a message is decrypted on your device, other software with screen, notification, or accessibility access may be able to read it.
+tags: cybersecurity, privacy, encryption, ai-agents, operating-systems
+image: /blog/end-to-end-encryption-does-not-control-the-screen-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# End-to-End Encryption Does Not Control the Screen
+
+End-to-end encryption is designed to keep a message readable only by its intended recipients. It protects the communication while it travels between devices, so the messaging provider and network intermediaries cannot simply open the conversation. ([Signal Support](https://support.signal.org/hc/en-us/articles/360007320391-Is-it-private-Can-I-trust-it))
+
+But the recipient's device still has to decrypt the message to show it. That creates a different security question: **what other software on the device can see the message after it appears?**
+
+Signal made that question unusually concrete on November 20, when it announced new protections against operating-system AI agents that capture screen content. This is not evidence that Signal's encryption was broken. It is a reminder that encryption protects one part of a system, while the device's permissions govern another. ([Signal's announcement](https://signal.org/blog/protecting-your-privacy/))
+
+![A message stays encrypted while traveling, then appears as readable text on the recipient's device where operating-system permissions matter](/blog/end-to-end-encryption-does-not-control-the-screen-social.png)
+
+## Encryption Ends At A Working Device
+
+An encrypted messaging system must eventually make a message readable to the person receiving it. The recipient's app decrypts it locally and renders text on screen. An AI assistant that can inspect that screen, read notifications, or use accessibility APIs may access the already-readable content through the device, rather than by defeating the encryption between sender and recipient.
+
+That distinction matters. Calling this an “encryption break” blurs two different threat models:
+
+- **Communication security:** Can someone read the message while it travels or while it is stored by the service?
+- **Endpoint security:** Can software or a person with sufficient access read the message on a device where it is already displayed?
+
+End-to-end encryption addresses the first question. It cannot, by itself, decide which other applications or operating-system services may inspect the screen, notifications, or local files on a recipient's device.
+
+This is not unique to AI. A malicious app, screen recorder, spyware, or someone looking over your shoulder can also observe content after decryption. What changes with system-level assistants is that reading the screen can be presented as a convenient feature of the operating system, or as part of a task the user asked an agent to complete.
+
+## The Permissions Were Real; The Scope Was Hard To See
+
+Reuters, working with Signal and the AI Now Institute, tested how Meta's Muse agent could access Signal messages on an Android phone and a Mac. Reuters reported that on Android the agent used notification access; on macOS it used accessibility and screenshot tools. The report said those permissions had been granted during setup, but were used in ways users might not have expected. The tests did not show that Signal's encryption had been defeated. They showed that broad operating-system permissions can expose content outside an app's own encrypted messaging path. ([Reuters investigation](https://www.reuters.com/investigations/meta-bets-big-muse-ai-agent-early-safety-mishaps-surface-2026-11-18/))
+
+That is the hard part about permission design: a user can tap “Allow” without understanding that a general capability such as notification access or accessibility control may reach private conversations in other apps. The permission may be technically explicit while the scope and consequences remain difficult to predict.
+
+An agent may need to inspect a screen to complete a task. But “can read notifications” is broader than “can read this one message for this one request.” “Can control other apps” is broader than “can fill these fields after I approve.” If operating systems offer only broad capabilities, the user is left to trade convenience against privacy without a precise control in between.
+
+## Signal's Defense Is Useful, But Deliberately Incomplete
+
+Signal says it blocks screenshots in its iOS 27 app and turns on its Android screen-security setting when it detects an AI assistant attempting to read the screen. Users can disable the protection if they want screenshots. Signal also says it cannot reliably detect every relevant attempt across Android variants, and it cannot currently implement equivalent screenshot blocking on macOS. Its blog notes that filesystem access and other paths may still expose app data. ([Signal's announcement](https://signal.org/blog/protecting-your-privacy/))
+
+Those caveats are important. Screenshot blocking is a mitigation for one access path, not a universal shield around every decrypted message. It may also interfere with legitimate screenshots, assistive workflows, or other ordinary app behavior. Signal describes the measure as incomplete because the application cannot independently control every route through which the operating system or an agent may access data.
+
+Apple has separately introduced more granular permission options in macOS 27.3 beta 2. Its developer note describes separate controls for device and app access, narrower choices for apps and folders, an “ask every time” option, and a transparency indicator when an app controls another one. Apple also says previously granted permissions remain in effect. These are useful changes, but they do not automatically provide a universal app-level “do not let AI agents read this” switch across screen capture, notifications, accessibility, files, and other system APIs. ([Apple Developer: macOS permission updates](https://developer.apple.com/news/?id=oqng0zjk))
+
+## Privacy Needs A Boundary At The Endpoint
+
+The lesson is not that end-to-end encryption is pointless. It remains a powerful and necessary protection against service providers and network intermediaries. The lesson is that a secure conversation depends on more than cryptography: it also depends on the devices, operating systems, permissions, and applications that handle the readable message.
+
+Operating systems could make this boundary clearer by providing:
+
+- **A specific AI-access permission.** Screen reading, notification access, file access, and app control should be understandable capabilities, not hidden side effects of broad accessibility permissions.
+- **App-level exclusions.** A privacy-sensitive app should be able to declare that agents may not inspect its screens or extract its content, while still allowing human accessibility tools to work.
+- **Task-scoped access.** Users should be able to grant access to a selected app or screen for one task, rather than approving ongoing visibility by default.
+- **Useful indicators and records.** The system should show when an agent is looking at an app, what it accessed, and whether data stayed local or was sent to a remote service.
+- **Documented guarantees.** Developers need stable APIs and accurate specifications so they can test and explain what their privacy promises cover.
+
+These controls cannot prevent every endpoint compromise. They can, however, give users and developers a meaningful way to narrow normal agent access instead of relying on app-specific workarounds.
+
+## What Users Can Check Today
+
+If you use an AI agent that can interact with your phone or computer, review the permissions it has been granted. Pay particular attention to screen recording, notifications, accessibility, file access, and control of other apps. Remove access that is not necessary, and prefer a workflow that lets you choose the specific content to share.
+
+For Signal on macOS 27, Signal's current guidance is to add the app to the excluded-apps section in System Settings for Siri AI. On supported Signal mobile versions, review the app's screen-protection settings and read the prompt before turning them off. These steps reduce some exposure paths; they do not prove that every system-level agent or data route is blocked. ([Signal's platform-specific guidance](https://signal.org/blog/protecting-your-privacy/))
+
+I wrote earlier about assistants moving into the desktop's “window layer.” This incident adds a sharper security distinction: a message can be cryptographically protected in transit and still become visible to software at the endpoint. The app and the operating system both shape that boundary. ([AI Assistants Are Moving Into The Window Layer](/blog/ai-assistants-window-layer))
+
+## The Endpoint Is Part Of The Promise
+
+When a messaging app promises privacy, users naturally hear a promise about the whole conversation. Cryptography can protect messages from the service provider, but the final device still has to render them, and the operating system mediates what software can see or do there.
+
+AI agents make this old endpoint problem harder to ignore because they are being designed to cross app boundaries. The next step is not to weaken encryption or to ban useful assistants. It is to give users and developers precise, visible controls over when an agent can observe private content, and to make those controls work across the operating system rather than app by app.
+
+## Sources
+
+- [Signal Support: Is it private? Can I trust it?](https://support.signal.org/hc/en-us/articles/360007320391-Is-it-private-Can-I-trust-it)
+- [Signal: Protecting your privacy in a world of AI agents](https://signal.org/blog/protecting-your-privacy/)
+- [Reuters: As Meta bets big on Muse AI agent, early safety mishaps surface](https://www.reuters.com/investigations/meta-bets-big-muse-ai-agent-early-safety-mishaps-surface-2026-11-18/)
+- [Apple Developer: Updates to Device Control and Data Access, and Full Disk Access in macOS](https://developer.apple.com/news/?id=oqng0zjk)
