@@ -1,0 +1,78 @@
+---
+title: Multi-Cloud Observability Is More Than One Dashboard
+date: 2026-11-22
+summary: AWS CloudWatch Omni now collects Azure logs, metrics, flow logs, and traces. A shared console can shorten incident investigations, but useful cross-cloud observability still depends on consistent identity, trace context, selective data collection, and clear ownership.
+tags: cloud, observability, aws, azure, sre
+image: /blog/multi-cloud-observability-is-more-than-one-dashboard-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# Multi-Cloud Observability Is More Than One Dashboard
+
+When an application spans two clouds, an incident rarely respects the line between them.
+
+A request might enter through an Azure-hosted service, call an API in AWS, then wait on a database or queue. The user sees one slow operation. The engineers may see three consoles, different resource names, separate alert rules, and a handoff between teams.
+
+On November 21, AWS announced that Amazon CloudWatch Omni can collect Azure resource logs, Azure Monitor platform metrics, virtual-network flow logs, and Application Insights traces. Azure telemetry can be viewed alongside AWS telemetry in CloudWatch Omni. AWS says teams can select subscriptions, regions, resource types, tags, and telemetry types when configuring the connection. ([AWS announcement](https://aws.amazon.com/about-aws/whats-new/2026/11/amazon-cloudwatch-omni-microsoft-azure/))
+
+That is a useful step. But **putting signals in one place is not the same as making them tell one coherent story.**
+
+## The Incident Is One; The Telemetry Is Many
+
+Imagine a checkout request that begins in an Azure application and calls a payment service hosted in AWS. If latency rises, an on-call engineer needs to answer a sequence of questions:
+
+1. Which service first became slow?
+2. Did the request reach the downstream service?
+3. Was the delay application work, a network hop, or a dependency?
+4. Did the issue affect one region, one deployment, or every customer?
+
+Metrics can reveal that latency increased. Logs can show errors. Traces can describe the path of an individual request. Network flow data can help explain whether traffic reached the expected destination. Their value grows when the signals can be correlated, not merely when they share a screen.
+
+OpenTelemetry describes context propagation as the mechanism that lets traces, metrics, and logs be associated across service boundaries. For distributed traces, a trace identifier and parent span information travel with the request, allowing separate services to contribute to the same causal record. ([OpenTelemetry: Context propagation](https://opentelemetry.io/docs/concepts/context-propagation/))
+
+If a request crosses a cloud boundary and loses that context, a unified console may show both sides of the incident without proving that they belong to the same request. Engineers are back to matching timestamps and guessing.
+
+## What The CloudWatch Update Actually Changes
+
+The new integration reduces one kind of friction: the need to switch between AWS and Azure tools just to gather a first view of platform signals. The AWS announcement specifically names Azure resource logs, Azure Monitor platform metrics, VNet flow logs, and Application Insights traces. It says Azure telemetry can be collected from Azure public regions and ingested into regions where CloudWatch Omni is available. Connecting it requires an Azure Microsoft Entra ID tenant, and collection can be narrowed by subscription, region, resource type, and tags. ([AWS announcement](https://aws.amazon.com/about-aws/whats-new/2026/11/amazon-cloudwatch-omni-microsoft-azure/))
+
+The scope matters. The announcement is about collecting defined Azure telemetry types into CloudWatch Omni. It does not mean every Azure service is automatically instrumented, that all telemetry formats are made equivalent, or that a distributed trace will be complete without application instrumentation and propagation. The product is a place to bring signals together; the system still needs to emit useful signals in the first place.
+
+## A Dashboard Cannot Normalize Your Architecture
+
+Cross-cloud observability usually fails in less glamorous places than the dashboard:
+
+- **Identity:** the same logical service may be called `checkout-api` in one cloud and `prod-checkout-west` in another.
+- **Trace continuity:** a proxy, queue, or custom client may not forward trace context across the boundary.
+- **Time and labels:** inconsistent clocks, environment names, region labels, and deployment identifiers make comparisons harder.
+- **Ownership:** an alert can be visible to both teams while nobody knows who is expected to act first.
+- **Data scope:** sending every log and metric to a central place can raise cost, access-control, retention, and residency questions.
+
+OpenTelemetry's service conventions provide a practical starting point: identify services consistently with attributes such as `service.name` and `service.namespace`. That does not solve every vendor mapping problem, but it gives teams a shared vocabulary before they build dashboards and alerts around it. ([OpenTelemetry: Service semantic conventions](https://opentelemetry.io/docs/specs/semconv/resource/service/))
+
+## A Practical Readiness Check
+
+Before connecting another cloud to a central observability platform, teams can make the integration more useful by doing a few unglamorous things first:
+
+1. **Choose canonical service names.** Record how each logical service is named across cloud accounts, clusters, and environments.
+2. **Test one end-to-end request.** Follow a real request across the boundary and confirm that trace IDs and parent-child relationships survive.
+3. **Inventory signals before exporting them.** Decide which logs, metrics, flow records, and traces are needed for operations, and set retention and access rules deliberately.
+4. **Build incident views around questions.** Start with “where does this request slow down?” rather than assembling a wall of unrelated charts.
+5. **Agree on ownership.** Define who acknowledges an alert, who can change each side, and how teams coordinate during an incident.
+
+These checks are not specific to CloudWatch. They apply to any organization trying to make a distributed system observable across providers or organizational boundaries.
+
+## One Console Is A Starting Point
+
+CloudWatch Omni adding Azure telemetry is a meaningful product update for teams already operating across AWS and Azure. A shared place to inspect signals can reduce context switching and make cross-cloud investigations more practical.
+
+The deeper engineering work remains ours: name services consistently, propagate request context, choose what data to collect, and make ownership explicit. A dashboard can bring the evidence together. It cannot create the causal links the system never recorded.
+
+## Sources
+
+- [AWS: Amazon CloudWatch Omni now supports Microsoft Azure platform logs, metrics and traces](https://aws.amazon.com/about-aws/whats-new/2026/11/amazon-cloudwatch-omni-microsoft-azure/)
+- [AWS CloudWatch Omni documentation](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch-omni.html)
+- [AWS: Send platform telemetry from Microsoft Azure](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/omni-send-platform-telemetry-from-microsoft-azure.html)
+- [OpenTelemetry: Context propagation](https://opentelemetry.io/docs/concepts/context-propagation/)
+- [OpenTelemetry: Service semantic conventions](https://opentelemetry.io/docs/specs/semconv/resource/service/)
