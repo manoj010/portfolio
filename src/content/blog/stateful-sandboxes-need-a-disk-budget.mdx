@@ -1,0 +1,85 @@
+---
+title: Stateful Sandboxes Need a Disk Budget
+date: 2026-11-23
+summary: AWS Lambda MicroVM base image version 4 increases available disk per MicroVM by up to four times. The bigger opportunity is persistent, isolated workspaces, but snapshot size, resume latency, storage charges, and lifecycle boundaries still need deliberate design.
+tags: aws, serverless, microvms, storage, software-architecture
+image: /blog/stateful-sandboxes-need-a-disk-budget-social.png
+imageWidth: 1600
+imageHeight: 900
+---
+
+# Stateful Sandboxes Need a Disk Budget
+
+A disposable sandbox sounds simple: start it, do the work, throw it away.
+
+Real work is rarely that tidy. A coding workspace may need a compiler, package cache, test fixtures, and a checked-out repository. A browser session may accumulate downloads and local state. An agent may need to pause between turns without rebuilding its entire environment each time.
+
+That makes disk more than a place to put files. It becomes part of the sandbox's lifecycle.
+
+On November 23, AWS released version 4 of its Lambda MicroVM managed base image, listing an increase of up to four times the available disk space per MicroVM. AWS's current sizing table lists maximum disk capacities from 10 GB to 128 GB depending on the selected baseline size. ([AWS MicroVM base image release notes](https://docs.aws.amazon.com/lambda/latest/dg/microvms-base-image-release-notes.html); [MicroVM sizing](https://docs.aws.amazon.com/lambda/latest/dg/microvms-images.html))
+
+The announcement is small. The design question behind it is not: **what should a sandbox keep, and for how long?**
+
+This is separate from the recent [30-minute Lambda Event Functions change](/blog/the-30-minute-lambda-is-not-a-30-minute-request): that update raised an invocation time limit. Version 4 changes disk capacity for Lambda MicroVMs, a distinct product with a different state and lifecycle model.
+
+## MicroVMs Have Two Different Kinds Of State
+
+AWS Lambda MicroVMs are not ordinary Lambda function invocations. They are isolated compute environments that can run for an individual user, session, or job. An image is built from a Dockerfile and application artifacts; Lambda initializes the application and captures a snapshot of its disk and memory. A new MicroVM starts from that preinitialized snapshot. ([AWS: MicroVM images](https://docs.aws.amazon.com/lambda/latest/dg/microvms-images.html); [AWS: MicroVM core concepts](https://docs.aws.amazon.com/lambda/latest/dg/microvms-how-it-works.html))
+
+There are therefore two useful state boundaries:
+
+- **Image state:** the common starting point baked into the image, such as system packages, application code, and safe-to-share caches.
+- **Runtime state:** changes made by one MicroVM after it starts, such as a user's workspace or a job's intermediate files.
+
+If a running MicroVM becomes idle, it can be suspended. Its memory and disk state are checkpointed, and it can later resume from that state. While suspended, AWS says compute charges stop but snapshot storage charges continue. A terminated MicroVM cannot be resumed. ([AWS: Suspending and resuming MicroVMs](https://docs.aws.amazon.com/lambda/latest/dg/microvms-launching.html))
+
+This is useful for an environment that should feel continuous without keeping compute running all the time. It is not the same as a permanent disk or a database. The state belongs to that MicroVM's lifecycle.
+
+## More Space Makes Better Workflows Possible
+
+With only a small disk budget, teams tend to strip an environment down to the minimum and reconstruct everything after a pause. More room can make it practical to retain work that is expensive or slow to recreate:
+
+- a repository checkout and build artifacts
+- dependency and package caches
+- browser downloads and a task-specific profile
+- temporary datasets or model assets
+- intermediate output for a multi-stage job
+
+The benefit is not just saving downloads. A sandbox can resume closer to the state the user or agent left behind. That can make repeated interactions feel less like starting over and more like returning to a workstation.
+
+But a larger disk does not automatically make a workload cheaper or faster. AWS notes that resume latency depends on the size of the suspended state being restored, and that the `/resume` hook adds its own work. Snapshot storage is also a billed resource while the MicroVM is suspended. Keep only the state that makes a session meaningfully easier to continue. ([AWS: MicroVM suspend and resume](https://docs.aws.amazon.com/lambda/latest/dg/microvms-launching.html))
+
+## A Shared Snapshot Is Not A User's Private Workspace
+
+The image snapshot is reused as the starting point for multiple MicroVMs. That makes it a good place for common software and carefully prepared static data. It is a poor place for anything that should be unique to one user or one run.
+
+AWS warns that values created during image initialization, including identifiers, secrets, or network connections, can be copied into every MicroVM launched from that image. Generate unique values after launch instead, and use the runtime hooks to establish or refresh per-instance state. ([AWS: MicroVM core concepts](https://docs.aws.amazon.com/lambda/latest/dg/microvms-how-it-works.html))
+
+This distinction is especially important for agent sandboxes. A preloaded toolchain is common setup. A login token, customer file, or conversation-specific browser state is not. The image is a template; the running VM is the session boundary.
+
+## Treat Disk Like A Lifecycle Choice
+
+Before increasing a sandbox's disk allocation, ask what the extra space is for and what should happen to it:
+
+1. **What belongs in the image?** Put repeatable software and safe shared caches in the build snapshot; keep user-specific data out of it.
+2. **What should survive a pause?** Retain only the working state needed to resume the session. Use `/suspend` to flush writes and close connections, and `/resume` to refresh credentials and reconnect.
+3. **What must survive termination?** Store records, deliverables, and anything requiring independent retention in a durable external store. A MicroVM that reaches the end of its lifecycle is not that store.
+4. **How large is a useful snapshot?** Measure build time, suspend storage, and resume latency with realistic data, not just an empty test environment.
+5. **When should it be deleted?** Set an idle and maximum-lifetime policy, and make termination or cleanup explicit for abandoned workspaces.
+
+The sizing table scales disk capacity with configured memory, but disk is not a substitute for memory or CPU. Version 4 changes available disk in the managed base image; it does not change the basic distinction between ordinary Lambda functions and Lambda MicroVMs, nor does it turn suspended state into permanent storage. Check which base-image version is available in your Region and rebuild an image version when you want to adopt it. ([AWS base image release notes](https://docs.aws.amazon.com/lambda/latest/dg/microvms-base-image-release-notes.html); [AWS: MicroVM base images](https://docs.aws.amazon.com/lambda/latest/dg/microvms-images.html))
+
+## The Sandbox Is Becoming A Workspace
+
+The interesting shift is not simply that one cloud product has a larger disk. It is that isolated compute can keep enough state to make a task feel continuous: prepare an environment once, pause it when idle, and return to it later.
+
+That pattern can work well for development environments, per-user tools, and bounded agent tasks. It also brings familiar storage responsibilities into a serverless-shaped product: snapshot carefully, distinguish shared setup from private state, understand what suspension costs, and decide what must leave the sandbox before it is terminated.
+
+A bigger disk gives a sandbox more room. A clear lifecycle is what makes that room useful.
+
+## Sources
+
+- [AWS Lambda MicroVM base image release notes](https://docs.aws.amazon.com/lambda/latest/dg/microvms-base-image-release-notes.html)
+- [AWS Lambda MicroVM images and sizing](https://docs.aws.amazon.com/lambda/latest/dg/microvms-images.html)
+- [AWS Lambda MicroVM core concepts](https://docs.aws.amazon.com/lambda/latest/dg/microvms-how-it-works.html)
+- [AWS Lambda MicroVM lifecycle: suspend and resume](https://docs.aws.amazon.com/lambda/latest/dg/microvms-launching.html)
